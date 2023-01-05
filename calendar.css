@@ -212,3 +212,48 @@ header .logo
   padding: 10px;
   min-height: 220px;
 }
+
+.deleteButton {
+  position: fixed;
+  background-color: rgba(235, 13, 13, 0.52);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: none;
+  float: right;
+  margin-bottom: 10px;
+  margin-left: 30px;
+}
+
+.deleteButton:hover {
+  background-color: rgba(235, 13, 13, 0.702)
+}
+
+.editButton {
+  position: fixed;
+  background-color: rgba(13, 113, 235, 0.52);
+  border: none;
+  border-radius: 50%;
+  color: white;
+  cursor: pointer;
+  display: none;
+  float: right;
+  margin-bottom: 10px;
+}
+
+.editButton:hover {
+  background-color: rgba(13, 113, 235, 0.733);
+}
+
+.card:hover .editButton{ 
+	display:block;
+}
+
+.card:hover .deleteButton{ 
+	display:block;
+}
+
+.none {
+  display: none;
+}

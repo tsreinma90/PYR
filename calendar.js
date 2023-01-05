@@ -128,8 +128,12 @@ function setToActive(key, e) {
             const popoverKey = "myPopover_" + targetCard.key;
             const popover = document.getElementById(popoverKey);
             popover.style.display = "block";
-            //let calendarCardHtml = document.querySelector("[data-id=" + "\'" + targetCard.key + "\'" + "]");
-            //calendarCardHtml.removeEventListener("mousedown", setToActive);
+            
+            const editButton = document.querySelector('[data-id="editbutton_' + targetCard.key + '"]');
+            editButton.className = "none";
+
+            const deleteButton = document.querySelector('[data-id="deletebutton_' + targetCard.key + '"]');
+            deleteButton.className = "none";
         }
     }
 }
@@ -139,9 +143,14 @@ function setToRead(key) {
     const index = targetCard.monthDay - 1;
     availableDates[index].active = false;
     const popoverKey = "myPopover_" + targetCard.key;
-    const popover = document.getElementById(popoverKey);
-    popover.style.display = "hidden";
-    console.log('damn');
+    let popover = document.getElementById(popoverKey);
+    popover.style.display = "none";
+
+    const editButton = document.querySelector('[data-id="editbutton_' + targetCard.key + '"]');
+    editButton.className = "editButton";
+
+    const deleteButton = document.querySelector('[data-id="deletebutton_' + targetCard.key + '"]');
+    deleteButton.className = "deleteButton";
 }
 
 function fetchCard(key) {
