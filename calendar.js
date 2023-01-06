@@ -2,7 +2,6 @@ monthlyCalendar = {}; // immutable map
 selectedMonth = ''; // key
 availableDates = ''; // value
 buildPlanOpen = false; // modal to automate plan
-toggleEventHandler = [];
 initialized = false;
 
 /* Create calendar */
@@ -11,7 +10,6 @@ window.onload = function(){
     defineCalendarYear(); // this creates the data we work with
     setupCalendar(); // this updates the HTML on the doc
     initialized = true;
-    console.log(toggleEventHandler[0]);
 }
 
 function setupMenuButton() {
@@ -66,7 +64,6 @@ function defineCalendarYear() {
 function setupCalendar() {
     selectedMonth = Object.keys(monthlyCalendar)[0]; // yyyy.mm
     availableDates = monthlyCalendar[selectedMonth]; // availableDates = [] which controls the UI; we only need to show 1 month at a time
-    toggleEventHandler = [];
 
     setStartDay();
 

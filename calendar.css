@@ -179,6 +179,43 @@ header .logo
   cursor: pointer;
 }
 
+.form {
+  width: 220px;
+  height: 220px;
+  zoom: 95%;
+}
+.form-control {
+  display: block;
+  padding-top: 10px;
+}
+.form-control label {
+  display: block;
+}
+.form-control input[type="number"] {
+  width: 85%;
+  padding: 1px;
+  box-sizing: border-box;
+}
+.form-control textarea {
+  width: 85%;
+  height: 35px;
+  padding: 1px;
+  box-sizing: border-box;
+}
+.form-control select {
+  width: 85%;
+  padding: 1px;
+  box-sizing: border-box;
+}
+.form-actions {
+  text-align: center;
+}
+.form-actions button {
+  /*width: 80px;
+  height: 30px;*/
+  margin: 10px 0;
+}
+
 .arrow:hover left:hover right:hover{
   cursor: pointer;
 }
@@ -206,12 +243,12 @@ header .logo
 
 .myPopover {
   display: none;
-  position: relative;
+  /*position: relative;
   z-index: 3;
   background-color: #f4f4f4;
-  border: 1px solid black;
+  /*border: 1px solid black;
   padding: 10px;
-  min-height: 220px;
+  min-height: 220px;*/
 }
 
 .none {
@@ -228,6 +265,7 @@ header .logo
   bottom: 0;
   right: 0;
   display: none;
+  cursor: pointer;
 }
 .buttonContainer:hover .buttons {
   display: block;
