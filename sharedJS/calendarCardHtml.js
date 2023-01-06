@@ -8,8 +8,12 @@ function createCalendarCard(calendarEvent) {
                             <p>Popover content goes here</p>
                             <button onmousedown="setToRead('`+calendarEvent.key+`')">Close</button>
                         </div>
-                        <button class="editButton" data-id="editbutton_`+calendarEvent.key+`" onclick="setToActive('`+calendarEvent.key+`', event)"><i class="fa-thin fa-pencil"></i></button>
-                        <button class="deleteButton" data-id="deletebutton_`+calendarEvent.key+`" onclick="setToActive('`+calendarEvent.key+`', event)"><i class="fa fa-trash"></i></button>
+                        
+                        <div class="buttonContainer">
+                            <div class="buttons">
+                                <button class="editButton" data-id="editbutton_`+calendarEvent.key+`" onclick="setToActive('`+calendarEvent.key+`', event)"><i class="fa-solid fa-pencil"></i></button>
+                            </div>
+                        </div>
                     </div>
                 </div>`;
     return html;

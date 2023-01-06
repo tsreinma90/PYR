@@ -13,7 +13,7 @@ header
   left: 0;
   width: 100%;
   padding: 40px 100px;
-  z-index: 3;
+  z-index: 10;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -163,7 +163,7 @@ header .logo
   text-align: center;
   border-radius: 5px;
   backface-visibility: hidden;
-  cursor: url("./media/pencil.png"), pointer;
+  /*cursor: url("./media/pencil.png"), pointer;*/
 }
 
 .back {
@@ -176,6 +176,10 @@ header .logo
   border-width: 0 3px 3px 0;
   display: inline-block;
   padding: 3px;
+  cursor: pointer;
+}
+
+.arrow:hover left:hover right:hover{
   cursor: pointer;
 }
 
@@ -203,57 +207,39 @@ header .logo
 .myPopover {
   display: none;
   position: relative;
-  /*top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);*/
-  z-index: 4000;
-  background-color: green;
+  z-index: 3;
+  background-color: #f4f4f4;
   border: 1px solid black;
   padding: 10px;
   min-height: 220px;
 }
 
-.deleteButton {
-  position: fixed;
-  background-color: rgba(235, 13, 13, 0.52);
-  border: none;
-  border-radius: 50%;
-  color: white;
-  cursor: pointer;
-  display: none;
-  float: right;
-  margin-bottom: 10px;
-  margin-left: 30px;
-}
-
-.deleteButton:hover {
-  background-color: rgba(235, 13, 13, 0.702)
-}
-
-.editButton {
-  position: fixed;
-  background-color: rgba(13, 113, 235, 0.52);
-  border: none;
-  border-radius: 50%;
-  color: white;
-  cursor: pointer;
-  display: none;
-  float: right;
-  margin-bottom: 10px;
-}
-
-.editButton:hover {
-  background-color: rgba(13, 113, 235, 0.733);
-}
-
-.card:hover .editButton{ 
-	display:block;
-}
-
-.card:hover .deleteButton{ 
-	display:block;
-}
-
 .none {
   display: none;
+}
+
+.buttonContainer {
+  position: relative;
+  width: 220px;
+  height: 220px;
+}
+.buttons {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  display: none;
+}
+.buttonContainer:hover .buttons {
+  display: block;
+}
+.editButton {
+  display: inline-block;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 50%;
+  color: black;
+  cursor: pointer;
+  margin-right: 15px;
+  margin-bottom: 10px;
 }
