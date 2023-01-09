@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<link rel="stylesheet" href="dragDropTest.css">
+<link href="fontawesome-free-6.2.1-web/css/fontawesome.css" rel="stylesheet">
+<link href="fontawesome-free-6.2.1-web/css/brands.css" rel="stylesheet">
+<link href="fontawesome-free-6.2.1-web/css/solid.css" rel="stylesheet">
+<html lange="en-US">
+    <div id="workout-types">
+        <div class="workout-type" id="easy">Easy</div>
+        <div class="workout-type" id="fast">Fast</div>
+        <div class="workout-type" id="slow">Slow</div>
+    </div>
+    <br/>
+    <div id="days">
+        <div class="day" id="Monday">Monday</div>
+        <div class="day" id="Tuesday">Tuesday</div>
+        <div class="day" id="Wednesday">Wednesday</div>
+        <div class="day" id="Thursday">Thursday</div>
+        <div class="day" id="Friday">Friday</div>
+        <div class="day" id="Saturday">Saturday</div>
+        <div class="day" id="Sunday">Sunday</div>
+    </div>
+  <script>
+  // JavaScript
+  const days = document.querySelectorAll('.day');
+  const workoutTypes = document.querySelectorAll('.workout-type');
+  
+  // Set the draggable attribute for the workout types
+  workoutTypes.forEach(workoutType => workoutType.setAttribute('draggable', true));
+  
+  // Add event listeners for the drag and drop events
+  workoutTypes.forEach(workoutType => { workoutType.setAttribute('draggable', true);
+    workoutType.addEventListener('dragstart', dragStart);
+    workoutType.addEventListener('dragend', dragEnd);
+  });
+  days.forEach(day => {
+    day.addEventListener('dragover', dragOver);
+    day.addEventListener('dragenter', dragEnter);
+    day.addEventListener('dragleave', dragLeave);
+    day.addEventListener('drop', dragDrop);
+  });
+  
+  // Drag start event
+  function dragStart(e) {
+    e.dataTransfer.setData('text/plain', e.target.id);
+    this.classList.add('dragging');
+  }
+  
+  // Drag end event
+  function dragEnd(e) {
+    this.classList.remove('dragging');
+  }
+  
+  // Drag over event
+  function dragOver(e) {
+    e.preventDefault();
+  }
+  
+  // Drag enter event
+  function dragEnter(e) {
+    this.classList.add('hovered');
+  }
+  
+  // Drag leave event
+  function dragLeave(e) {
+    this.classList.remove('hovered');
+  }
+
+  function removeItem() {
+    const selectedElementId = event.target.getAttribute("id");
+    const parentId = selectedElementId.split("_")[0];
+    let parent = document.getElementById(parentId);
+    let child = document.getElementById(selectedElementId);
+    parent.removeChild(child);
+  }
+  
+  // Drag drop event
+  function dragDrop(e) {
+    let targetId = String(event.target.id);
+    let workoutTypeId = e.dataTransfer.getData('text/plain');
+    
+    if (targetId.split("_").length < 2) { // avoids duplicate buttons if drop occurs on the other button
+      let workoutType = document.getElementById(workoutTypeId);
+      let buttonId = targetId + "_" + workoutType.innerText;
+
+      if (!document.getElementById(buttonId)) {
+        const cancelButton = createElementFromHTML(`<button type="button" id="` + buttonId + `" onclick="removeItem(event)"><i class="fa-solid fa-xmark" id="` + buttonId + `"></i>`+workoutType.textContent+`</button>`);
+        this.appendChild(cancelButton);
+      }
+    }
+    this.classList.remove('hovered');
+  }
+
+  function createElementFromHTML(htmlString) {
+    var div = document.createElement('div');
+    div.innerHTML = htmlString.trim();
+    // Change this to div.childNodes to support multiple top-level nodes.
+    return div.firstChild;
+  }
+</script>
+</html>
