@@ -4,22 +4,34 @@
 <link href="fontawesome-free-6.2.1-web/css/brands.css" rel="stylesheet">
 <link href="fontawesome-free-6.2.1-web/css/solid.css" rel="stylesheet">
 <html lange="en-US">
+  <div class="zoomOut">
     <div id="workout-types">
         <div class="workout-type" id="easy">Easy</div>
-        <div class="workout-type" id="fast">Fast</div>
-        <div class="workout-type" id="slow">Slow</div>
+        <div class="workout-type" id="steady">Steady</div>
+        <div class="workout-type" id="tempo">Tempo</div>
+        <div class="workout-type" id="track">Track / Repeats</div>
+        <div class="workout-type" id="long">Long Run</div>
+        <div class="workout-type" id="race">Race</div>
     </div>
     <br/>
     <div id="days">
-        <div class="day" id="Monday">Monday</div>
-        <div class="day" id="Tuesday">Tuesday</div>
-        <div class="day" id="Wednesday">Wednesday</div>
-        <div class="day" id="Thursday">Thursday</div>
-        <div class="day" id="Friday">Friday</div>
-        <div class="day" id="Saturday">Saturday</div>
-        <div class="day" id="Sunday">Sunday</div>
+        <ul class="day" id="Monday">Monday</ul>
+        <ul class="day" id="Tuesday">Tuesday<br/></ul>
+        <ul class="day" id="Wednesday">Wednesday<br/></ul>
+        <ul class="day" id="Thursday">Thursday<br/></ul>
+        <ul class="day" id="Friday">Friday<br/></ul>
+        <ul class="day" id="Saturday">Saturday<br/></ul>
+        <ul class="day" id="Sunday">Sunday<br/></ul>
     </div>
+  </div>
   <script>
+  window.onload = function() {
+    // to-do, set the zoom out % based on what the zoom level of the window is and handle via event listener on resize
+    let initialVal = getComputedStyle(document.documentElement)
+    .getPropertyValue('--zoom-out');
+    document.documentElement.style
+    .setProperty('--zoom-out', '80%');
+  }
   // JavaScript
   const days = document.querySelectorAll('.day');
   const workoutTypes = document.querySelectorAll('.workout-type');
@@ -83,7 +95,17 @@
       let buttonId = targetId + "_" + workoutType.innerText;
 
       if (!document.getElementById(buttonId)) {
-        const cancelButton = createElementFromHTML(`<button type="button" id="` + buttonId + `" onclick="removeItem(event)"><i class="fa-solid fa-xmark" id="` + buttonId + `"></i>`+workoutType.textContent+`</button>`);
+        const cancelButton = createElementFromHTML(
+          `<li id="` + buttonId + `" style="padding: 2px;">
+            <button 
+              type="button"  
+              style="background-color: white; min-width: 53px;" 
+              onclick="removeItem(event)">
+                <i class="fa-solid fa-xmark" id="` + buttonId + `"> </i>` +
+                workoutType.textContent +
+            `</button>
+          </li>`
+        );
         this.appendChild(cancelButton);
       }
     }
@@ -93,7 +115,6 @@
   function createElementFromHTML(htmlString) {
     var div = document.createElement('div');
     div.innerHTML = htmlString.trim();
-    // Change this to div.childNodes to support multiple top-level nodes.
     return div.firstChild;
   }
 </script>

@@ -10,9 +10,12 @@ function createCalendarCard(calendarEvent) {
                                 <div class="form-control">
                                     <label for="dropdown">Workout</label>
                                     <select id="dropdown" name="Workout">
-                                        <option value="one">One</option>
-                                        <option value="two">Two</option>
-                                        <option value="three">Three</option>
+                                        <option value="easy">Easy</option>
+                                        <option value="steady">Steady</option>
+                                        <option value="tempo">Tempo</option>
+                                        <option value="track">Track</option>
+                                        <option value="long">Long Run</option>
+                                        <option value="race">Race</option>
                                     </select>
                                 </div>
                                 <div class="form-control">
