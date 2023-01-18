@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"></link>
+    <script>
+        $(document).ready(function () {
+            var $element = $("#very-specific-design");
+            var $children = $element.children();
+
+            $(window).on("resize", function () {
+                var width = $(window).width() / $element.width();
+                var height = $(window).height() / $element.height();
+                var scale = Math.min(width, height);
+                console.log(scale);
+                $element.css({
+                    "-webkit-transform": "translate(-50%, -50%) scale(" + scale + ")",
+                    "-moz-transform": "translate(-50%, -50%) scale(" + scale + ")",
+                    "-ms-transform": "translate(-50%, -50%) scale(" + scale + ")",
+                    "-o-transform": "translate(-50%, -50%) scale(" + scale + ")",
+                    "transform": "translate(-50%, -50%) scale(" + scale + ")"
+                });
+                $children.css({
+                    "-webkit-transform": "scale(" + scale + ")",
+                    "-moz-transform": "scale(" + scale + ")",
+                    "-ms-transform": "scale(" + scale + ")",
+                    "-o-transform": "scale(" + scale + ")",
+                    "transform": "scale(" + scale + ")"
+                });
+            }).trigger("resize");
+        });
+    </script>
+    <style>
+        body {
+            background: #ccc;
+            padding: 20px;
+        }
+
+        .very-specific-design {
+            width: 90%;
+            height: 90%;
+            padding: 50px;
+            text-align: center;
+            background: white;
+            position: relative;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            transform-origin: center center;
+        }
+
+        .scaleable-wrapper {
+            padding: 10px;
+            resize: both;
+            position: relative;
+            background: #666;
+            height: 400px;
+        }
+
+        .ui-resizable-se {
+            width: 10px;
+            height: 10px;
+            background: orange;
+            position: absolute;
+            bottom: 0;
+            right: 0;
+        }
+
+        .bigred {
+            color: red;
+            font-size: 5rem;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="scaleable-wrapper" id="scaleable-wrapper">
+
+        <div class="very-specific-design" id="very-specific-design">
+
+            <h1>I am designed just so.</h1>
+
+            <p>My design is intentional. I want to be scaled in such a way that scales the design. No reflows or
+                anything, just straight up scaling. Kinda like SVG.</p>
+
+            <img src="https://s3-us-west-2.amazonaws.com/s.cdpn.io/3/skull-and-crossbones.svg" alt="" />
+
+            <p class="bigred"> ✖ ✖ ✖ </p>
+
+        </div>
+
+    </div>
+</body>
+
+</html>
