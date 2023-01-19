@@ -7,8 +7,8 @@ initialized = false;
 /* Create calendar */
 window.onload = function(){
     setupMenuButton();
-    defineCalendarYear(); // this creates the data we work with
-    setupCalendar(); // this updates the HTML on the doc
+    /*defineCalendarYear(); // this creates the data we work with
+    setupCalendar(); // this updates the HTML on the doc*/
     initialized = true;
 }
 
@@ -58,7 +58,7 @@ function defineCalendarYear() {
         monthlyCalendar[key] = monthlyCalendar[key] || [];
         monthlyCalendar[key].push(calEvent);
     }
-    document.getElementById('previousMonth').style = "display: none;";
+    //document.getElementById('previousMonth').style = "display: none;";
 }
 
 function setupCalendar() {
