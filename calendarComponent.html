@@ -15,13 +15,13 @@
     <link href="fontawesome-free-6.2.1-web/css/solid.css" rel="stylesheet">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"></link>
     <link rel="stylesheet" href="./calendarComponent.css" rel="stylesheet">
-    <!--<script>
+    <script>
         $(document).ready(function () {
-            setTimeout(resizeListener, 200);
+            setTimeout(resizeListener("container"), 200);
         });
 
-        function resizeListener() {
-            var $element = $("#container");
+        function resizeListener(elementId) {
+            var $element = $("#" + elementId);
             var $children = $element.children();
             var initial = false;
             $(window).on("resize", function () {
@@ -49,7 +49,7 @@
                 }
             }).trigger("resize");
         }
-    </script>-->
+    </script>
 </head>
 
 <body>
@@ -73,7 +73,7 @@
                                 style="position: relative; top:4px;">Create Plan</span>
                         </button>
                     </div>
-                    <!--<div class="border rounded-lg px-1" style="padding-top: 2px;">
+                    <!--<div class="border rounded-lg px-1" style="min-height: 35px;">
                         <button type="button"
                             class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center">
                             <i class="fa-sharp fa-solid fa-file-csv"></i> &nbsp;&nbsp; <span
@@ -260,13 +260,43 @@
 
         <!-- Quick Wizard Modal -->
         <div id="myModal">
-            <div style="text-align: center;">Modal Content</div>
-            <span class="close">&times;</span>
+            <div style="text-align: center; margin-top: auto; height: 100%;">
+                <span class="font-bold text-2xl mb-6 text-gray-800 border-b pb-2">
+                    Create Your Plan
+                </span>
+                <span class="close">&times;</span>
+                
+                <br/><br/><br/><br/>
+                
+                <!-- Day of the week -->
+                <div>
+                    Which day of the week do you prefer to start your workouts on?
+                    <br/>
+                    <label >
+                        <input type="radio" name="startDay" value="sunday" checked> Sunday
+                    </label>
+                    <label>
+                        <input type="radio" name="startDay" value="monday"> Monday
+                    </label>
+                </div>
+                
+                <br/><br/>
+
+                <!-- Workout Schedule -->
+                Select the type of runs you want to incorporate into your training plan, and indicate which day(s) of the week you want to incorporate that type of run.
+                <br/><br/>
+                <div id="workoutSchedule"></div>
+            </div>
         </div>
         
         <div id="dark-background"></div>
     </div>
 
+    <script>
+        $(function () {
+          $("#workoutSchedule").load("./dragDropTest.html");
+        });
+      </script>
     <script>
         function openSetupWizard() { 
             var modal = document.getElementById("myModal");
@@ -280,7 +310,7 @@
             modal.style.left = "50%";
             modal.style.transform = "translate(-50%, -50%)";
 
-            modal.style.width = "66.6%";
+            modal.style.width = "75.0%";
             modal.style.height = "75.0%";
 
             span.onclick = function() {

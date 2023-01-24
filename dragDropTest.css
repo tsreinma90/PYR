@@ -36,3 +36,7 @@
 ul {
   list-style-type: none;
 }
+
+.li {
+  position: absolute;
+}
