@@ -13,8 +13,8 @@
     <link href="fontawesome-free-6.2.1-web/css/fontawesome.css" rel="stylesheet">
     <link href="fontawesome-free-6.2.1-web/css/brands.css" rel="stylesheet">
     <link href="fontawesome-free-6.2.1-web/css/solid.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    </link>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"></link>
+    <link rel="stylesheet" href="./calendarComponent.css" rel="stylesheet">
     <!--<script>
         $(document).ready(function () {
             setTimeout(resizeListener, 200);
@@ -57,18 +57,20 @@
         <div class="container mx-auto px-4 py-2 md:py-24" id="container" style="opacity: .95;">
 
 
-            <div class="bg-white rounded-lg shadow overflow-hidden">
+            <div class="bg-white rounded-lg shadow overflow-hidden" style="min-height: 767px;">
 
                 <div class="flex items-center justify-between py-2 px-6">
                     <div>
                         <span x-text="MONTH_NAMES[month]" class="text-lg font-bold text-gray-800"></span>
                         <span x-text="year" class="ml-1 text-lg text-gray-600 font-normal"></span>
                     </div>
-                    <div class="border rounded-lg px-1" style="padding-top: 2px;">
+                    <div class="border rounded-lg px-1" style="margin-left: auto; margin-right: 10px; min-height: 35px;">
                         <button type="button"
-                            class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center">
-                            <i class="fa-solid fa-bolt-lightning"></i> &nbsp;&nbsp; <span
-                                style="position: relative; bottom: 2px;">Setup Wizard</span>
+                            class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                            onclick="openSetupWizard()"
+                            id="setupWizardButton">
+                            <i class="fa-solid fa-bolt-lightning" style="position: relative; top:6px; left: 3px;"></i> &nbsp;&nbsp; <span
+                                style="position: relative; top:4px;">Create Plan</span>
                         </button>
                     </div>
                     <!--<div class="border rounded-lg px-1" style="padding-top: 2px;">
@@ -255,9 +257,45 @@
             </div>
         </div>
         <!-- /Modal -->
+
+        <!-- Quick Wizard Modal -->
+        <div id="myModal">
+            <div style="text-align: center;">Modal Content</div>
+            <span class="close">&times;</span>
+        </div>
+        
+        <div id="dark-background"></div>
     </div>
 
     <script>
+        function openSetupWizard() { 
+            var modal = document.getElementById("myModal");
+            var btn = document.getElementById("setupWizardButton");
+            var span = document.getElementsByClassName("close")[0];
+            var darkBackground = document.getElementById("dark-background");
+
+            modal.style.display = "block";
+            darkBackground.style.display = "block";
+            modal.style.top = "50%";
+            modal.style.left = "50%";
+            modal.style.transform = "translate(-50%, -50%)";
+
+            modal.style.width = "66.6%";
+            modal.style.height = "75.0%";
+
+            span.onclick = function() {
+                modal.style.display = "none";
+                darkBackground.style.display = "none";
+            }
+
+            window.onclick = function(event) {
+                if (event.target == modal) {
+                    modal.style.display = "none";
+                    darkBackground.style.display = "none";
+                }
+            }
+        }
+
         const MONTH_NAMES = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
         const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
