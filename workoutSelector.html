@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Selector</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <script>
+        function handleCheckboxClick(event, domId) {
+          const checkboxRow = document.getElementById(domId);
+          const checkboxes = checkboxRow.querySelectorAll("input[type=checkbox]");
+          let selected = 0;
+      
+          checkboxes.forEach(checkbox => {
+            if (checkbox.checked) {
+              selected++;
+            }
+          });
+      
+          if (selected === 2) {
+            checkboxes.forEach(checkbox => {
+              if (!checkbox.checked) {
+                checkbox.disabled = true;
+              }
+            });
+          } else {
+            checkboxes.forEach(checkbox => {
+              checkbox.disabled = false;
+            });
+          }
+        }
+      </script>
+</head>
+
+<body>
+
+
+    <div class="overflow-hidden bg-white shadow sm:rounded-lg">
+        <div class="px-4 py-5 sm:px-6">
+            <h3 class="text-lg font-medium leading-6 text-gray-900">Weekly Workout Preferences</h3>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">Select up to 2 workout types per day that work for your
+                schedule. </p>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl class="sm:divide-y sm:divide-gray-200">
+                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Monday</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <div class="flex flex-wrap" id="monday">
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'monday')"/>
+                                <span class="ml-2">Easy / Recovery</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'monday')"/>
+                                <span class="ml-2">Tempo</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'monday')"/>
+                                <span class="ml-2">Speed Work</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'monday')"/>
+                                <span class="ml-2">Long Run</span>
+                            </label>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl class="sm:divide-y sm:divide-gray-200">
+                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Tuesday</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <div class="flex flex-wrap" id="tuesday">
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'tuesday')"/>
+                                <span class="ml-2">Easy / Recovery</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'tuesday')"/>
+                                <span class="ml-2">Tempo</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'tuesday')"/>
+                                <span class="ml-2">Speed Work</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'tuesday')"/>
+                                <span class="ml-2">Long Run</span>
+                            </label>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl class="sm:divide-y sm:divide-gray-200">
+                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Wednesday</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <div class="flex flex-wrap" id="wednesday">
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'wednesday')"/>
+                                <span class="ml-2">Easy / Recovery</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'wednesday')"/>
+                                <span class="ml-2">Tempo</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'wednesday')"/>
+                                <span class="ml-2">Speed Work</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'wednesday')"/>
+                                <span class="ml-2">Long Run</span>
+                            </label>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl class="sm:divide-y sm:divide-gray-200">
+                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Thursday</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <div class="flex flex-wrap" id="thursday">
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'thursday')"/>
+                                <span class="ml-2">Easy / Recovery</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'thursday')"/>
+                                <span class="ml-2">Tempo</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'thursday')"/>
+                                <span class="ml-2">Speed Work</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'thursday')"/>
+                                <span class="ml-2">Long Run</span>
+                            </label>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl class="sm:divide-y sm:divide-gray-200">
+                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Friday</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <div class="flex flex-wrap" id="friday">
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'friday')"/>
+                                <span class="ml-2">Easy / Recovery</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'friday')"/>
+                                <span class="ml-2">Tempo</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'friday')"/>
+                                <span class="ml-2">Speed Work</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'friday')"/>
+                                <span class="ml-2">Long Run</span>
+                            </label>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl class="sm:divide-y sm:divide-gray-200">
+                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Saturday</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <div class="flex flex-wrap" id="saturday">
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'saturday')"/>
+                                <span class="ml-2">Easy / Recovery</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'saturday')"/>
+                                <span class="ml-2">Tempo</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'saturday')"/>
+                                <span class="ml-2">Speed Work</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'saturday')"/>
+                                <span class="ml-2">Long Run</span>
+                            </label>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+        <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
+            <dl class="sm:divide-y sm:divide-gray-200">
+                <div class="py-4 sm:grid sm:grid-cols-3 sm:gap-4 sm:py-5 sm:px-6">
+                    <dt class="text-sm font-medium text-gray-500">Sunday</dt>
+                    <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
+                        <div class="flex flex-wrap" id="sunday">
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'sunday')"/>
+                                <span class="ml-2">Easy / Recovery</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'sunday')"/>
+                                <span class="ml-2">Tempo</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'sunday')"/>
+                                <span class="ml-2">Speed Work</span>
+                            </label>
+                            <label class="inline-flex items-center mr-4">
+                                <input type="checkbox" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'sunday')"/>
+                                <span class="ml-2">Long Run</span>
+                            </label>
+                        </div>
+                    </dd>
+                </div>
+            </dl>
+        </div>
+    </div>
+
+
+</body>
+
+</html>
