@@ -16,13 +16,14 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 window.onload = function () {
   loadComponent("workoutSelector", "./workoutSelector.html");
+  inputSliderInit();
 };
 
 function loadComponent(domId, pathToFile) {
   $("#" + domId).load(pathToFile);
 }
 
-function openSetupWizard() {
+function toggleSetupWizard() {
   const card = document.querySelector(".relative");
   card.classList.toggle("flip-card-active");
   setTimeout(() => {
@@ -214,6 +215,28 @@ function app() {
 
     openEventModal: false,
 
+    generatePlan() {
+      const startDay = document.querySelector('[data-name="startOnSunday"]').checked ? "Sunday" : "Monday";
+      const weeklyMileage = document.querySelector('[data-name="milesSlider"]').value;
+      const workouts = document.querySelectorAll('[data-name="workout"]');
+      let workoutMap = new Map();
+      for (const element of workouts) {
+        if (element.checked) {
+          let keyPair = element.name.split("_");
+          let key = keyPair[0];
+          let value = keyPair[1];
+
+          if (workoutMap.has(key)) {
+            let currentValue = workoutMap.get(key);
+            currentValue.push(value);
+            workoutMap.set(key, currentValue);
+          } else {
+            workoutMap.set(key, [value]);
+          }
+        }
+      }
+    },
+
     initDate() {
       let today = new Date();
       this.month = today.getMonth();
@@ -258,7 +281,6 @@ function app() {
           "event_date",
           this.event_date
         );
-        console.log(eventIndex);
         let workoutEvent = {
           event_date: this.event_date,
           event_title: this.event_title,
@@ -292,7 +314,17 @@ function app() {
         "event_date",
         this.event_date
       );
-      console.log(this.event_date, JSON.stringify(eventIndex, undefined, 2));
+
+      if (eventIndex != -1) {
+        this.events.splice(eventIndex, 1);
+        this.event_title = "";
+        this.event_date = "";
+        this.event_theme = this.workoutThemeMap.get(this.event_workout); // 'blue';
+        this.event_workout = "Easy";
+        this.event_distance = 1;
+        this.event_notes = "";
+        this.openEventModal = false;
+      }
     },
 
     getNoOfDays() {

@@ -35,7 +35,7 @@
                                 style="margin-left: auto; margin-right: 10px; min-height: 35px;">
                                 <button type="button"
                                     class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    onclick="openSetupWizard()" id="setupWizardButton">
+                                    onclick="toggleSetupWizard()" id="setupWizardButton">
                                     <i class="fa-solid fa-bolt-lightning"
                                         style="position: relative; top:6px; left: 3px;"></i>
                                     &nbsp;&nbsp; <span style="position: relative; top:4px;">Create Plan</span>
@@ -125,57 +125,58 @@
                             </div>
                         </div>
                     </div>
-                    <div class="back w-full h-full bg-gray-300 rounded-lg" id="back" style="display:none;">
-                        <div style="text-align: center; margin-top: auto; height: 100%;">
-                            <div class="">
-                                <span class="font-bold text-2xl mb-6 text-gray-800 border-b pb-2">
-                                    Create Your Plan
-                                </span>
+                <div class="back w-full h-full bg-gray-300 rounded-lg" id="back" style="display:none;">
+                    <div style="text-align: center; margin-top: auto; height: 100%;">
+                        <div class="">
+                            <span class="font-bold text-2xl mb-6 text-gray-800 border-b pb-2">
+                                Create Your Plan
+                            </span>
 
+                            <br /><br />
 
-                                <br /><br />
+                            Which day of the week do you prefer to start your workouts on?
+                            <br />
+                            <label>
+                                <input data-name="startOnSunday" type="radio" name="startDay" value="sunday" checked> Sunday
+                            </label>
+                            <label>
+                                <input type="radio" name="startDay" value="monday"> Monday
+                            </label>
 
-                                Which day of the week do you prefer to start your workouts on?
-                                <br />
-                                <label>
-                                    <input type="radio" name="startDay" value="sunday" checked> Sunday
-                                </label>
-                                <label>
-                                    <input type="radio" name="startDay" value="monday"> Monday
-                                </label>
+                            <br /><br />
+                            <div id="workoutSelector"></div>
 
-                                <br /><br />
-                                <div id="workoutSelector"></div>
+                            <br /><br />
 
-                                <br /><br />
-
-                                <div class="flex justify-center">
-                                    <div class="w-64">
-                                        <span>Number of miles per week</span>
-                                        <input type="range" class="slider w-full" min="0" max="100" value="50" />
-                                        <span class="value">50</span>
-                                    </div>
+                            <div class="flex justify-center">
+                                <div class="w-3/4">
+                                    <span>Number of miles per week</span>
+                                    <input type="range" data-name="milesSlider" class="slider w-full" min="0" max="100" value="50" />
+                                    <span class="value">50</span>
                                 </div>
-
-
-                                <br /><br />
-                                <button type="button"
-                                    class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    onclick="openSetupWizard()">
-                                    <i class="fa-solid fa-bolt-lightning"
-                                        style="position: relative; top:6px; left: 3px;"></i>
-                                    &nbsp;&nbsp; <span style="position: relative; top:4px;">Save</span>
-                                </button>
-                                <button type="button"
-                                    class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    onclick="openSetupWizard()">
-                                    <i class="fa-solid fa-bolt-lightning"
-                                        style="position: relative; top:6px; left: 3px;"></i>
-                                    &nbsp;&nbsp; <span style="position: relative; top:4px;">Cancel</span>
-                                </button>
                             </div>
+
+
+                            <br /><br />
+
+                            <input type="date" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
+
+                            <br /><br />
+                            
+                            <button type="button"
+                                class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                @click="generatePlan()">
+                                Generate Plan
+                            </button>
+                            
+                            <button type="button"
+                                class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                onclick="toggleSetupWizard()">
+                                Cancel
+                            </button>
                         </div>
                     </div>
+                </div>
             </div>
 
             <!-- Modal -->

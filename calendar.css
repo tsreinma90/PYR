@@ -46,11 +46,7 @@ header .logo
   width: 100%;
   min-height: 100vh;
   padding: 100px;
-  display: flex;
   justify-content: space-between;
-  align-items: center;
-  background: #111;
-  transition: 0.5s;
   z-index: 2;
 }
 .showcase.active
