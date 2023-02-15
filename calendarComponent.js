@@ -16,7 +16,8 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 window.onload = function () {
   loadComponent("workoutSelector", "./workoutSelector.html");
-  inputSliderInit();
+  //inputSliderInit();
+  //raceDateInit();
 };
 
 function loadComponent(domId, pathToFile) {
@@ -34,7 +35,7 @@ function toggleSetupWizard() {
   }, 600);
 }
 
-function inputSliderInit() {
+/*function inputSliderInit() {
   const slider = document.querySelector(".slider");
   const value = document.querySelector(".value");
 
@@ -43,14 +44,24 @@ function inputSliderInit() {
   });
 }
 
+function raceDateInit() {
+  const dateInput = document.getElementById("dateInput");
+  dateInput.addEventListener("change", function() {
+    const selectedDate = this.value;
+    console.log("Selected date:", selectedDate);
+  });
+}*/
+
 function app() {
   return {
+    /* Properties used for the calendar and events */
     month: "",
     year: "",
     no_of_days: [],
     blankdays: [],
     days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
 
+    /* Properties used for a single calendar event */
     events: [],
     event_title: "",
     event_date: "",
@@ -58,6 +69,12 @@ function app() {
     event_workout: "Easy",
     event_distance: 1,
     event_notes: "",
+    
+    /* Properties used to calculate a training plan based on user input */
+    weekly_mileage_goal: 50,
+    start_day: "",
+    race_date: "",
+    workout_map: new Map(),
 
     workouts: [
       {
@@ -216,25 +233,32 @@ function app() {
     openEventModal: false,
 
     generatePlan() {
-      const startDay = document.querySelector('[data-name="startOnSunday"]').checked ? "Sunday" : "Monday";
-      const weeklyMileage = document.querySelector('[data-name="milesSlider"]').value;
+      this.start_day = document.querySelector('[data-name="startOnSunday"]').checked ? "Sunday" : "Monday";
+      this.weekly_mileage_goal = document.querySelector(".value").textContent;
+      this.race_date = document.getElementById("dateInput").value;
       const workouts = document.querySelectorAll('[data-name="workout"]');
-      let workoutMap = new Map();
+
+      var workoutMap = new Map();
+
       for (const element of workouts) {
         if (element.checked) {
           let keyPair = element.name.split("_");
           let key = keyPair[0];
           let value = keyPair[1];
 
-          if (workoutMap.has(key)) {
-            let currentValue = workoutMap.get(key);
+          if (this.workout_map.has(key)) {
+            let currentValue = this.workout_map.get(key);
             currentValue.push(value);
-            workoutMap.set(key, currentValue);
+            this.workout_map.set(key, currentValue);
           } else {
-            workoutMap.set(key, [value]);
+            this.workout_map.set(key, [value]);
           }
         }
       }
+      console.log('Start Date: ', this.race_date);
+      console.log('Weekly Mileage: ', this.weekly_mileage_goal);
+      console.log('Race Date: ' , this.race_date);
+      console.log('Workout Map: ', this.workout_map);
     },
 
     initDate() {
@@ -246,6 +270,14 @@ function app() {
         this.month,
         today.getDate()
       ).toDateString();
+    },
+
+    inputSliderInit() {
+      const slider = document.querySelector(".slider");
+      const value = document.querySelector(".value");
+      slider.addEventListener("input", function () {
+        value.textContent = this.value;
+      });
     },
 
     isToday(date) {

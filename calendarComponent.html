@@ -21,7 +21,7 @@
 
 <body>
 
-    <div x-data="app()" x-init="[initDate(), getNoOfDays()]" x-cloak>
+    <div x-data="app()" x-init="[initDate(), getNoOfDays(), inputSliderInit(), raceDateInit()]" x-cloak>
         <div class="container mx-auto px-4 py-2 md:py-24" id="container" style="opacity: .95;">
             <div class="relative">
                 <div="w-64 h-64 bg-gray-200 rounded-lg">
@@ -159,7 +159,7 @@
 
                             <br /><br />
 
-                            <input type="date" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
+                            <input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
 
                             <br /><br />
                             
