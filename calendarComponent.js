@@ -12,12 +12,11 @@ const MONTH_NAMES = [
   "November",
   "December",
 ];
+
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-window.onload = function () {
-  loadComponent("workoutSelector", "./workoutSelector.html");
-  //inputSliderInit();
-  //raceDateInit();
+window.onload = function () { 
+  loadComponent("workoutSelector", "./workoutSelector.html"); 
 };
 
 function loadComponent(domId, pathToFile) {
@@ -34,23 +33,6 @@ function toggleSetupWizard() {
     back.style.display = back.style.display === "none" ? "block" : "none";
   }, 600);
 }
-
-/*function inputSliderInit() {
-  const slider = document.querySelector(".slider");
-  const value = document.querySelector(".value");
-
-  slider.addEventListener("input", function () {
-    value.textContent = this.value;
-  });
-}
-
-function raceDateInit() {
-  const dateInput = document.getElementById("dateInput");
-  dateInput.addEventListener("change", function() {
-    const selectedDate = this.value;
-    console.log("Selected date:", selectedDate);
-  });
-}*/
 
 function app() {
   return {
@@ -69,7 +51,7 @@ function app() {
     event_workout: "Easy",
     event_distance: 1,
     event_notes: "",
-    
+
     /* Properties used to calculate a training plan based on user input */
     weekly_mileage_goal: 50,
     start_day: "",
@@ -238,8 +220,6 @@ function app() {
       this.race_date = document.getElementById("dateInput").value;
       const workouts = document.querySelectorAll('[data-name="workout"]');
 
-      var workoutMap = new Map();
-
       for (const element of workouts) {
         if (element.checked) {
           let keyPair = element.name.split("_");
@@ -255,28 +235,54 @@ function app() {
           }
         }
       }
-      
-      this.calculateTrainingPlan();
-    },
-
-    calculateTrainingPlan() {
-      console.log('Start Date: ', this.start_day, 'Weekly Mileage: ', this.weekly_mileage_goal, 'Race Date: ' , this.race_date, 'Workout Map: ', this.workout_map);
-      const sufficientData = this.start_day && this.weekly_mileage_goal && this.race_date && this.workout_map;
-      if (!sufficientData) {
-        this.showErrorToast('Please fill out all required fields', 5000);
+      const formComplete = this.start_day && this.weekly_mileage_goal && this.race_date && this.workout_map;
+      const validRaceDate = this.isAtLeast4WeeksInFuture(this.race_date);
+      this.calculateTrainingPlan(); 
+      if (!formComplete) {
+        this.showErrorToast("All fields are required", 5000);
+      } else if (!validRaceDate) {
+        this.showErrorToast("Race date must be 4 weeks minimum from today's date", 5000);
+      } else {
+        this.calculateTrainingPlan(); 
       }
     },
 
-    showErrorToast(message, duration) {
-      const toast = document.getElementById('error-toast');
-  const toastMessage = toast.querySelector('.bg-red-500');
-  toastMessage.textContent = message;
-  toast.classList.remove('hidden');
-  setTimeout(() => {
-    toast.classList.add('hidden');
-  }, duration);
+    async calculateTrainingPlan() {
+      /*console.log(
+        "Start Date: ",
+        this.start_day,
+        "Weekly Mileage: ",
+        this.weekly_mileage_goal,
+        "Race Date: ",
+        this.race_date,
+        "Workout Map: ",
+        this.workout_map
+      );*/
+      const utils = await import("./trainingPlanGenerator.js");
+      console.log(utils.greet("Scaler"));
     },
-    
+
+    isAtLeast4WeeksInFuture(date) {
+      const now = new Date();
+      // Calculate the difference in milliseconds between the input date and today's date
+      const diffInMs = date - now;
+      console.log(date, now, diffInMs);
+      // Convert the difference to weeks
+      const diffInWeeks = diffInMs / (1000 * 60 * 60 * 24 * 7);
+      // Return true if the difference is at least 4 weeks
+      return diffInWeeks >= 4;
+    },    
+
+    showErrorToast(message, duration) {
+      const toast = document.getElementById("error-toast");
+      const toastMessage = toast.querySelector(".bg-red-500");
+      toastMessage.textContent = message;
+      toast.classList.remove("hidden");
+      setTimeout(() => {
+        toast.classList.add("hidden");
+      }, duration);
+    },
+
     initDate() {
       let today = new Date();
       this.month = today.getMonth();
