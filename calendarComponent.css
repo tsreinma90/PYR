@@ -101,3 +101,7 @@ label {
   margin-left: 1rem;
   font-weight: bold;
 }
+
+#error-toast .bg-red-500 {
+  max-width: 90vw;
+}

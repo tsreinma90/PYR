@@ -255,12 +255,28 @@ function app() {
           }
         }
       }
-      console.log('Start Date: ', this.race_date);
-      console.log('Weekly Mileage: ', this.weekly_mileage_goal);
-      console.log('Race Date: ' , this.race_date);
-      console.log('Workout Map: ', this.workout_map);
+      
+      this.calculateTrainingPlan();
     },
 
+    calculateTrainingPlan() {
+      console.log('Start Date: ', this.start_day, 'Weekly Mileage: ', this.weekly_mileage_goal, 'Race Date: ' , this.race_date, 'Workout Map: ', this.workout_map);
+      const sufficientData = this.start_day && this.weekly_mileage_goal && this.race_date && this.workout_map;
+      if (!sufficientData) {
+        this.showErrorToast('Please fill out all required fields', 5000);
+      }
+    },
+
+    showErrorToast(message, duration) {
+      const toast = document.getElementById('error-toast');
+  const toastMessage = toast.querySelector('.bg-red-500');
+  toastMessage.textContent = message;
+  toast.classList.remove('hidden');
+  setTimeout(() => {
+    toast.classList.add('hidden');
+  }, duration);
+    },
+    
     initDate() {
       let today = new Date();
       this.month = today.getMonth();

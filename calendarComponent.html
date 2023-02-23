@@ -20,11 +20,15 @@
 </head>
 
 <body>
-
     <div x-data="app()" x-init="[initDate(), getNoOfDays(), inputSliderInit(), raceDateInit()]" x-cloak>
         <div class="container mx-auto px-4 py-2 md:py-24" id="container" style="opacity: .95;">
             <div class="relative">
                 <div="w-64 h-64 bg-gray-200 rounded-lg">
+                    <div id="error-toast" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                        <div class="bg-red-500 border border-red-700 text-white font-bold rounded px-4 py-2">
+                          Error!
+                        </div>
+                      </div>
                     <div class="front" id="front">
                         <div class="flex items-center justify-between py-2 px-6">
                             <div>
