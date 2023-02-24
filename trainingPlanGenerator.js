@@ -39,7 +39,7 @@ function createTrainingPlan(
 
   // An array of # of miles total for each week
   const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal);
-  const daysPerWeekRunning = workoutMap.size;
+  //const daysPerWeekRunning = workoutMap.size;
 
   // Check which workouts are included in the week
   let uniqueWorkouts = new Set();
@@ -52,7 +52,24 @@ function createTrainingPlan(
   const workoutRatio = createWorkoutPercentileMap(selectedWorkouts);
   const uniqueValueCount = countUniqueValuesInMap(workoutMap);
   
-  console.log(uniqueValueCount);
+  generateRuns(nextRun, milesPerWeek, workoutMap, workoutRatio, uniqueValueCount, raceDate);
+}
+
+function generateRuns(nextRun, milesPerWeek, workoutMap, workoutRatio, uniqueValueCount, raceDate) {
+    console.log(nextRun);
+    console.log(milesPerWeek);
+    console.log(workoutMap);
+    console.log(workoutRatio);
+    console.log(uniqueValueCount);
+    console.log(raceDate);
+
+    // to-do
+    /* ultimately we want to create an array full of objects for our calendar. we will do the following to get there:
+    - iterate over easy week
+        - create the workout for that day based on the workoutMap, use the workoutRatio and valueCount to get the mileage for that workout/day
+        - to-do, figure out a way to increate the "nextRun" after each workout based on the next day of running
+        - at the end of the week, make sure to update the "nextRun" to the next week
+    - when you are in the final week, make sure to only update the plan up until the race day*/
 }
 
 function createWorkoutPercentileMap(workouts) {
