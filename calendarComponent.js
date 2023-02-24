@@ -15,8 +15,8 @@ const MONTH_NAMES = [
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-window.onload = function () { 
-  loadComponent("workoutSelector", "./workoutSelector.html"); 
+window.onload = function () {
+  loadComponent("workoutSelector", "./workoutSelector.html");
 };
 
 function loadComponent(domId, pathToFile) {
@@ -215,7 +215,10 @@ function app() {
     openEventModal: false,
 
     generatePlan() {
-      this.start_day = document.querySelector('[data-name="startOnSunday"]').checked ? "Sunday" : "Monday";
+      this.start_day = document.querySelector('[data-name="startOnSunday"]')
+        .checked
+        ? "Sunday"
+        : "Monday";
       this.weekly_mileage_goal = document.querySelector(".value").textContent;
       this.race_date = document.getElementById("dateInput").value;
       const workouts = document.querySelectorAll('[data-name="workout"]');
@@ -235,43 +238,51 @@ function app() {
           }
         }
       }
-      const formComplete = this.start_day && this.weekly_mileage_goal && this.race_date && this.workout_map;
-      const validRaceDate = this.isAtLeast4WeeksInFuture(this.race_date);
-      this.calculateTrainingPlan(); 
+      const formComplete =
+        this.start_day &&
+        this.weekly_mileage_goal &&
+        this.race_date &&
+        this.workout_map;
+      
+      const numWeeksUntilRace = parseInt(this.numberOfWeeksUntilDate(this.race_date));
+
       if (!formComplete) {
         this.showErrorToast("All fields are required", 5000);
-      } else if (!validRaceDate) {
-        this.showErrorToast("Race date must be 4 weeks minimum from today's date", 5000);
+      } else if (numWeeksUntilRace < 4) {
+        this.showErrorToast(
+          "Race date must be 4 weeks minimum from today's date",
+          5000
+        );
       } else {
-        this.calculateTrainingPlan(); 
+        this.calculateTrainingPlan(numWeeksUntilRace);
       }
     },
 
-    async calculateTrainingPlan() {
-      /*console.log(
-        "Start Date: ",
+    async calculateTrainingPlan(numWeeksUntilRace) {
+      const trainingController = await import("./trainingPlanGenerator.js");
+      trainingController.createTrainingPlan(
         this.start_day,
-        "Weekly Mileage: ",
         this.weekly_mileage_goal,
-        "Race Date: ",
         this.race_date,
-        "Workout Map: ",
-        this.workout_map
-      );*/
-      const utils = await import("./trainingPlanGenerator.js");
-      console.log(utils.greet("Scaler"));
+        this.workout_map,
+        numWeeksUntilRace
+      );
     },
 
-    isAtLeast4WeeksInFuture(date) {
-      const now = new Date();
-      // Calculate the difference in milliseconds between the input date and today's date
-      const diffInMs = date - now;
-      console.log(date, now, diffInMs);
-      // Convert the difference to weeks
-      const diffInWeeks = diffInMs / (1000 * 60 * 60 * 24 * 7);
-      // Return true if the difference is at least 4 weeks
-      return diffInWeeks >= 4;
-    },    
+    numberOfWeeksUntilDate(futureDate) {
+      const now = this.formatDate(new Date());
+
+      // Create two Date objects from the given date strings
+      const date1 = new Date(now);
+      const date2 = new Date(futureDate);
+
+      // Calculate the difference in milliseconds between the two dates
+      const diffInMs = Math.abs(date1 - date2);
+
+      // Calculate the number of weeks between the two dates
+      const weeksApart = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7));
+      return weeksApart;
+    },
 
     showErrorToast(message, duration) {
       const toast = document.getElementById("error-toast");
@@ -428,6 +439,19 @@ function app() {
           break;
         }
       }
+    },
+
+    formatDate(date) {
+      const initialDate = new Date(date);
+
+      // Extract the year, month, and day from the date object
+      const year = initialDate.getFullYear();
+      const month = ("0" + (initialDate.getMonth() + 1)).slice(-2);
+      const day = ("0" + initialDate.getDate()).slice(-2);
+
+      // Create the formatted date string using the extracted components
+      const formattedDate = `${year}-${month}-${day}`;
+      return formattedDate;
     },
   };
 }
