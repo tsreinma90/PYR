@@ -19,7 +19,7 @@
             }
           });
       
-          if (selected === 2) {
+          if (selected === 1) { // was 2 before, now restricting to 1
             checkboxes.forEach(checkbox => {
               if (!checkbox.checked) {
                 checkbox.disabled = true;
@@ -40,8 +40,8 @@
     <div class="overflow-hidden bg-white shadow sm:rounded-lg">
         <div class="px-4 py-5 sm:px-6">
             <h3 class="text-lg font-medium leading-6 text-gray-900">Weekly Workout Preferences</h3>
-            <p class="mt-1 max-w-2xl text-sm text-gray-500">Select up to 2 workout types per day that work for your
-                schedule. If you don't select any workouts on a particular day, that will be considered a rest day.</p>
+            <p class="mt-1 max-w-2xl text-sm text-gray-500">Select one workout per day to coordinate a schedule
+                that works for best for you. If you don't select any workout on a particular day, that will be considered a rest day.</p>
         </div>
         <div class="border-t border-gray-200 px-4 py-5 sm:p-0">
             <dl class="sm:divide-y sm:divide-gray-200">
