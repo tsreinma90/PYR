@@ -28,11 +28,11 @@ Date.prototype.addDays = function (days) {
 };
 
 function createTrainingPlan(
-  startDay,
-  mileageGoal,
-  raceDate,
-  workoutMap,
-  numWeeksUntilRace
+  startDay, // Sunday or Monday
+  mileageGoal, // 1-100
+  raceDate, // Race Date
+  workoutMap, // Map<DayOfWeek, WorkoutType>
+  numWeeksUntilRace // # weeks for training
 ) {
   // Set the first day of training to Sun/Mon based on user input and day of the week
   nextRun = setInitialStartDate(startDay);
@@ -56,12 +56,24 @@ function createTrainingPlan(
 }
 
 function generateRuns(nextRun, milesPerWeek, workoutMap, workoutRatio, uniqueValueCount, raceDate) {
-    console.log(nextRun);
-    console.log(milesPerWeek);
-    console.log(workoutMap);
     console.log(workoutRatio);
     console.log(uniqueValueCount);
-    console.log(raceDate);
+
+
+    let allRuns = [];
+    const numOfDaysPerWeek = workoutMap.size;
+
+    for (let i = 0; i < milesPerWeek.length; i++) {
+      let dayOfWeek = weekdayMap.get(nextRun.getDay());
+      
+      if(workoutMap.has(dayOfWeek)) {
+        if (i == 0) {
+        let workout = workoutMap.get(dayOfWeek)[0];
+        let numMiles = Math.ceil((milesPerWeek[i] * workoutRatio.get(workout)) / uniqueValueCount.get(workout));
+        console.log(milesPerWeek[i], numMiles);
+        }
+      }
+    }
 
     // to-do
     /* ultimately we want to create an array full of objects for our calendar. we will do the following to get there:
