@@ -19,6 +19,12 @@ let nextRun = "";
   percentMap.set("Tempo", 0.15);
   percentMap.set("Track / Repeats", 0.05);
   percentMap.set("Hill Repeats", 0.1);
+
+  workoutMap.set("Easy", "Green");
+  workoutMap.set("Steady", "Blue");
+  workoutMap.set("Tempo", "Yellow");
+  workoutMap.set("Track/Repeats", "Red");
+  workoutMap.set("Long Run", "Purple");
 })();
 
 Date.prototype.addDays = function (days) {
@@ -51,37 +57,55 @@ function createTrainingPlan(
   const selectedWorkouts = Array.from(uniqueWorkouts);
   const workoutRatio = createWorkoutPercentileMap(selectedWorkouts);
   const uniqueValueCount = countUniqueValuesInMap(workoutMap);
-  
-  generateRuns(nextRun, milesPerWeek, workoutMap, workoutRatio, uniqueValueCount, raceDate);
+
+  return generateRuns(
+    nextRun,
+    milesPerWeek,
+    workoutMap,
+    workoutRatio,
+    uniqueValueCount,
+    raceDate
+  );
 }
 
-function generateRuns(nextRun, milesPerWeek, workoutMap, workoutRatio, uniqueValueCount, raceDate) {
-    console.log(workoutRatio);
-    console.log(uniqueValueCount);
-
-
-    let allRuns = [];
-    const numOfDaysPerWeek = workoutMap.size;
-
-    for (let i = 0; i < milesPerWeek.length; i++) {
+function generateRuns(
+  nextRun,
+  milesPerWeek,
+  workoutMap,
+  workoutRatio,
+  uniqueValueCount,
+  raceDate
+) {
+  let allRuns = [];
+  console.log(workoutMap);
+  for (let i = 0; i < milesPerWeek.length; i++) {
+    for (let x = 0; x < 7; x++) {
       let dayOfWeek = weekdayMap.get(nextRun.getDay());
-      
-      if(workoutMap.has(dayOfWeek)) {
-        if (i == 0) {
-        let workout = workoutMap.get(dayOfWeek)[0];
-        let numMiles = Math.ceil((milesPerWeek[i] * workoutRatio.get(workout)) / uniqueValueCount.get(workout));
-        console.log(milesPerWeek[i], numMiles);
-        }
-      }
-    }
 
-    // to-do
-    /* ultimately we want to create an array full of objects for our calendar. we will do the following to get there:
-    - iterate over easy week
-        - create the workout for that day based on the workoutMap, use the workoutRatio and valueCount to get the mileage for that workout/day
-        - to-do, figure out a way to increate the "nextRun" after each workout based on the next day of running
-        - at the end of the week, make sure to update the "nextRun" to the next week
-    - when you are in the final week, make sure to only update the plan up until the race day*/
+      if (nextRun == raceDate) {
+        // create event for the race
+      } else if (workoutMap.has(dayOfWeek)) {
+        let workoutType = workoutMap.get(dayOfWeek)[0];
+        let numMiles = Math.ceil(
+          (milesPerWeek[i] * workoutRatio.get(workoutType)) /
+            uniqueValueCount.get(workoutType)
+        );
+
+        let workout = {
+          event_date: nextRun,
+          event_title: `${workoutType} - ${numMiles} miles`,
+          event_workout: workoutType,
+          event_distance: numMiles,
+          event_notes: "",
+          event_theme: workoutMap.get(workoutType),
+        };
+
+        allRuns.push(workout);
+      }
+      nextRun = nextRun.addDays(1);
+    }
+  }
+  return allRuns;
 }
 
 function createWorkoutPercentileMap(workouts) {
@@ -91,55 +115,55 @@ function createWorkoutPercentileMap(workouts) {
 
   switch (selectedWorkouts) {
     /* All possibilities for 2 options */
-    case 'Easy, Long':
-        workoutRatio.set('Easy', .70);
-        workoutRatio.set('Long', .30);
-        break;
-    case 'Easy, Speed':
-        workoutRatio.set('Easy', .80);
-        workoutRatio.set('Speed', .20);
-        break;
-    case 'Easy, Tempo':
-        workoutRatio.set('Easy', .80);
-        workoutRatio.set('Tempo', .20);
-        break;
-    case 'Long, Speed':
-        workoutRatio.set('Long', .80);
-        workoutRatio.set('Speed', .20);
-        break;
-    case 'Long, Tempo':
-        workoutRatio.set('Long', .80);
-        workoutRatio.set('Tempo', .20);
-        break;
-    case 'Speed, Tempo':
-        workoutRatio.set('Speed', .50);
-        workoutRatio.set('Tempo', .50);
-        break;
-    
+    case "Easy, Long":
+      workoutRatio.set("Easy", 0.7);
+      workoutRatio.set("Long", 0.3);
+      break;
+    case "Easy, Speed":
+      workoutRatio.set("Easy", 0.8);
+      workoutRatio.set("Speed", 0.2);
+      break;
+    case "Easy, Tempo":
+      workoutRatio.set("Easy", 0.8);
+      workoutRatio.set("Tempo", 0.2);
+      break;
+    case "Long, Speed":
+      workoutRatio.set("Long", 0.8);
+      workoutRatio.set("Speed", 0.2);
+      break;
+    case "Long, Tempo":
+      workoutRatio.set("Long", 0.8);
+      workoutRatio.set("Tempo", 0.2);
+      break;
+    case "Speed, Tempo":
+      workoutRatio.set("Speed", 0.5);
+      workoutRatio.set("Tempo", 0.5);
+      break;
+
     /* All possibilities for 3 options */
-    case 'Easy, Long, Speed':
-        workoutRatio.set('Easy', .56);
-        workoutRatio.set('Long', .30);
-        workoutRatio.set('Speed', .14);
-        break;
-    case 'Easy, Long, Tempo':
-        workoutRatio.set('Easy', .56);
-        workoutRatio.set('Long', .30);
-        workoutRatio.set('Tempo', .14);
-        break;
-    case 'Long, Speed, Tempo':
-        workoutRatio.set('Long', .30);
-        workoutRatio.set('Speed', .14);
-        workoutRatio.set('Tempo', .56);
-        break;
-    
+    case "Easy, Long, Speed":
+      workoutRatio.set("Easy", 0.56);
+      workoutRatio.set("Long", 0.3);
+      workoutRatio.set("Speed", 0.14);
+      break;
+    case "Easy, Long, Tempo":
+      workoutRatio.set("Easy", 0.56);
+      workoutRatio.set("Long", 0.3);
+      workoutRatio.set("Tempo", 0.14);
+      break;
+    case "Long, Speed, Tempo":
+      workoutRatio.set("Long", 0.3);
+      workoutRatio.set("Speed", 0.14);
+      workoutRatio.set("Tempo", 0.56);
+      break;
+
     /* Only possibility for 4 options */
-    case 'Easy, Long, Speed, Tempo':
-        workoutRatio.set('Easy', .60);
-        workoutRatio.set('Long', .25);
-        workoutRatio.set('Speed', .05);
-        workoutRatio.set('Tempo', .10);
-        break;
+    case "Easy, Long, Speed, Tempo":
+      workoutRatio.set("Easy", 0.6);
+      workoutRatio.set("Long", 0.25);
+      workoutRatio.set("Speed", 0.05);
+      workoutRatio.set("Tempo", 0.1);
+      break;
 
     /* Only 1 workout type is selected */
     default:
@@ -150,17 +174,17 @@ function createWorkoutPercentileMap(workouts) {
 }
 
 function countUniqueValuesInMap(map) {
-    const count = new Map();
-  
-    map.forEach((valueArray) => {
-      valueArray.forEach((value) => {
-        const currentValueCount = count.get(value) || 0;
-        count.set(value, currentValueCount + 1);
-      });
+  const count = new Map();
+
+  map.forEach((valueArray) => {
+    valueArray.forEach((value) => {
+      const currentValueCount = count.get(value) || 0;
+      count.set(value, currentValueCount + 1);
     });
-  
-    return count;
-  }
+  });
+
+  return count;
+}
 
 function createWeeklyMileage(numOfWeeks, maxMileage) {
   let milesPerWeek = [];
@@ -221,6 +245,11 @@ function setInitialStartDate(startPreference) {
       break;
   }
   return startDay;
+}
+
+function startOfWeek(date) {
+  var diff = date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1);
+  return new Date(date.setDate(diff));
 }
 
 export { createTrainingPlan };

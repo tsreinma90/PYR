@@ -260,13 +260,23 @@ function app() {
 
     async calculateTrainingPlan(numWeeksUntilRace) {
       const trainingController = await import("./trainingPlanGenerator.js");
-      trainingController.createTrainingPlan(
+      const allRuns = trainingController.createTrainingPlan(
         this.start_day,
         this.weekly_mileage_goal,
         this.race_date,
         this.workout_map,
         numWeeksUntilRace
       );
+      allRuns.forEach(run => {
+        this.event_date = run.event_date;
+        this.event_title = run.event_title;
+        this.event_workout = run.event_workout;
+        this.event_distance = run.event_distance;
+        this.event_notes = run.event_notes;
+        this.event_theme = run.event_theme;
+        this.addEvent();
+      });
+      toggleSetupWizard();
     },
 
     numberOfWeeksUntilDate(futureDate) {
