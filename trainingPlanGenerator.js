@@ -1,5 +1,5 @@
 const weekdayMap = new Map();
-const workoutMap = new Map();
+const themeMap = new Map();
 const percentMap = new Map();
 
 let nextRun = "";
@@ -20,11 +20,10 @@ let nextRun = "";
   percentMap.set("Track / Repeats", 0.05);
   percentMap.set("Hill Repeats", 0.1);
 
-  workoutMap.set("Easy", "Green");
-  workoutMap.set("Steady", "Blue");
-  workoutMap.set("Tempo", "Yellow");
-  workoutMap.set("Track/Repeats", "Red");
-  workoutMap.set("Long Run", "Purple");
+  themeMap.set("Easy", "Green");
+  themeMap.set("Tempo", "Blue");
+  themeMap.set("Track/Repeats", "Red");
+  themeMap.set("Long Run", "Purple");
 })();
 
 Date.prototype.addDays = function (days) {
@@ -56,14 +55,14 @@ function createTrainingPlan(
   });
   const selectedWorkouts = Array.from(uniqueWorkouts);
   const workoutRatio = createWorkoutPercentileMap(selectedWorkouts);
-  const uniqueValueCount = countUniqueValuesInMap(workoutMap);
+  const workoutCount = countUniqueValuesInMap(workoutMap);
 
   return generateRuns(
     nextRun,
     milesPerWeek,
     workoutMap,
     workoutRatio,
-    uniqueValueCount,
+    workoutCount,
     raceDate
   );
 }
@@ -73,39 +72,47 @@ function generateRuns(
   milesPerWeek,
   workoutMap,
   workoutRatio,
-  uniqueValueCount,
+  workoutCount,
   raceDate
 ) {
   let allRuns = [];
-  console.log(workoutMap);
+
   for (let i = 0; i < milesPerWeek.length; i++) {
     for (let x = 0; x < 7; x++) {
       let dayOfWeek = weekdayMap.get(nextRun.getDay());
 
       if (nextRun == raceDate) {
+        
         // create event for the race
+
       } else if (workoutMap.has(dayOfWeek)) {
+        
         let workoutType = workoutMap.get(dayOfWeek)[0];
+        
         let numMiles = Math.ceil(
           (milesPerWeek[i] * workoutRatio.get(workoutType)) /
-            uniqueValueCount.get(workoutType)
+          workoutCount.get(workoutType)
         );
 
-        let workout = {
-          event_date: nextRun,
-          event_title: `${workoutType} - ${numMiles} miles`,
-          event_workout: workoutType,
-          event_distance: numMiles,
-          event_notes: "",
-          event_theme: workoutMap.get(workoutType),
-        };
-
+        let workout = createWorkout(nextRun, numMiles, workoutType);
+  
         allRuns.push(workout);
       }
       nextRun = nextRun.addDays(1);
     }
   }
   return allRuns;
+}
+
+function createWorkout(dateOfWorkout, numberOfMiles, workoutType) {
+  return {
+    event_date: dateOfWorkout,
+    event_title: `${workoutType} - ${numberOfMiles} miles`,
+    event_workout: workoutType,
+    event_distance: numberOfMiles,
+    event_notes: "",
+    event_theme: themeMap.get(workoutType)
+  };
 }
 
 function createWorkoutPercentileMap(workouts) {

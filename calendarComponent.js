@@ -65,19 +65,15 @@ function app() {
       },
       {
         value: "blue",
-        label: "Steady",
-      },
-      {
-        value: "yellow",
         label: "Tempo",
       },
       {
         value: "red",
-        label: "Track / Repeats",
+        label: "Speed",
       },
       {
         value: "purple",
-        label: "Long Run",
+        label: "Long",
       },
     ],
 
@@ -205,11 +201,10 @@ function app() {
     ],
 
     workoutThemeMap: new Map([
-      ["Easy", "Green"],
-      ["Steady", "Blue"],
-      ["Tempo", "Yellow"],
-      ["Track/Repeats", "Red"],
-      ["Long Run", "Purple"],
+      ["Easy", "green"],
+      ["Tempo", "blue"],
+      ["Speed", "red"],
+      ["Long", "purple"],
     ]),
 
     openEventModal: false,
@@ -340,6 +335,12 @@ function app() {
         this.event_distance = selectedWorkout.event_distance;
         this.event_notes = selectedWorkout.event_notes;
         this.event_theme = selectedWorkout.event_theme;
+      } else {
+        this.event_title = "";
+        this.event_workout = "Easy";
+        this.event_distance = 1;
+        this.event_notes = "";
+        this.event_theme = "green";
       }
 
       this.setSelectedOption("workoutSelect", this.event_workout);
@@ -374,8 +375,8 @@ function app() {
       // clear the form data
       this.event_title = "";
       this.event_date = "";
-      this.event_theme = this.workoutThemeMap.get(this.event_workout); // 'blue';
-      this.event_workout = "Easy";
+      this.event_theme = "";
+      this.event_workout = "";
       this.event_distance = 1;
       this.event_notes = "";
 
