@@ -262,6 +262,13 @@ function app() {
         this.workout_map,
         numWeeksUntilRace
       );
+      /*this.events.length = 0;
+      this.events.splice(0,this.events.length)
+      location.reload();*/
+      while(this.events.length) {
+        this.events.pop();
+      }
+      
       allRuns.forEach(run => {
         this.event_date = run.event_date;
         this.event_title = run.event_title;

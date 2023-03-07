@@ -1,6 +1,5 @@
 const weekdayMap = new Map();
 const themeMap = new Map();
-const percentMap = new Map();
 
 let nextRun = "";
 
@@ -13,17 +12,10 @@ let nextRun = "";
   weekdayMap.set(5, "Friday");
   weekdayMap.set(6, "Saturday");
 
-  percentMap.set("Steady", 0.15);
-  percentMap.set("Long Run", 0.32);
-  percentMap.set("Easy", 0.1);
-  percentMap.set("Tempo", 0.15);
-  percentMap.set("Track / Repeats", 0.05);
-  percentMap.set("Hill Repeats", 0.1);
-
-  themeMap.set("Easy", "Green");
-  themeMap.set("Tempo", "Blue");
-  themeMap.set("Track/Repeats", "Red");
-  themeMap.set("Long Run", "Purple");
+  themeMap.set("Easy", "green");
+  themeMap.set("Tempo", "blue");
+  themeMap.set("Speed", "red");
+  themeMap.set("Long", "purple");
 })();
 
 Date.prototype.addDays = function (days) {
