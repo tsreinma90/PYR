@@ -34,6 +34,38 @@ function toggleSetupWizard() {
   }, 600);
 }
 
+/*function resizeListener(elementId) {
+  var $element = $("#" + elementId);
+  var $children = $element.children();
+  var initial = false;
+  $(window)
+    .on("resize", function () {
+      if (initial) {
+        var width = $(window).width() / $element.width();
+        var height = $(window).height() / $element.height();
+        var scale = "scale(" + Math.min(width, height) + ")";
+
+        $element.css({
+          "-webkit-transform": scale,
+          "-moz-transform": scale,
+          "-ms-transform": scale,
+          "-o-transform": scale,
+          transform: scale,
+        });
+        $children.css({
+          "-webkit-transform": scale,
+          "-moz-transform": scale,
+          "-ms-transform": scale,
+          "-o-transform": scale,
+          transform: scale,
+        });
+      } else {
+        initial = true;
+      }
+    })
+    .trigger("resize");
+}*/
+
 function app() {
   return {
     /* Properties used for the calendar and events */
@@ -410,6 +442,12 @@ function app() {
       }
     },
 
+    clearCalendar() {
+      console.log(this.events);
+      this.events = [];
+      console.log(this.events);
+    },
+
     getNoOfDays() {
       let daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
 
@@ -474,34 +512,3 @@ function app() {
   };
 }
 
-/*function resizeListener(elementId) {
-  var $element = $("#" + elementId);
-  var $children = $element.children();
-  var initial = false;
-  $(window)
-    .on("resize", function () {
-      if (initial) {
-        var width = $(window).width() / $element.width();
-        var height = $(window).height() / $element.height();
-        var scale = "scale(" + Math.min(width, height) + ")";
-
-        $element.css({
-          "-webkit-transform": scale,
-          "-moz-transform": scale,
-          "-ms-transform": scale,
-          "-o-transform": scale,
-          transform: scale,
-        });
-        $children.css({
-          "-webkit-transform": scale,
-          "-moz-transform": scale,
-          "-ms-transform": scale,
-          "-o-transform": scale,
-          transform: scale,
-        });
-      } else {
-        initial = true;
-      }
-    })
-    .trigger("resize");
-}*/
