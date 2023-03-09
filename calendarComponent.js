@@ -76,7 +76,7 @@ function app() {
     days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
 
     /* Properties used for a single calendar event */
-    events: [],
+    calendarEvents: [],
     event_title: "",
     event_date: "",
     event_theme: "blue",
@@ -281,6 +281,7 @@ function app() {
           5000
         );
       } else {
+        this.calendarEvents = [];
         this.calculateTrainingPlan(numWeeksUntilRace);
       }
     },
@@ -294,12 +295,6 @@ function app() {
         this.workout_map,
         numWeeksUntilRace
       );
-      /*this.events.length = 0;
-      this.events.splice(0,this.events.length)
-      location.reload();*/
-      while(this.events.length) {
-        this.events.pop();
-      }
       
       allRuns.forEach(run => {
         this.event_date = run.event_date;
@@ -368,7 +363,7 @@ function app() {
       // open the modal
       let dIndx = this.fetchCalendarEventByDateIndex(dateIndex + 1);
       if (dIndx != -1) {
-        let selectedWorkout = this.events[dIndx];
+        let selectedWorkout = this.calendarEvents[dIndx];
         this.event_title = selectedWorkout.event_title;
         this.event_workout = selectedWorkout.event_workout;
         this.event_distance = selectedWorkout.event_distance;
@@ -392,7 +387,7 @@ function app() {
         return;
       } else {
         let eventIndex = this.findIndex(
-          this.events,
+          this.calendarEvents,
           "event_date",
           this.event_date
         );
@@ -405,9 +400,9 @@ function app() {
           event_notes: this.event_notes,
         };
         if (eventIndex != -1) {
-          this.events[eventIndex] = workoutEvent;
+          this.calendarEvents[eventIndex] = workoutEvent;
         } else {
-          this.events.push(workoutEvent);
+          this.calendarEvents.push(workoutEvent);
         }
       }
 
@@ -425,13 +420,13 @@ function app() {
 
     deleteEvent() {
       let eventIndex = this.findIndex(
-        this.events,
+        this.calendarEvents,
         "event_date",
         this.event_date
       );
 
       if (eventIndex != -1) {
-        this.events.splice(eventIndex, 1);
+        this.calendarEvents.splice(eventIndex, 1);
         this.event_title = "";
         this.event_date = "";
         this.event_theme = this.workoutThemeMap.get(this.event_workout); // 'blue';
@@ -440,12 +435,6 @@ function app() {
         this.event_notes = "";
         this.openEventModal = false;
       }
-    },
-
-    clearCalendar() {
-      console.log(this.events);
-      this.events = [];
-      console.log(this.events);
     },
 
     getNoOfDays() {
@@ -472,7 +461,7 @@ function app() {
     },
 
     fetchCalendarEventByDateIndex(dateIndex) {
-      return this.events.findIndex((item) =>
+      return this.calendarEvents.findIndex((item) =>
         JSON.stringify(item["event_date"]).includes(dateIndex)
       );
     },

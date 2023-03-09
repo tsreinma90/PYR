@@ -20,7 +20,7 @@
 </head>
 
 <body>
-    <div x-data="app()" x-init="[initDate(), getNoOfDays(), inputSliderInit(), raceDateInit()]" x-cloak>
+    <div x-data="app()" x-init="[initDate(), getNoOfDays(), inputSliderInit()]" x-cloak>
         <div class="container mx-auto px-4 py-2 md:py-24" id="container" style="opacity: .95;"> 
             <div class="relative">
                 <div="w-64 h-64 bg-gray-200 rounded-lg">
@@ -44,7 +44,7 @@
                                         style="position: relative; top:6px; left: 3px;"></i>-->
                                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6" style="position: relative; top:3px; left: 3px;">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
-                                          </svg>
+                                        </svg>
                                     &nbsp;&nbsp; <span style="position: relative; top:4px;">Plan My Run</span>
                                 </button>
                             </div>
@@ -52,7 +52,7 @@
                                 style="margin-right: 10px; min-height: 35px;">
                                 <button type="button"
                                     class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    @onclick="clearCalendar()" id="setupWizardButton">
+                                    x-on:click="calendarEvents = []">
                                     <i class="fa-solid fa-trash"
                                         style="position: relative; top:6px; left: 3px;"></i>
                                     &nbsp;&nbsp; <span style="position: relative; top:4px;">Clear</span>
@@ -121,9 +121,9 @@
                                             class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
                                             :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
                                         </div>
-                                        <div style="height: 80px;" class="overflow-y-auto mt-1">
+                                        <div style="height: 80px;" class="overflow-y-auto mt-1" x-show="calendarEvents.length > 0">
                                             <template
-                                                x-for="event in events.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
+                                                x-for="event in calendarEvents.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
                                                 <div class="px-2 py-1 rounded-lg mt-1 overflow-hidden border" :class="{
                                                                             'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
                                                                             'border-red-200 text-red-800 bg-red-100': event.event_theme === 'red',
