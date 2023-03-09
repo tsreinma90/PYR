@@ -249,6 +249,7 @@ function app() {
       this.weekly_mileage_goal = document.querySelector(".value").textContent;
       this.race_date = document.getElementById("dateInput").value;
       const workouts = document.querySelectorAll('[data-name="workout"]');
+      this.workout_map = new Map();
 
       for (const element of workouts) {
         if (element.checked) {
@@ -281,7 +282,7 @@ function app() {
           5000
         );
       } else {
-        this.calendarEvents = [];
+        this.calendarEvents.length = 0;
         this.calculateTrainingPlan(numWeeksUntilRace);
       }
     },
