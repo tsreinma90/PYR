@@ -86,6 +86,7 @@ function generateRuns(
           workoutCount.get(workoutType)
         );
 
+        console.log(milesPerWeek[i], workoutRatio.get(workoutType), workoutCount.get(workoutType), workoutRatio.get(workoutType) / workoutCount.get(workoutType), numMiles);
         let workout = createWorkout(nextRun, numMiles, workoutType);
   
         allRuns.push(workout);
@@ -166,7 +167,7 @@ function createWorkoutPercentileMap(workouts) {
 
     /* Only 1 workout type is selected */
     default:
-      workoutRatio.set(workouts[0], 100);
+      workoutRatio.set(workouts[0], 1);
   }
 
   return workoutRatio;
