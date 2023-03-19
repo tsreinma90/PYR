@@ -34,38 +34,6 @@ function toggleSetupWizard() {
   }, 600);
 }
 
-/*function resizeListener(elementId) {
-  var $element = $("#" + elementId);
-  var $children = $element.children();
-  var initial = false;
-  $(window)
-    .on("resize", function () {
-      if (initial) {
-        var width = $(window).width() / $element.width();
-        var height = $(window).height() / $element.height();
-        var scale = "scale(" + Math.min(width, height) + ")";
-
-        $element.css({
-          "-webkit-transform": scale,
-          "-moz-transform": scale,
-          "-ms-transform": scale,
-          "-o-transform": scale,
-          transform: scale,
-        });
-        $children.css({
-          "-webkit-transform": scale,
-          "-moz-transform": scale,
-          "-ms-transform": scale,
-          "-o-transform": scale,
-          transform: scale,
-        });
-      } else {
-        initial = true;
-      }
-    })
-    .trigger("resize");
-}*/
-
 function app() {
   return {
     /* Properties used for the calendar and events */
@@ -87,6 +55,7 @@ function app() {
     /* Properties used to calculate a training plan based on user input */
     weekly_mileage_goal: 50,
     start_day: "",
+    start_date: "",
     race_date: "",
     workout_map: new Map(),
 
@@ -242,11 +211,12 @@ function app() {
     openEventModal: false,
 
     generatePlan() {
-      this.start_day = document.querySelector('[data-name="startOnSunday"]')
+      /*this.start_day = document.querySelector('[data-name="startOnSunday"]')
         .checked
         ? "Sunday"
-        : "Monday";
+        : "Monday";*/
       this.weekly_mileage_goal = document.querySelector(".value").textContent;
+      this.start_date = document.getElementById("startDate").value;
       this.race_date = document.getElementById("dateInput").value;
       const workouts = document.querySelectorAll('[data-name="workout"]');
       this.workout_map = new Map();
@@ -267,12 +237,12 @@ function app() {
         }
       }
       const formComplete =
-        this.start_day &&
+        this.start_date &&
         this.weekly_mileage_goal &&
         this.race_date &&
         this.workout_map;
       
-      const numWeeksUntilRace = parseInt(this.numberOfWeeksUntilDate(this.race_date));
+      const numWeeksUntilRace = parseInt(this.numberOfWeeksUntilDate(this.start_date, this.race_date));
 
       if (!formComplete) {
         this.showErrorToast("All fields are required", 5000);
@@ -290,7 +260,7 @@ function app() {
     async calculateTrainingPlan(numWeeksUntilRace) {
       const trainingController = await import("./trainingPlanGenerator.js");
       const allRuns = trainingController.createTrainingPlan(
-        this.start_day,
+        this.start_date,
         this.weekly_mileage_goal,
         this.race_date,
         this.workout_map,
@@ -309,11 +279,13 @@ function app() {
       toggleSetupWizard();
     },
 
-    numberOfWeeksUntilDate(futureDate) {
+    numberOfWeeksUntilDate(startingDate, futureDate) {
       const now = this.formatDate(new Date());
 
+
+
       // Create two Date objects from the given date strings
-      const date1 = new Date(now);
+      const date1 = (startingDate) ? new Date(startingDate) : new Date(this.formatDate(new Date()));
       const date2 = new Date(futureDate);
 
       // Calculate the difference in milliseconds between the two dates
@@ -381,6 +353,7 @@ function app() {
       this.setSelectedOption("workoutSelect", this.event_workout);
       this.openEventModal = true;
       this.event_date = new Date(this.year, this.month, date).toDateString();
+      console.log(this.event_date);
     },
 
     addEvent() {
@@ -420,6 +393,7 @@ function app() {
     },
 
     deleteEvent() {
+      console.log(this.event_date);
       let eventIndex = this.findIndex(
         this.calendarEvents,
         "event_date",
@@ -502,3 +476,34 @@ function app() {
   };
 }
 
+/*function resizeListener(elementId) {
+  var $element = $("#" + elementId);
+  var $children = $element.children();
+  var initial = false;
+  $(window)
+    .on("resize", function () {
+      if (initial) {
+        var width = $(window).width() / $element.width();
+        var height = $(window).height() / $element.height();
+        var scale = "scale(" + Math.min(width, height) + ")";
+
+        $element.css({
+          "-webkit-transform": scale,
+          "-moz-transform": scale,
+          "-ms-transform": scale,
+          "-o-transform": scale,
+          transform: scale,
+        });
+        $children.css({
+          "-webkit-transform": scale,
+          "-moz-transform": scale,
+          "-ms-transform": scale,
+          "-o-transform": scale,
+          transform: scale,
+        });
+      } else {
+        initial = true;
+      }
+    })
+    .trigger("resize");
+}*/

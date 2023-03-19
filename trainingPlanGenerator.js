@@ -32,11 +32,10 @@ function createTrainingPlan(
   numWeeksUntilRace // # weeks for training
 ) {
   // Set the first day of training to Sun/Mon based on user input and day of the week
-  nextRun = setInitialStartDate(startDay);
-
+  nextRun = new Date(startDay); //(startDay);
+  console.log(startDay, typeof startDay, raceDate, typeof raceDate);
   // An array of # of miles total for each week
   const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal);
-  //const daysPerWeekRunning = workoutMap.size;
 
   // Check which workouts are included in the week
   let uniqueWorkouts = new Set();
@@ -76,6 +75,7 @@ function generateRuns(
       if (nextRun == raceDate) {
         
         // create event for the race
+        let raceShakeout = createWorkout(nextRun)
 
       } else if (workoutMap.has(dayOfWeek)) {
         
@@ -86,7 +86,6 @@ function generateRuns(
           workoutCount.get(workoutType)
         );
 
-        console.log(milesPerWeek[i], workoutRatio.get(workoutType), workoutCount.get(workoutType), workoutRatio.get(workoutType) / workoutCount.get(workoutType), numMiles);
         let workout = createWorkout(nextRun, numMiles, workoutType);
   
         allRuns.push(workout);

@@ -151,7 +151,7 @@
 
                             <br /><br />
 
-                            Which day of the week do you prefer to start your workouts on?
+                            <!--Which day of the week do you prefer to start your workouts on?
                             <br />
                             <label>
                                 <input data-name="startOnSunday" type="radio" name="startDay" value="sunday" checked> Sunday
@@ -160,25 +160,38 @@
                                 <input type="radio" name="startDay" value="monday"> Monday
                             </label>
 
-                            <br /><br />
-                            <div id="workoutSelector"></div>
-
-                            <br /><br />
-
+                            <br /><br />-->
+                            
                             <div class="flex justify-center">
-                                <div class="w-3/4">
-                                    <span>Number of miles per week</span>
-                                    <input type="range" data-name="milesSlider" class="slider w-full" min="0" max="100" value="50" />
-                                    <span class="value">50</span>
+                                <div class="w-1/4">
+                                    <span>Training Start Date</span>
+                                    <div class="p-4">
+                                        <input type="date" id="startDate" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
+                                    </div>
+                                </div>
+
+                                <div class="w-1/4">
+                                    <span>Race / End Date</span>
+                                    <div class="p-4">
+                                        <input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
+                                    </div>
+                            
+                                </div>
+                            </div>
+                            <div class="flex justify-center">
+                                <div class="w-1/2">
+                                    <span>What is your goal for peak weekly mileage?</span>
+                                    <div class="p-4">
+                                        <input type="range" data-name="milesSlider" class="slider w-full" min="0" max="100" value="50" />
+                                        <span class="value">50</span>
+                                    </div>
                                 </div>
                             </div>
 
+                            <div id="workoutSelector"></div>
 
-                            <br /><br />
+                            <!--<input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">-->
 
-                            <input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
-
-                            <br /><br />
                             
                             <button type="button"
                                 class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
