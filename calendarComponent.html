@@ -21,43 +21,42 @@
 
 <body>
     <div x-data="app()" x-init="[initDate(), getNoOfDays(), inputSliderInit()]" x-cloak>
-        <div class="container mx-auto px-4 py-2 md:py-24" id="container" style="opacity: .95;"> 
+        <div class="container mx-auto px-4 py-2 md:py-24" id="container" style="opacity: .95;">
             <div class="relative">
                 <div="w-64 h-64 bg-gray-200 rounded-lg">
-                    <div id="error-toast" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+                    <div id="error-toast"
+                        class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
                         <div class="bg-red-500 border border-red-700 text-white font-bold rounded px-4 py-2">
-                          Error!
+                            Error!
                         </div>
-                      </div>
+                    </div>
                     <div class="front" id="front">
                         <div class="flex items-center justify-between py-2 px-6">
                             <div>
                                 <span x-text="MONTH_NAMES[month]" class="text-lg font-bold text-gray-800"></span>
                                 <span x-text="year" class="ml-1 text-lg text-gray-600 font-normal"></span>
                             </div>
-                            <div class="border rounded-lg px-1"
-                                style="margin-left: auto; margin-right: 10px; min-height: 35px;">
-                                <button type="button"
-                                    class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    onclick="toggleSetupWizard()" id="setupWizardButton">
-                                    <!--<i class="fa-solid adjustments-horizontal"
+                            <button type="button" style="margin-left: auto; margin-right: 10px; min-height: 35px;"
+                                class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                onclick="toggleSetupWizard()" id="setupWizardButton">
+                                <!--<i class="fa-solid adjustments-horizontal"
                                         style="position: relative; top:6px; left: 3px;"></i>-->
-                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6" style="position: relative; top:3px; left: 3px;">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
-                                        </svg>
-                                    &nbsp;&nbsp; <span style="position: relative; top:4px;">Plan My Run</span>
-                                </button>
-                            </div>
-                            <div class="border rounded-lg px-1"
-                                style="margin-right: 10px; min-height: 35px;">
-                                <button type="button"
-                                    class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    x-on:click="calendarEvents = []">
-                                    <i class="fa-solid fa-trash"
-                                        style="position: relative; top:6px; left: 3px;"></i>
-                                    &nbsp;&nbsp; <span style="position: relative; top:4px;">Clear</span>
-                                </button>
-                            </div>
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor"
+                                    style="position:relative; left: 8px;"
+                                    class="w-6 h-6 flex items-center justify-between">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M9.75 3.104v5.714a2.25 2.25 0 01-.659 1.591L5 14.5M9.75 3.104c-.251.023-.501.05-.75.082m.75-.082a24.301 24.301 0 014.5 0m0 0v5.714c0 .597.237 1.17.659 1.591L19.8 15.3M14.25 3.104c.251.023.501.05.75.082M19.8 15.3l-1.57.393A9.065 9.065 0 0112 15a9.065 9.065 0 00-6.23-.693L5 14.5m14.8.8l1.402 1.402c1.232 1.232.65 3.318-1.067 3.611A48.309 48.309 0 0112 21c-2.773 0-5.491-.235-8.135-.687-1.718-.293-2.3-2.379-1.067-3.61L5 14.5" />
+                                </svg>
+                                &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Create</span>
+                            </button>
+                            <button type="button" style="min-height: 35px; min-width: 90px; margin-right: 10px;"
+                                class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                x-on:click="calendarEvents = []">
+                                <i style="position:relative; left: 5px;" class="fa-solid fa-trash flex items-center justify-between"></i>
+                                &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Reset</span>
+                            </button>
+
                             <!--<div class="border rounded-lg px-1" style="min-height: 35px;">
                                 <button type="button"
                                     class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center">
@@ -121,7 +120,8 @@
                                             class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
                                             :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
                                         </div>
-                                        <div style="height: 80px;" class="overflow-y-auto mt-1" x-show="calendarEvents.length > 0">
+                                        <div style="height: 80px;" class="overflow-y-auto mt-1"
+                                            x-show="calendarEvents.length > 0">
                                             <template
                                                 x-for="event in calendarEvents.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
                                                 <div class="px-2 py-1 rounded-lg mt-1 overflow-hidden border" :class="{
@@ -142,16 +142,16 @@
                             </div>
                         </div>
                     </div>
-                <div class="back w-full h-full bg-gray-300 rounded-lg" id="back" style="display:none;">
-                    <div style="text-align: center; margin-top: auto; height: 100%;">
-                        <div class="">
-                            <span class="font-bold text-2xl mb-6 text-gray-800 border-b pb-2">
-                                Create Your Plan
-                            </span>
+                    <div class="back w-full h-full bg-gray-300 rounded-lg" id="back" style="display:none;">
+                        <div style="text-align: center; margin-top: auto; height: 100%;">
+                            <div class="">
+                                <span class="font-bold text-2xl mb-6 text-gray-800 border-b pb-2">
+                                    Create Your Plan
+                                </span>
 
-                            <br /><br />
+                                <br /><br />
 
-                            <!--Which day of the week do you prefer to start your workouts on?
+                                <!--Which day of the week do you prefer to start your workouts on?
                             <br />
                             <label>
                                 <input data-name="startOnSunday" type="radio" name="startDay" value="sunday" checked> Sunday
@@ -161,52 +161,55 @@
                             </label>
 
                             <br /><br />-->
-                            
-                            <div class="flex justify-center">
-                                <div class="w-1/4">
-                                    <span>Training Start Date</span>
-                                    <div class="p-4">
-                                        <input type="date" id="startDate" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
+
+                                <div class="flex justify-center">
+                                    <div class="w-1/4">
+                                        <span>Training Start Date</span>
+                                        <div class="p-4">
+                                            <input type="date" id="startDate"
+                                                class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
+                                        </div>
+                                    </div>
+
+                                    <div class="w-1/4">
+                                        <span>Race / End Date</span>
+                                        <div class="p-4">
+                                            <input type="date" id="dateInput"
+                                                class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
+                                        </div>
+
+                                    </div>
+                                </div>
+                                <div class="flex justify-center">
+                                    <div class="w-1/2">
+                                        <span>What is your goal for peak weekly mileage?</span>
+                                        <div class="p-4">
+                                            <input type="range" data-name="milesSlider" class="slider w-full" min="0"
+                                                max="100" value="50" />
+                                            <span class="value">50</span>
+                                        </div>
                                     </div>
                                 </div>
 
-                                <div class="w-1/4">
-                                    <span>Race / End Date</span>
-                                    <div class="p-4">
-                                        <input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">
-                                    </div>
-                            
-                                </div>
+                                <div id="workoutSelector"></div>
+
+                                <!--<input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">-->
+
+
+                                <button type="button"
+                                    class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                    @click="generatePlan()">
+                                    Generate Plan
+                                </button>
+
+                                <button type="button"
+                                    class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                    onclick="toggleSetupWizard()">
+                                    Cancel
+                                </button>
                             </div>
-                            <div class="flex justify-center">
-                                <div class="w-1/2">
-                                    <span>What is your goal for peak weekly mileage?</span>
-                                    <div class="p-4">
-                                        <input type="range" data-name="milesSlider" class="slider w-full" min="0" max="100" value="50" />
-                                        <span class="value">50</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div id="workoutSelector"></div>
-
-                            <!--<input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">-->
-
-                            
-                            <button type="button"
-                                class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                @click="generatePlan()">
-                                Generate Plan
-                            </button>
-                            
-                            <button type="button"
-                                class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                onclick="toggleSetupWizard()">
-                                Cancel
-                            </button>
                         </div>
                     </div>
-                </div>
             </div>
 
             <!-- Modal -->
