@@ -63,7 +63,7 @@
                                 <button x-bind:disabled="calendarEvents.length === 0" :class="{ 'opacity-50 cursor-not-allowed': calendarEvents.length === 0 }"
                                     type="button" style="min-height: 35px; margin-right: 10px;"
                                     class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    onclick="toggleSetupWizard()" id="setupWizardButton">
+                                    @click="downloadCalendar()" id="setupWizardButton">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
                                         stroke-width="1.5" stroke="currentColor" style="position:relative; left: 8px;" class="w-6 h-6 flex items-center justify-between">
                                         <path stroke-linecap="round" stroke-linejoin="round"

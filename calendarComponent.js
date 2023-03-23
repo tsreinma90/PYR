@@ -473,6 +473,12 @@ function app() {
       const formattedDate = `${year}-${month}-${day}`;
       return formattedDate;
     },
+    
+    async downloadCalendar(event) {
+      //console.log(JSON.stringify(this.calendarEvents, undefined, 2));
+      const downloadHelper = await import("./calendarDownload.js");
+      downloadHelper.downloadCalendarFile(this.calendarEvents);
+    },
   };
 }
 
