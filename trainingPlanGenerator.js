@@ -25,37 +25,29 @@ Date.prototype.addDays = function (days) {
 };
 
 function createTrainingPlan(
-  startDay, // Sunday or Monday
-  mileageGoal, // 1-100
-  raceDate, // Race Date
-  workoutMap, // Map<DayOfWeek, WorkoutType>
+  startDay, // Start date user selects
+  mileageGoal, // 1-100 miles
+  raceDate, // Race date user selects
+  workoutMap, // Day of the Week => Workout Selection
   numWeeksUntilRace // # weeks for training
 ) {
-  // Set the first day of training to Sun/Mon based on user input and day of the week
+  // Set the first day of training to the date which the user selected
   nextRun = new Date(startDay); //(startDay);
-  console.log(startDay, typeof startDay, raceDate, typeof raceDate);
-  // An array of # of miles total for each week
+
+  // Create an array storing the total weekly number of miles for each week of training
   const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal);
 
-  // Check which workouts are included in the week
+  // Check which workouts are included in the week (we only care about unique values)
   let uniqueWorkouts = new Set();
-  workoutMap.forEach((valueArray) => {
-    valueArray.forEach((value) => {
-      uniqueWorkouts.add(value);
-    });
+  workoutMap.forEach((val) => {
+      uniqueWorkouts.add(val[0]);
   });
   const selectedWorkouts = Array.from(uniqueWorkouts);
   const workoutRatio = createWorkoutPercentileMap(selectedWorkouts);
   const workoutCount = countUniqueValuesInMap(workoutMap);
 
-  return generateRuns(
-    nextRun,
-    milesPerWeek,
-    workoutMap,
-    workoutRatio,
-    workoutCount,
-    raceDate
-  );
+  // An array of calendar events up until the race date
+  return generateRuns(nextRun, milesPerWeek, workoutMap, workoutRatio, workoutCount, raceDate);
 }
 
 function generateRuns(
@@ -67,7 +59,7 @@ function generateRuns(
   raceDate
 ) {
   let allRuns = [];
-
+  //console.log('Next Run', nextRun, 'Weeks of training', milesPerWeek.length, 'Workout Schedule', workoutMap, 'Workout Ratio', workoutRatio, 'Workout Count', workoutCount, 'Race Date', raceDate);
   for (let i = 0; i < milesPerWeek.length; i++) {
     for (let x = 0; x < 7; x++) {
       let dayOfWeek = weekdayMap.get(nextRun.getDay());
@@ -208,47 +200,6 @@ function createWeeklyMileage(numOfWeeks, maxMileage) {
   milesPerWeek.push(Number(Math.ceil(0.2 * maxMileage)));
 
   return milesPerWeek;
-}
-
-function setInitialStartDate(startPreference) {
-  const dayOfWeek = weekdayMap.get(new Date().getDay());
-  const startOnSunday = startPreference === "Sunday" ? true : false;
-  let startDay;
-
-  switch (dayOfWeek) {
-    case "Sunday":
-      startDay = startOnSunday ? new Date() : new Date().addDays(1);
-      break;
-    case "Monday":
-      startDay = startOnSunday ? new Date().addDays(-1) : new Date();
-      break;
-    case "Tuesday":
-      startDay = startOnSunday
-        ? new Date().addDays(-2)
-        : new Date().addDays(-1);
-      break;
-    case "Wednesday":
-      startDay = startOnSunday ? new Date().addDays(4) : new Date().addDays(-2);
-      break;
-    case "Thursday":
-      startDay = startOnSunday ? new Date().addDays(3) : new Date().addDays(-3);
-      break;
-    case "Friday":
-      startDay = startOnSunday ? new Date().addDays(2) : new Date().addDays(3);
-      break;
-    case "Saturday":
-      startDay = startOnSunday ? new Date().addDays(1) : new Date().addDays(2);
-      break;
-    default:
-      return null;
-      break;
-  }
-  return startDay;
-}
-
-function startOfWeek(date) {
-  var diff = date.getDate() - date.getDay() + (date.getDay() === 0 ? -6 : 1);
-  return new Date(date.setDate(diff));
 }
 
 export { createTrainingPlan };
