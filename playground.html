@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playground</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+    <link href="fontawesome-free-6.2.1-web/css/fontawesome.css" rel="stylesheet">
+    <link href="fontawesome-free-6.2.1-web/css/brands.css" rel="stylesheet">
+    <link href="fontawesome-free-6.2.1-web/css/solid.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"></link>
+</head>
+
+<body>
+    <div x-data="{ days: [
+        { name: 'Monday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Tuesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Wednesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Thursday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Friday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Saturday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Sunday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 }
+      ] }">
+<div class="flex space-x-4">
+<template x-for="(day, index) in days" :key="index">
+<div class="w-24 bg-gray-200 p-4 rounded-lg">
+<h2 class="font-bold text-lg mb-2" x-text="day.name"></h2>
+<div class="flex justify-between">
+ <button class="text-gray-600" x-on:click="day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length">
+   &lt;
+ </button>
+ <span class="font-bold" x-text="day.options[day.activeOption]"></span>
+ <button class="text-gray-600" x-on:click="day.activeOption = (day.activeOption + 1) % day.options.length">
+   &gt;
+ </button>
+</div>
+</div>
+</template>
+</div>
+</div>
+
+</body>
+
+</html>
