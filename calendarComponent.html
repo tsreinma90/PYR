@@ -49,8 +49,9 @@
                                 </svg>
                                 &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Create</span>
                             </button>
-                            <div x-data="calendarEvents: [] }">
-                                <button x-bind:disabled="calendarEvents.length === 0" :class="{ 'opacity-50 cursor-not-allowed': calendarEvents.length === 0 }"
+                            <div x-data="{ calendarEvents: [] }">
+                                <button x-bind:disabled="calendarEvents.length === 0"
+                                    :class="{ 'opacity-50 cursor-not-allowed': calendarEvents.length === 0 }"
                                     type="button" style="min-height: 35px; min-width: 90px; margin-right: 10px;"
                                     class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
                                     x-on:click="calendarEvents = []">
@@ -59,17 +60,20 @@
                                     &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Reset</span>
                                 </button>
                             </div>
-                            <div x-data="calendarEvents: [] }">
-                                <button x-bind:disabled="calendarEvents.length === 0" :class="{ 'opacity-50 cursor-not-allowed': calendarEvents.length === 0 }"
+                            <div x-data="{ calendarEvents: [] }">
+                                <button x-bind:disabled="calendarEvents.length === 0"
+                                    :class="{ 'opacity-50 cursor-not-allowed': calendarEvents.length === 0 }"
                                     type="button" style="min-height: 35px; margin-right: 10px;"
                                     class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
                                     @click="downloadCalendar()" id="setupWizardButton">
                                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                                        stroke-width="1.5" stroke="currentColor" style="position:relative; left: 8px;" class="w-6 h-6 flex items-center justify-between">
+                                        stroke-width="1.5" stroke="currentColor" style="position:relative; left: 8px;"
+                                        class="w-6 h-6 flex items-center justify-between">
                                         <path stroke-linecap="round" stroke-linejoin="round"
                                             d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 012.25-2.25h13.5A2.25 2.25 0 0121 7.5v11.25m-18 0A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75m-18 0v-7.5A2.25 2.25 0 015.25 9h13.5A2.25 2.25 0 0121 11.25v7.5m-9-6h.008v.008H12v-.008zM12 15h.008v.008H12V15zm0 2.25h.008v.008H12v-.008zM9.75 15h.008v.008H9.75V15zm0 2.25h.008v.008H9.75v-.008zM7.5 15h.008v.008H7.5V15zm0 2.25h.008v.008H7.5v-.008zm6.75-4.5h.008v.008h-.008v-.008zm0 2.25h.008v.008h-.008V15zm0 2.25h.008v.008h-.008v-.008zm2.25-4.5h.008v.008H16.5v-.008zm0 2.25h.008v.008H16.5V15z" />
                                     </svg>
-                                    &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Download</span>
+                                    &nbsp;&nbsp; <span
+                                        class="flex items-center justify-between py-1 px-1">Download</span>
                                 </button>
                             </div>
 
@@ -212,17 +216,27 @@
                                 <!--<input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">-->
 
 
-                                <button type="button"
+                                <!--<button type="button"
                                     class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
                                     @click="generatePlan()">
                                     Generate Plan
-                                </button>
+                                </button>-->
+                                <br />
+                                <div class="h-4">
+                                    <button type="button"
+                                        class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                        @click="generatePlan()">
+                                        Generate Plan
+                                    </button>
 
-                                <button type="button"
-                                    class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    onclick="toggleSetupWizard()">
-                                    Cancel
-                                </button>
+                                    <button type="button"
+                                        class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                        onclick="toggleSetupWizard()">
+                                        Cancel
+                                    </button>
+                                </div>
+
+                                <br />
                             </div>
                         </div>
                     </div>
