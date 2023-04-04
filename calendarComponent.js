@@ -347,6 +347,7 @@ function app() {
           this.event_notes = selectedWorkout.event_notes;
           this.event_theme = selectedWorkout.event_theme;
         } else {
+          // to - do , update the actual event_distance in the trainingPlanGenerator.js
           console.log(this.calendarEvents[dIndx], this.calendarEvents[dIndx + 1]);
           let selectedWorkout = this.calendarEvents[dIndx].event_title == eventTitle ? this.calendarEvents[dIndx] : this.calendarEvents[dIndx + 1];
           this.event_title = selectedWorkout.event_title;

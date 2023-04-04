@@ -82,8 +82,8 @@ function generateRuns(
           let doDoubleDay = splitRunIntoTwo(numMiles, milesPerWeek[i], workoutRatio, workoutCount);
           if (doDoubleDay) {
             let result = splitRun(numMiles);
-            let morningRun = createWorkout(nextRun, numMiles, workoutType, `Morning ${workoutType} - ${result[0]} miles`);
-            let eveningRun = createWorkout(nextRun, numMiles, workoutType, `Evening ${workoutType} - ${result[1]} miles`);
+            let morningRun = createWorkout(nextRun, result[0], workoutType, `Morning ${workoutType} - ${result[0]} miles`);
+            let eveningRun = createWorkout(nextRun, result[1], workoutType, `Evening ${workoutType} - ${result[1]} miles`);
             allRuns.push(morningRun);
             allRuns.push(eveningRun);
           } else {
