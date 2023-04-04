@@ -59,7 +59,7 @@ function generateRuns(
   raceDate
 ) {
   let allRuns = [];
-  //console.log('Next Run', nextRun, 'Weeks of training', milesPerWeek.length, 'Workout Schedule', workoutMap, 'Workout Ratio', workoutRatio, 'Workout Count', workoutCount, 'Race Date', raceDate);
+  let longRunIncluded = longRunIncludedInPlan(workoutMap);
   for (let i = 0; i < milesPerWeek.length; i++) {
     for (let x = 0; x < 7; x++) {
       let dayOfWeek = weekdayMap.get(nextRun.getDay());
@@ -77,10 +77,23 @@ function generateRuns(
           (milesPerWeek[i] * workoutRatio.get(workoutType)) /
           workoutCount.get(workoutType)
         );
-
-        let workout = createWorkout(nextRun, numMiles, workoutType);
-  
-        allRuns.push(workout);
+          
+        if (longRunIncluded && workoutType != 'Long') {
+          let doDoubleDay = splitRunIntoTwo(numMiles, milesPerWeek[i], workoutRatio, workoutCount);
+          if (doDoubleDay) {
+            let result = splitRun(numMiles);
+            let morningRun = createWorkout(nextRun, numMiles, workoutType, `Morning ${workoutType} - ${result[0]} miles`);
+            let eveningRun = createWorkout(nextRun, numMiles, workoutType, `Evening ${workoutType} - ${result[1]} miles`);
+            allRuns.push(morningRun);
+            allRuns.push(eveningRun);
+          } else {
+            let workout = createWorkout(nextRun, numMiles, workoutType, null);
+            allRuns.push(workout);
+          }
+        } else {
+          let workout = createWorkout(nextRun, numMiles, workoutType, null);
+          allRuns.push(workout);
+        }
       }
       nextRun = nextRun.addDays(1);
     }
@@ -88,10 +101,36 @@ function generateRuns(
   return allRuns;
 }
 
-function createWorkout(dateOfWorkout, numberOfMiles, workoutType) {
+function longRunIncludedInPlan(workoutMap) {
+  let longRunIncluded = false;
+  for (const workout of workoutMap.values()) {
+    if (workout[0] === 'Long') { 
+      longRunIncluded = true;
+    }
+  }
+  return longRunIncluded;
+}
+
+function splitRunIntoTwo(numMilesForWorkout, numMilesForWeek, workoutRatioMap, workoutCountMap) {
+  let longRunMiles = Math.ceil(
+    (numMilesForWeek * workoutRatioMap.get('Long')) /
+    workoutCountMap.get('Long')
+  );
+  //console.log(longRunMiles, numMilesForWorkout);
+  return numMilesForWorkout < longRunMiles ? false : true;
+}
+
+function splitRun(numMiles) {
+  const largerNum = Math.ceil(numMiles * 0.7);
+  const smallerNum = numMiles - largerNum;
+
+  return [largerNum, smallerNum];
+}
+
+function createWorkout(dateOfWorkout, numberOfMiles, workoutType, eventTitle) {
   return {
     event_date: dateOfWorkout,
-    event_title: `${workoutType} - ${numberOfMiles} miles`,
+    event_title: eventTitle != null ? eventTitle : `${workoutType} - ${numberOfMiles} miles`,
     event_workout: workoutType,
     event_distance: numberOfMiles,
     event_notes: "",
@@ -200,6 +239,14 @@ function createWeeklyMileage(numOfWeeks, maxMileage) {
   milesPerWeek.push(Number(Math.ceil(0.2 * maxMileage)));
 
   return milesPerWeek;
+}
+
+function isEven(num) {
+  if(num % 2 === 0) {
+    return true; // even
+  } else {
+    return false; // odd
+  }
 }
 
 export { createTrainingPlan };

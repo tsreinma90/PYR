@@ -241,8 +241,10 @@ function app() {
         this.weekly_mileage_goal &&
         this.race_date &&
         this.workout_map;
-      
-      const numWeeksUntilRace = parseInt(this.numberOfWeeksUntilDate(this.start_date, this.race_date));
+
+      const numWeeksUntilRace = parseInt(
+        this.numberOfWeeksUntilDate(this.start_date, this.race_date)
+      );
 
       if (!formComplete) {
         this.showErrorToast("All fields are required", 5000);
@@ -266,15 +268,15 @@ function app() {
         this.workout_map,
         numWeeksUntilRace
       );
-      
-      allRuns.forEach(run => {
+
+      allRuns.forEach((run) => {
         this.event_date = run.event_date;
         this.event_title = run.event_title;
         this.event_workout = run.event_workout;
         this.event_distance = run.event_distance;
         this.event_notes = run.event_notes;
         this.event_theme = run.event_theme;
-        this.addEvent();
+        this.addEvent(false);
       });
       toggleSetupWizard();
     },
@@ -282,10 +284,10 @@ function app() {
     numberOfWeeksUntilDate(startingDate, futureDate) {
       const now = this.formatDate(new Date());
 
-
-
       // Create two Date objects from the given date strings
-      const date1 = (startingDate) ? new Date(startingDate) : new Date(this.formatDate(new Date()));
+      const date1 = startingDate
+        ? new Date(startingDate)
+        : new Date(this.formatDate(new Date()));
       const date2 = new Date(futureDate);
 
       // Calculate the difference in milliseconds between the two dates
@@ -332,16 +334,27 @@ function app() {
       return today.toDateString() === d.toDateString() ? true : false;
     },
 
-    showEventModal(date, dateIndex) {
+    showEventModal(date, dateIndex, eventTitle) {
       // open the modal
+      console.log(date, dateIndex, eventTitle);
       let dIndx = this.fetchCalendarEventByDateIndex(dateIndex + 1);
       if (dIndx != -1) {
-        let selectedWorkout = this.calendarEvents[dIndx];
-        this.event_title = selectedWorkout.event_title;
-        this.event_workout = selectedWorkout.event_workout;
-        this.event_distance = selectedWorkout.event_distance;
-        this.event_notes = selectedWorkout.event_notes;
-        this.event_theme = selectedWorkout.event_theme;
+        if (!eventTitle) {
+          let selectedWorkout = this.calendarEvents[dIndx];
+          this.event_title = selectedWorkout.event_title;
+          this.event_workout = selectedWorkout.event_workout;
+          this.event_distance = selectedWorkout.event_distance;
+          this.event_notes = selectedWorkout.event_notes;
+          this.event_theme = selectedWorkout.event_theme;
+        } else {
+          console.log(this.calendarEvents[dIndx], this.calendarEvents[dIndx + 1]);
+          let selectedWorkout = this.calendarEvents[dIndx].event_title == eventTitle ? this.calendarEvents[dIndx] : this.calendarEvents[dIndx + 1];
+          this.event_title = selectedWorkout.event_title;
+          this.event_workout = selectedWorkout.event_workout;
+          this.event_distance = selectedWorkout.event_distance;
+          this.event_notes = selectedWorkout.event_notes;
+          this.event_theme = selectedWorkout.event_theme;
+        }
       } else {
         this.event_title = "";
         this.event_workout = "Easy";
@@ -353,10 +366,9 @@ function app() {
       this.setSelectedOption("workoutSelect", this.event_workout);
       this.openEventModal = true;
       this.event_date = new Date(this.year, this.month, date).toDateString();
-      console.log(this.event_date);
     },
 
-    addEvent() {
+    addEvent(findExisting) {
       if (!this.event_title || !this.event_distance || !this.event_workout) {
         return;
       } else {
@@ -373,8 +385,13 @@ function app() {
           event_distance: this.event_distance,
           event_notes: this.event_notes,
         };
-        if (eventIndex != -1) {
-          this.calendarEvents[eventIndex] = workoutEvent;
+
+        if (findExisting) {
+          if (eventIndex != -1) {
+            this.calendarEvents[eventIndex] = workoutEvent;
+          } else {
+            this.calendarEvents.push(workoutEvent);
+          }
         } else {
           this.calendarEvents.push(workoutEvent);
         }
@@ -393,7 +410,6 @@ function app() {
     },
 
     deleteEvent() {
-      console.log(this.event_date);
       let eventIndex = this.findIndex(
         this.calendarEvents,
         "event_date",
@@ -473,7 +489,7 @@ function app() {
       const formattedDate = `${year}-${month}-${day}`;
       return formattedDate;
     },
-    
+
     async downloadCalendar(event) {
       //console.log(JSON.stringify(this.calendarEvents, undefined, 2));
       const downloadHelper = await import("./calendarDownload.js");

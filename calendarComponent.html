@@ -136,7 +136,7 @@
                                 <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
                                     <div style="width: 14.28%; height: 120px"
                                         class="px-4 pt-2 border-r border-b relative">
-                                        <div @click="showEventModal(date, dateIndex)" x-text="date"
+                                        <div @click="showEventModal(date, dateIndex, null)" x-text="date"
                                             class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
                                             :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
                                         </div>
@@ -144,7 +144,7 @@
                                             x-show="calendarEvents.length > 0">
                                             <template
                                                 x-for="event in calendarEvents.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
-                                                <div class="px-2 py-1 rounded-lg mt-1 overflow-hidden border" :class="{
+                                                <div @click="showEventModal(date, dateIndex, event.event_title)" class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border" :class="{
                                                                             'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
                                                                             'border-red-200 text-red-800 bg-red-100': event.event_theme === 'red',
                                                                             'border-yellow-200 text-yellow-800 bg-yellow-100': event.event_theme === 'yellow',
@@ -331,7 +331,7 @@
                             </button>
                             <button type="button"
                                 class="bg-gray-800 hover:bg-gray-700 text-white font-semibold py-2 px-4 border border-gray-700 rounded-lg shadow-sm"
-                                @click="addEvent()">
+                                @click="addEvent(true)">
                                 Save Event
                             </button>
                             <button type="button"
