@@ -336,7 +336,6 @@ function app() {
 
     showEventModal(date, dateIndex, eventTitle) {
       // open the modal
-      console.log(date, dateIndex, eventTitle);
       let dIndx = this.fetchCalendarEventByDateIndex(dateIndex + 1);
       if (dIndx != -1) {
         if (!eventTitle) {
@@ -347,8 +346,6 @@ function app() {
           this.event_notes = selectedWorkout.event_notes;
           this.event_theme = selectedWorkout.event_theme;
         } else {
-          // to - do , update the actual event_distance in the trainingPlanGenerator.js
-          console.log(this.calendarEvents[dIndx], this.calendarEvents[dIndx + 1]);
           let selectedWorkout = this.calendarEvents[dIndx].event_title == eventTitle ? this.calendarEvents[dIndx] : this.calendarEvents[dIndx + 1];
           this.event_title = selectedWorkout.event_title;
           this.event_workout = selectedWorkout.event_workout;
@@ -492,7 +489,6 @@ function app() {
     },
 
     async downloadCalendar(event) {
-      //console.log(JSON.stringify(this.calendarEvents, undefined, 2));
       const downloadHelper = await import("./calendarDownload.js");
       downloadHelper.downloadCalendarFile(this.calendarEvents);
     },

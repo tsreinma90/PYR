@@ -116,7 +116,6 @@ function splitRunIntoTwo(numMilesForWorkout, numMilesForWeek, workoutRatioMap, w
     (numMilesForWeek * workoutRatioMap.get('Long')) /
     workoutCountMap.get('Long')
   );
-  //console.log(longRunMiles, numMilesForWorkout);
   return numMilesForWorkout < longRunMiles ? false : true;
 }
 
