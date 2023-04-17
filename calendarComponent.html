@@ -49,20 +49,20 @@
                                 </svg>
                                 &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Create</span>
                             </button>
-                            <div x-data="{ calendarEvents: [] }">
-                                <button x-bind:disabled="calendarEvents.length === 0"
-                                    :class="{ 'opacity-50 cursor-not-allowed': calendarEvents.length === 0 }"
+                            <div x-data="{ workouts: [] }">
+                                <!--x-bind:disabled="workouts.length < 1" :class="{ 'opacity-50 cursor-not-allowed': workouts.length === 0 }"--><button
                                     type="button" style="min-height: 35px; min-width: 90px; margin-right: 10px;"
                                     class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    x-on:click="calendarEvents = []">
+                                    @click="deleteAllEvents()">
                                     <i style="position:relative; left: 5px;"
-                                        class="fa-solid fa-trash flex items-center justify-between"></i>
-                                    &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Reset</span>
+                                        class="fa-solid fa-trash flex items-center justify-between"
+                                        @click="deleteAllEvents()"></i>
+                                    &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1"
+                                        @click="deleteAllEvents()">Reset</span>
                                 </button>
                             </div>
-                            <div x-data="{ calendarEvents: [] }">
-                                <button x-bind:disabled="calendarEvents.length === 0"
-                                    :class="{ 'opacity-50 cursor-not-allowed': calendarEvents.length === 0 }"
+                            <div x-data="{ workouts: [] }">
+                                <!--x-bind:disabled="workouts.length < 1":class="{ 'opacity-50 cursor-not-allowed': workouts.length === 0 }"--><button
                                     type="button" style="min-height: 35px; margin-right: 10px;"
                                     class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
                                     @click="downloadCalendar()" id="setupWizardButton">
@@ -141,10 +141,12 @@
                                             :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
                                         </div>
                                         <div style="height: 80px;" class="overflow-y-auto mt-1"
-                                            x-show="calendarEvents.length > 0">
+                                            x-show="workouts.length > 0">
                                             <template
-                                                x-for="event in calendarEvents.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
-                                                <div @click="showEventModal(date, dateIndex, event.event_title)" class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border" :class="{
+                                                x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
+                                                <div @click="showEventModal(date, dateIndex, event.event_title)"
+                                                    class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
+                                                    :class="{
                                                                             'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
                                                                             'border-red-200 text-red-800 bg-red-100': event.event_theme === 'red',
                                                                             'border-yellow-200 text-yellow-800 bg-yellow-100': event.event_theme === 'yellow',
@@ -223,16 +225,27 @@
                                 </button>-->
                                 <br />
                                 <div class="h-4">
-                                    <button type="button"
+                                    <!--<button type="button"
                                         class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
                                         @click="generatePlan()">
                                         Generate Plan
+                                    </button>-->
+
+                                    <button type="button"
+                                        style="margin-left: auto; margin-right: 10px; min-height: 35px;"
+                                        class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                        @click="generatePlan()">
+                                        
+                                        <span class="flex items-center justify-between py-1 px-1">Generate
+                                            Plan</span>
                                     </button>
 
                                     <button type="button"
-                                        class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
+                                        style="margin-left: auto; margin-right: 10px; min-height: 35px;"
+                                        class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
                                         onclick="toggleSetupWizard()">
-                                        Cancel
+                                        
+                                        <span class="flex items-center justify-between py-1 px-1">Cancel</span>
                                     </button>
                                 </div>
 
@@ -278,7 +291,7 @@
                             <div class="relative">
                                 <select @change="setWorkoutType(event)" id="workoutSelect" x-model="event_theme"
                                     class="block appearance-none w-full bg-gray-200 border-2 border-gray-200 hover:border-gray-500 px-4 py-2 pr-8 rounded-lg leading-tight focus:outline-none focus:bg-white focus:border-blue-500 text-gray-700">
-                                    <template x-for="(workout, index) in workouts">
+                                    <template x-for="(workout, index) in workoutColorPairs">
                                         <option :value="workout.value" x-text="workout.label"></option>
                                     </template>
 

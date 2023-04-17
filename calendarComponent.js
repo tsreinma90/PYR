@@ -44,7 +44,7 @@ function app() {
     days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
 
     /* Properties used for a single calendar event */
-    calendarEvents: [],
+    workouts: [],
     event_title: "",
     event_date: "",
     event_theme: "blue",
@@ -59,7 +59,7 @@ function app() {
     race_date: "",
     workout_map: new Map(),
 
-    workouts: [
+    workoutColorPairs: [
       {
         value: "green",
         label: "Easy",
@@ -254,7 +254,7 @@ function app() {
           5000
         );
       } else {
-        this.calendarEvents.length = 0;
+        this.workouts.length = 0;
         this.calculateTrainingPlan(numWeeksUntilRace);
       }
     },
@@ -339,14 +339,14 @@ function app() {
       let dIndx = this.fetchCalendarEventByDateIndex(dateIndex + 1);
       if (dIndx != -1) {
         if (!eventTitle) {
-          let selectedWorkout = this.calendarEvents[dIndx];
+          let selectedWorkout = this.workouts[dIndx];
           this.event_title = selectedWorkout.event_title;
           this.event_workout = selectedWorkout.event_workout;
           this.event_distance = selectedWorkout.event_distance;
           this.event_notes = selectedWorkout.event_notes;
           this.event_theme = selectedWorkout.event_theme;
         } else {
-          let selectedWorkout = this.calendarEvents[dIndx].event_title == eventTitle ? this.calendarEvents[dIndx] : this.calendarEvents[dIndx + 1];
+          let selectedWorkout = this.workouts[dIndx].event_title == eventTitle ? this.workouts[dIndx] : this.workouts[dIndx + 1];
           this.event_title = selectedWorkout.event_title;
           this.event_workout = selectedWorkout.event_workout;
           this.event_distance = selectedWorkout.event_distance;
@@ -371,7 +371,7 @@ function app() {
         return;
       } else {
         let eventIndex = this.findIndex(
-          this.calendarEvents,
+          this.workouts,
           "event_date",
           this.event_date
         );
@@ -386,12 +386,12 @@ function app() {
 
         if (findExisting) {
           if (eventIndex != -1) {
-            this.calendarEvents[eventIndex] = workoutEvent;
+            this.workouts[eventIndex] = workoutEvent;
           } else {
-            this.calendarEvents.push(workoutEvent);
+            this.workouts.push(workoutEvent);
           }
         } else {
-          this.calendarEvents.push(workoutEvent);
+          this.workouts.push(workoutEvent);
         }
       }
 
@@ -409,13 +409,13 @@ function app() {
 
     deleteEvent() {
       let eventIndex = this.findIndex(
-        this.calendarEvents,
+        this.workouts,
         "event_date",
         this.event_date
       );
 
       if (eventIndex != -1) {
-        this.calendarEvents.splice(eventIndex, 1);
+        this.workouts.splice(eventIndex, 1);
         this.event_title = "";
         this.event_date = "";
         this.event_theme = this.workoutThemeMap.get(this.event_workout); // 'blue';
@@ -424,6 +424,11 @@ function app() {
         this.event_notes = "";
         this.openEventModal = false;
       }
+    },
+
+    deleteAllEvents() {
+      console.log('deleting all events');
+      this.workouts = [];
     },
 
     getNoOfDays() {
@@ -450,7 +455,7 @@ function app() {
     },
 
     fetchCalendarEventByDateIndex(dateIndex) {
-      return this.calendarEvents.findIndex((item) =>
+      return this.workouts.findIndex((item) =>
         JSON.stringify(item["event_date"]).includes(dateIndex)
       );
     },
@@ -490,7 +495,7 @@ function app() {
 
     async downloadCalendar(event) {
       const downloadHelper = await import("./calendarDownload.js");
-      downloadHelper.downloadCalendarFile(this.calendarEvents);
+      downloadHelper.downloadCalendarFile(this.workouts);
     },
   };
 }
