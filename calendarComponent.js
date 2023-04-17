@@ -211,10 +211,33 @@ function app() {
     openEventModal: false,
 
     generatePlan() {
-      /*this.start_day = document.querySelector('[data-name="startOnSunday"]')
-        .checked
-        ? "Sunday"
-        : "Monday";*/
+        const numWeeksUntilRace = this.validateFormInput();
+        if (numWeeksUntilRace) this.calculateTrainingPlan(numWeeksUntilRace);
+    },
+
+    async calculateTrainingPlan(numWeeksUntilRace) {
+      const trainingController = await import("./trainingPlanGenerator.js");
+      const allRuns = trainingController.createTrainingPlan(
+        this.start_date,
+        this.weekly_mileage_goal,
+        this.race_date,
+        this.workout_map,
+        numWeeksUntilRace
+      );
+
+      allRuns.forEach((run) => {
+        this.event_date = run.event_date;
+        this.event_title = run.event_title;
+        this.event_workout = run.event_workout;
+        this.event_distance = run.event_distance;
+        this.event_notes = run.event_notes;
+        this.event_theme = run.event_theme;
+        this.addEvent(false);
+      });
+      toggleSetupWizard();
+    },
+
+    validateFormInput() {
       this.weekly_mileage_goal = document.querySelector(".value").textContent;
       this.start_date = document.getElementById("startDate").value;
       this.race_date = document.getElementById("dateInput").value;
@@ -241,44 +264,24 @@ function app() {
         this.weekly_mileage_goal &&
         this.race_date &&
         this.workout_map;
-
+      
       const numWeeksUntilRace = parseInt(
         this.numberOfWeeksUntilDate(this.start_date, this.race_date)
       );
 
       if (!formComplete) {
         this.showErrorToast("All fields are required", 5000);
+        return false;
       } else if (numWeeksUntilRace < 4) {
         this.showErrorToast(
           "Race date must be 4 weeks minimum from today's date",
           5000
         );
+        return false;
       } else {
-        this.workouts.length = 0;
-        this.calculateTrainingPlan(numWeeksUntilRace);
+        this.calendarEvents.length = 0;
+        return numWeeksUntilRace;
       }
-    },
-
-    async calculateTrainingPlan(numWeeksUntilRace) {
-      const trainingController = await import("./trainingPlanGenerator.js");
-      const allRuns = trainingController.createTrainingPlan(
-        this.start_date,
-        this.weekly_mileage_goal,
-        this.race_date,
-        this.workout_map,
-        numWeeksUntilRace
-      );
-
-      allRuns.forEach((run) => {
-        this.event_date = run.event_date;
-        this.event_title = run.event_title;
-        this.event_workout = run.event_workout;
-        this.event_distance = run.event_distance;
-        this.event_notes = run.event_notes;
-        this.event_theme = run.event_theme;
-        this.addEvent(false);
-      });
-      toggleSetupWizard();
     },
 
     numberOfWeeksUntilDate(startingDate, futureDate) {
@@ -384,12 +387,8 @@ function app() {
           event_notes: this.event_notes,
         };
 
-        if (findExisting) {
-          if (eventIndex != -1) {
-            this.workouts[eventIndex] = workoutEvent;
-          } else {
-            this.workouts.push(workoutEvent);
-          }
+        if (findExisting && eventIndex != -1) {
+          this.calendarEvents[eventIndex] = workoutEvent;
         } else {
           this.workouts.push(workoutEvent);
         }
