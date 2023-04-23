@@ -49,19 +49,18 @@
                                 </svg>
                                 &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Create</span>
                             </button>
-                            <div x-data="{ workouts: [] }">
+                            <div>
                                 <!--x-bind:disabled="workouts.length < 1" :class="{ 'opacity-50 cursor-not-allowed': workouts.length === 0 }"--><button
                                     type="button" style="min-height: 35px; min-width: 90px; margin-right: 10px;"
                                     class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
                                     @click="deleteAllEvents()">
                                     <i style="position:relative; left: 5px;"
                                         class="fa-solid fa-trash flex items-center justify-between"
-                                        @click="deleteAllEvents()"></i>
-                                    &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1"
-                                        @click="deleteAllEvents()">Reset</span>
+                                    ></i>
+                                    &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Reset</span>
                                 </button>
                             </div>
-                            <div x-data="{ workouts: [] }">
+                            <div>
                                 <!--x-bind:disabled="workouts.length < 1":class="{ 'opacity-50 cursor-not-allowed': workouts.length === 0 }"--><button
                                     type="button" style="min-height: 35px; margin-right: 10px;"
                                     class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"

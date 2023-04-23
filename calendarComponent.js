@@ -280,7 +280,7 @@ function app() {
         );
         return false;
       } else {
-        this.calendarEvents = [];
+        this.workouts = [];
         return numWeeksUntilRace;
       }
     },
@@ -389,7 +389,7 @@ function app() {
         };
 
         if (findExisting && eventIndex != -1) {
-          this.calendarEvents[eventIndex] = workoutEvent;
+          this.workouts[eventIndex] = workoutEvent;
         } else {
           this.workouts.push(workoutEvent);
         }
@@ -427,7 +427,6 @@ function app() {
     },
 
     deleteAllEvents() {
-      console.log('deleting all events');
       this.workouts = [];
     },
 
