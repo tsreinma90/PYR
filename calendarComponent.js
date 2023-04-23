@@ -17,6 +17,7 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 window.onload = function () {
   loadComponent("workoutSelector", "./workoutSelector.html");
+  //loadComponent("workoutSelector2", "./playground.html");
 };
 
 function loadComponent(domId, pathToFile) {
@@ -279,7 +280,7 @@ function app() {
         );
         return false;
       } else {
-        this.calendarEvents.length = 0;
+        this.calendarEvents = [];
         return numWeeksUntilRace;
       }
     },
