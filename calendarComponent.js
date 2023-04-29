@@ -53,6 +53,9 @@ function app() {
     event_distance: 1,
     event_notes: "",
 
+    /* Weekly Summary Modal */
+    showWeeklySummaryModal: false,
+
     /* Properties used to calculate a training plan based on user input */
     weekly_mileage_goal: 50,
     start_day: "",
@@ -428,6 +431,10 @@ function app() {
 
     deleteAllEvents() {
       this.workouts = [];
+    },
+
+    toggleWeeklySummaryModal() {
+      this.showWeeklySummaryModal = !this.showWeeklySummaryModal;
     },
 
     getNoOfDays() {
