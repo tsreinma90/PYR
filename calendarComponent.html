@@ -17,6 +17,7 @@
     </link>
     <link rel="stylesheet" href="./calendarComponent.css" rel="stylesheet">
     <script src="calendarComponent.js" type="text/javascript"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
 </head>
 
 <body>
@@ -50,7 +51,7 @@
                                 &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Create</span>
                             </button>
 
-                            <button  @click="toggleWeeklySummaryModal()" type="button" style="margin-right: 10px;"
+                            <button @click="toggleWeeklySummaryModal()" type="button" style="margin-right: 10px;"
                                 x-bind:disabled="workouts.length === 0"
                                 :class="{ 'opacity-50 cursor-not-allowed': workouts.length === 0 }"
                                 class="border rounded-lg py-1onclick px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center">
@@ -60,7 +61,7 @@
                                         d="M2.25 18L9 11.25l4.306 4.307a11.95 11.95 0 015.814-5.519l2.74-1.22m0 0l-5.94-2.28m5.94 2.28l-2.28 5.941" />
                                 </svg>
 
-                                <span class="flex items-center justify-between py-1 px-1">Weekly Summary</span>
+                                <span class="flex items-center justify-between py-1 px-1">Training Summary</span>
                             </button>
 
                             <button type="button" style="min-height: 35px; min-width: 90px; margin-right: 10px;"
@@ -270,7 +271,7 @@
             <div style=" background-color: rgba(0, 0, 0, 0.8); z-index: 2;"
                 class="fixed z-40 top-0 right-0 left-0 bottom-0 h-full w-full"
                 x-show.transition.opacity="showWeeklySummaryModal">
-                <div class="p-4 w-9/10 mx-auto relative left-0 right-0 overflow-hidden mt-24">
+                <div class="p-4 h-6/6 w-9/10 relative left-0 right-0 overflow-y-auto">
                     <div class="shadow absolute right-0 top-0 w-10 h-10 rounded-full bg-white text-gray-500 hover:text-gray-800 inline-flex items-center justify-center cursor-pointer"
                         x-on:click="showWeeklySummaryModal = !showWeeklySummaryModal">
                         <svg class="fill-current w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -282,7 +283,25 @@
                     <div class="shadow w-full rounded-lg bg-white overflow-hidden w-full block p-8">
 
                         <h2 class="font-bold text-2xl mb-6 text-gray-800 border-b pb-2">Training Block Summary</h2>
-
+                        <div>
+                            <h3 class="text-base font-semibold leading-6 text-gray-900">Last 30 days</h3>
+                            <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
+                                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                                    <dt class="truncate text-sm font-medium text-gray-500">Total Subscribers</dt>
+                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">71,897</dd>
+                                </div>
+                                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                                    <dt class="truncate text-sm font-medium text-gray-500">Avg. Open Rate</dt>
+                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">58.16%</dd>
+                                </div>
+                                <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
+                                    <dt class="truncate text-sm font-medium text-gray-500">Avg. Click Rate</dt>
+                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">24.57%</dd>
+                                </div>
+                            </dl>
+                        </div>
+                        
+                        <canvas id="myChart" width="50%" height="20%"></canvas>
                         
                         <div class="mt-8 text-right">
                             <button type="button"

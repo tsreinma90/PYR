@@ -18,6 +18,7 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 window.onload = function () {
   loadComponent("workoutSelector", "./workoutSelector.html");
   //loadComponent("workoutSelector2", "./playground.html");
+  setupBarChart();
 };
 
 function loadComponent(domId, pathToFile) {
@@ -34,6 +35,58 @@ function toggleSetupWizard() {
     back.style.display = back.style.display === "none" ? "block" : "none";
   }, 600);
 }
+
+function setupBarChart() {
+  var ctx = document.getElementById("myChart").getContext("2d");
+  var myChart = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["January", "February", "March", "April", "May", "June", "July"],
+      datasets: [
+        {
+          label: "Category 1",
+          backgroundColor: "rgba(255, 99, 132, 0.2)",
+          borderColor: "rgba(255,99,132,1)",
+          borderWidth: 1,
+          data: [20, 25, 30, 35, 40, 45, 50],
+        },
+        {
+          label: "Category 2",
+          backgroundColor: "rgba(54, 162, 235, 0.2)",
+          borderColor: "rgba(54, 162, 235, 1)",
+          borderWidth: 1,
+          data: [15, 20, 25, 30, 35, 40, 45],
+        },
+        {
+          label: "Category 3",
+          backgroundColor: "rgba(255, 206, 86, 0.2)",
+          borderColor: "rgba(255, 206, 86, 1)",
+          borderWidth: 1,
+          data: [10, 15, 20, 25, 30, 35, 40],
+        },
+      ],
+    },
+    options: {
+      scales: {
+        xAxes: [
+          {
+            ticks: {
+              beginAtZero: true,
+            },
+          },
+        ],
+        yAxes: [
+          {
+            ticks: {
+              beginAtZero: true,
+            },
+          },
+        ],
+      },
+    },
+  });
+}
+
 
 function app() {
   return {
@@ -215,8 +268,8 @@ function app() {
     openEventModal: false,
 
     generatePlan() {
-        const numWeeksUntilRace = this.validateFormInput();
-        if (numWeeksUntilRace) this.calculateTrainingPlan(numWeeksUntilRace);
+      const numWeeksUntilRace = this.validateFormInput();
+      if (numWeeksUntilRace) this.calculateTrainingPlan(numWeeksUntilRace);
     },
 
     async calculateTrainingPlan(numWeeksUntilRace) {
@@ -268,7 +321,7 @@ function app() {
         this.weekly_mileage_goal &&
         this.race_date &&
         this.workout_map;
-      
+
       const numWeeksUntilRace = parseInt(
         this.numberOfWeeksUntilDate(this.start_date, this.race_date)
       );
@@ -353,7 +406,10 @@ function app() {
           this.event_notes = selectedWorkout.event_notes;
           this.event_theme = selectedWorkout.event_theme;
         } else {
-          let selectedWorkout = this.workouts[dIndx].event_title == eventTitle ? this.workouts[dIndx] : this.workouts[dIndx + 1];
+          let selectedWorkout =
+            this.workouts[dIndx].event_title == eventTitle
+              ? this.workouts[dIndx]
+              : this.workouts[dIndx + 1];
           this.event_title = selectedWorkout.event_title;
           this.event_workout = selectedWorkout.event_workout;
           this.event_distance = selectedWorkout.event_distance;
