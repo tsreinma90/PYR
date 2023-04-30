@@ -41,26 +41,33 @@ function setupBarChart() {
   var myChart = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: ["January", "February", "March", "April", "May", "June", "July"],
+      labels: ["January", "February", "March", "April", "May", "June", "July", "August"],
       datasets: [
         {
-          label: "Category 1",
-          backgroundColor: "rgba(255, 99, 132, 0.2)",
-          borderColor: "rgba(255,99,132,1)",
+          label: "Easy",
+          backgroundColor: "rgba(167, 243, 208, .2)",
+          borderColor: "rgba(167,243,208,1)",
           borderWidth: 1,
           data: [20, 25, 30, 35, 40, 45, 50],
         },
         {
-          label: "Category 2",
-          backgroundColor: "rgba(54, 162, 235, 0.2)",
-          borderColor: "rgba(54, 162, 235, 1)",
+          label: "Tempo",
+          backgroundColor: "rgba(59, 130, 246, 0.2)",
+          borderColor: "rgba(59, 130, 246, 1)",
           borderWidth: 1,
           data: [15, 20, 25, 30, 35, 40, 45],
         },
         {
-          label: "Category 3",
-          backgroundColor: "rgba(255, 206, 86, 0.2)",
-          borderColor: "rgba(255, 206, 86, 1)",
+          label: "Speed",
+          backgroundColor: "rgba(216, 4, 4, 0.2)",
+          borderColor: "rgba(216, 4, 4, 1)",
+          borderWidth: 1,
+          data: [10, 15, 20, 25, 30, 35, 40],
+        },
+        {
+          label: "Long",
+          backgroundColor: "rgba(118, 1, 168, 0.2)",
+          borderColor: "rgba(118, 1, 168, 1)",
           borderWidth: 1,
           data: [10, 15, 20, 25, 30, 35, 40],
         },
