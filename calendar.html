@@ -20,44 +20,31 @@
 </head>
 
 <body>
-  <section id="showcase" class="showcase">
-    <header>
-      <h2 class="logo" onclick="navigateHome()">Plan Your Run</h2>
-      <div id="toggle" class="toggle" style="float: right;"></div>
-    </header>
-
-    <video src="media/newYork.mp4" muted loop autoplay playsinline >
-      <source src='media/newYork.mp4' type='video/mp4'>
-    </video>
-    <!--<div style="position: absolute;" id="test">
-          <div style="float: left; border-radius: 2; zoom: 150%; margin-left: 20px; ">
-            <button> Create Plan </button>
-          </div>
-
-          <div style="float: right; border-radius: 2; zoom: 150%; margin-left: 20px; ">
-            <button class="buttons" id="csvExport" disabled> Export to CSV </button>
-            <button class="buttons" id="calExport" disabled> Export to Calendar </button>
-          </div>
-
-          <div style="margin-left: 50%; padding-bottom: 30px; zoom: 200%;">
-            <i class="arrow left" id="previousMonth"></i>
-            <span id="currentMonth" class="calendarHeader"></span>
-            <i class="arrow right" id="nextMonth"></i>
-          </div>
-          <div class="day-of-week" id="weekdays"></div>
-          <div class="date-grid" id="calendarBody"></div>
-      </div>-->
-    <div id="trainingCalendar" style="z-index: 1;"></div>
-  </section>
-  <!-- Side Menu Navigation-->
-  <div class="menu">
-    <ul>
-      <li><a href="./home.html">Home</a></li>
-      <li><a href="./calendar.html">Running Calendar</a></li>
-      <li><a href="#">Community</a></li>
-      <li><a href="#">Contact</a></li>
-    </ul>
-  </div>
-</body>
+  <!-- Video Source -->
+    <!-- https://www.pexels.com/video/aerial-view-of-beautiful-resort-2169880/ -->
+    <section id="showcase" class="showcase">
+      <header>
+        <h2 class="logo">Plan Your Run</h2>
+        <div id="toggle" class="toggle"></div>
+      </header>
+      <!--<div class="overlay"></div>-->
+      <div style="z-index: -1">
+        <div id="trainingCalendar"></div>
+      </div>
+      <!--<ul class="social">
+        <li><a href="#"><img src="https://i.ibb.co/x7P24fL/facebook.png"></a></li>
+        <li><a href="#"><img src="https://i.ibb.co/Wnxq2Nq/twitter.png"></a></li>
+        <li><a href="#"><img src="https://i.ibb.co/ySwtH4B/instagram.png"></a></li>
+      </ul>-->
+    </section>
+    <div class="menu">
+      <ul>
+        <li><a href="./home.html">Home</a></li>
+        <li><a href="./calendar.html">Running Calendar</a></li>
+        <li><a href="#">Community</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </div>
+    </body>
 
 </html>

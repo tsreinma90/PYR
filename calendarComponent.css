@@ -53,7 +53,6 @@ label {
   background: #ddd;
   outline: none;
   opacity: 0.7;
-  -webkit-transition: 0.2s;
   transition: opacity 0.2s;
 }
 
@@ -71,6 +70,27 @@ label {
   height: 25px;
   background: #4caf50;
   cursor: pointer;
+}
+
+.slider::-ms-thumb {
+  width: 25px;
+  height: 25px;
+  background: #4caf50;
+  cursor: pointer;
+}
+
+/* Firefox */
+@-moz-document url-prefix() {
+  .slider {
+    width: calc(100% - 10px); /* Adjust width to accommodate the thumb */
+  }
+}
+
+/* Edge */
+@supports (-ms-ime-align: auto) {
+  .slider {
+    width: calc(100% - 10px); /* Adjust width to accommodate the thumb */
+  }
 }
 
 .value {
