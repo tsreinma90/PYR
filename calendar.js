@@ -6,13 +6,20 @@ initialized = false;
 
 /* Create calendar */
 window.onload = function(){
-    setupMenuButton();
+    //setupMenuButton();
     /*defineCalendarYear(); // this creates the data we work with
     setupCalendar(); // this updates the HTML on the doc*/
-    initialized = true;
+    //initialized = true;
+    const menuToggle = document.getElementById('toggle');
+    const showcase = document.getElementById('showcase');
+
+    menuToggle.addEventListener('click', () => {
+        menuToggle.classList.toggle('active');
+        showcase.classList.toggle('active');
+    })
 }
 
-function setupMenuButton() {
+/*function setupMenuButton() {
     const menuToggle = document.getElementById('toggle');
     const showcase = document.getElementById('showcase');
 
@@ -168,7 +175,6 @@ function navigateHome(event) {
     window.location.href = "./home.html";
 }
 
-/* to-do, create a pop-over card for the "back" when active */
 function htmlCalendarDay(day, e) {
     return createCalendarCard(day);
 }
@@ -249,4 +255,4 @@ function isLastMonth(){
 
 function selectedYear(){
     
-}
+}*/

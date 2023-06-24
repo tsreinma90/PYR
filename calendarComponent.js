@@ -16,7 +16,7 @@ const MONTH_NAMES = [
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 window.onload = function () {
-  loadComponent("workoutSelector", "./workoutSelector.html");
+  loadComponent("workoutSelector", "./workoutSelector.html"); 
   //loadComponent("workoutSelector2", "./playground.html");
   setupBarChart();
 };
@@ -46,7 +46,7 @@ function setupBarChart() {
         {
           label: "Easy",
           backgroundColor: "rgba(167, 243, 208, .2)",
-          borderColor: "rgba(167,243,208,1)",
+          borderColor: "rgba(167,243,208,2)",
           borderWidth: 1,
           data: [20, 25, 30, 35, 40, 45, 50],
         },
@@ -280,24 +280,28 @@ function app() {
     },
 
     async calculateTrainingPlan(numWeeksUntilRace) {
-      const trainingController = await import("./trainingPlanGenerator.js");
-      const allRuns = trainingController.createTrainingPlan(
-        this.start_date,
-        this.weekly_mileage_goal,
-        this.race_date,
-        this.workout_map,
-        numWeeksUntilRace
-      );
+      try {
+        const trainingController = await import("./trainingPlanGenerator.js");
+        const allRuns = trainingController.createTrainingPlan(
+          this.start_date,
+          this.weekly_mileage_goal,
+          this.race_date,
+          this.workout_map,
+          numWeeksUntilRace
+        );
 
-      allRuns.forEach((run) => {
-        this.event_date = run.event_date;
-        this.event_title = run.event_title;
-        this.event_workout = run.event_workout;
-        this.event_distance = run.event_distance;
-        this.event_notes = run.event_notes;
-        this.event_theme = run.event_theme;
-        this.addEvent(false);
-      });
+        allRuns.forEach((run) => {
+          this.event_date = run.event_date;
+          this.event_title = run.event_title;
+          this.event_workout = run.event_workout;
+          this.event_distance = run.event_distance;
+          this.event_notes = run.event_notes;
+          this.event_theme = run.event_theme;
+          this.addEvent(false);
+        });
+      } catch (e) {
+        console.log(e);
+      }
       toggleSetupWizard();
     },
 
