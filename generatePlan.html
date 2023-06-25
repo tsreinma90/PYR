@@ -26,286 +26,286 @@
             "October",
             "November",
             "December",
-            ];
+        ];
 
-            const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-            window.onload = function () {
-                //loadComponent("workoutSelector", "./workoutSelector.html"); 
-                //loadComponent("workoutSelector2", "./playground.html");
-                //setupBarChart();
-            };
+        window.onload = function () {
+            //loadComponent("workoutSelector", "./workoutSelector.html"); 
+            //loadComponent("workoutSelector2", "./playground.html");
+            //setupBarChart();
+            console.log('**', 'hello from squarespace');
+        };
 
-            function loadComponent(domId, pathToFile) {
-                $("#" + domId).load(pathToFile);
-            }
+        function loadComponent(domId, pathToFile) {
+            $("#" + domId).load(pathToFile);
+        }
 
-            function toggleSetupWizard() {
-                const card = document.querySelector(".relative");
-                card.classList.toggle("flip-card-active");
-                setTimeout(() => {
-                    let front = document.querySelector("#front");
-                    let back = document.querySelector("#back");
-                    front.style.display = front.style.display === "none" ? "block" : "none";
-                    back.style.display = back.style.display === "none" ? "block" : "none";
-                }, 600);
-            }
+        function toggleSetupWizard() {
+            const card = document.querySelector(".relative");
+            card.classList.toggle("flip-card-active");
+            setTimeout(() => {
+                let front = document.querySelector("#front");
+                let back = document.querySelector("#back");
+                front.style.display = front.style.display === "none" ? "block" : "none";
+                back.style.display = back.style.display === "none" ? "block" : "none";
+            }, 600);
+        }
 
-            function setupBarChart() {
-                var ctx = document.getElementById("myChart").getContext("2d");
-                var myChart = new Chart(ctx, {
-                    type: "bar",
-                    data: {
+        function setupBarChart() {
+            var ctx = document.getElementById("myChart").getContext("2d");
+            var myChart = new Chart(ctx, {
+                type: "bar",
+                data: {
                     labels: ["January", "February", "March", "April", "May", "June", "July", "August"],
                     datasets: [
                         {
-                        label: "Easy",
-                        backgroundColor: "rgba(167, 243, 208, .2)",
-                        borderColor: "rgba(167,243,208,2)",
-                        borderWidth: 1,
-                        data: [20, 25, 30, 35, 40, 45, 50],
+                            label: "Easy",
+                            backgroundColor: "rgba(167, 243, 208, .2)",
+                            borderColor: "rgba(167,243,208,2)",
+                            borderWidth: 1,
+                            data: [20, 25, 30, 35, 40, 45, 50],
                         },
                         {
-                        label: "Tempo",
-                        backgroundColor: "rgba(59, 130, 246, 0.2)",
-                        borderColor: "rgba(59, 130, 246, 1)",
-                        borderWidth: 1,
-                        data: [15, 20, 25, 30, 35, 40, 45],
+                            label: "Tempo",
+                            backgroundColor: "rgba(59, 130, 246, 0.2)",
+                            borderColor: "rgba(59, 130, 246, 1)",
+                            borderWidth: 1,
+                            data: [15, 20, 25, 30, 35, 40, 45],
                         },
                         {
-                        label: "Speed",
-                        backgroundColor: "rgba(216, 4, 4, 0.2)",
-                        borderColor: "rgba(216, 4, 4, 1)",
-                        borderWidth: 1,
-                        data: [10, 15, 20, 25, 30, 35, 40],
+                            label: "Speed",
+                            backgroundColor: "rgba(216, 4, 4, 0.2)",
+                            borderColor: "rgba(216, 4, 4, 1)",
+                            borderWidth: 1,
+                            data: [10, 15, 20, 25, 30, 35, 40],
                         },
                         {
-                        label: "Long",
-                        backgroundColor: "rgba(118, 1, 168, 0.2)",
-                        borderColor: "rgba(118, 1, 168, 1)",
-                        borderWidth: 1,
-                        data: [10, 15, 20, 25, 30, 35, 40],
+                            label: "Long",
+                            backgroundColor: "rgba(118, 1, 168, 0.2)",
+                            borderColor: "rgba(118, 1, 168, 1)",
+                            borderWidth: 1,
+                            data: [10, 15, 20, 25, 30, 35, 40],
                         },
                     ],
-                    },
-                    options: {
+                },
+                options: {
                     scales: {
                         xAxes: [
-                        {
-                            ticks: {
-                            beginAtZero: true,
+                            {
+                                ticks: {
+                                    beginAtZero: true,
+                                },
                             },
-                        },
                         ],
                         yAxes: [
-                        {
-                            ticks: {
-                            beginAtZero: true,
+                            {
+                                ticks: {
+                                    beginAtZero: true,
+                                },
                             },
-                        },
                         ],
                     },
+                },
+            });
+        }
+
+        function app() {
+            return {
+                /* Properties used for the calendar and events */
+                month: "",
+                year: "",
+                no_of_days: [],
+                blankdays: [],
+                days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
+
+                /* Properties used for a single calendar event */
+                workouts: [],
+                event_title: "",
+                event_date: "",
+                event_theme: "blue",
+                event_workout: "Easy",
+                event_distance: 1,
+                event_notes: "",
+
+                /* Weekly Summary Modal */
+                showWeeklySummaryModal: false,
+
+                /* Properties used to calculate a training plan based on user input */
+                weekly_mileage_goal: 50,
+                start_day: "",
+                start_date: "",
+                race_date: "",
+                workout_map: new Map(),
+
+                workoutColorPairs: [
+                    {
+                        value: "green",
+                        label: "Easy",
                     },
-                });
-            }
-
-
-            function app() {
-                return {
-                    /* Properties used for the calendar and events */
-                    month: "",
-                    year: "",
-                    no_of_days: [],
-                    blankdays: [],
-                    days: ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"],
-
-                    /* Properties used for a single calendar event */
-                    workouts: [],
-                    event_title: "",
-                    event_date: "",
-                    event_theme: "blue",
-                    event_workout: "Easy",
-                    event_distance: 1,
-                    event_notes: "",
-
-                    /* Weekly Summary Modal */
-                    showWeeklySummaryModal: false,
-
-                    /* Properties used to calculate a training plan based on user input */
-                    weekly_mileage_goal: 50,
-                    start_day: "",
-                    start_date: "",
-                    race_date: "",
-                    workout_map: new Map(),
-
-                    workoutColorPairs: [
-                        {
-                            value: "green",
-                            label: "Easy",
-                        },
-                        {
-                            value: "blue",
-                            label: "Tempo",
-                        },
-                        {
-                            value: "red",
-                            label: "Speed",
-                        },
-                        {
-                            value: "purple",
-                            label: "Long",
-                        },
-                    ],
-
-                    miles: [
-                        {
-                            value: 1,
-                            label: 1,
-                        },
-                        {
-                            value: 2,
-                            label: 2,
-                        },
-                        {
-                            value: 3,
-                            label: 3,
-                        },
-                        {
-                            value: 4,
-                            label: 4,
-                        },
-                        {
-                            value: 5,
-                            label: 5,
-                        },
-                        {
-                            value: 6,
-                            label: 6,
-                        },
-                        {
-                            value: 7,
-                            label: 7,
-                        },
-                        {
-                            value: 8,
-                            label: 8,
-                        },
-                        {
-                            value: 9,
-                            label: 9,
-                        },
-                        {
-                            value: 10,
-                            label: 10,
-                        },
-                        {
-                            value: 11,
-                            label: 11,
-                        },
-                        {
-                            value: 12,
-                            label: 12,
-                        },
-                        {
-                            value: 13,
-                            label: 13,
-                        },
-                        {
-                            value: 14,
-                            label: 14,
-                        },
-                        {
-                            value: 15,
-                            label: 15,
-                        },
-                        {
-                            value: 16,
-                            label: 16,
-                        },
-                        {
-                            value: 17,
-                            label: 17,
-                        },
-                        {
-                            value: 18,
-                            label: 18,
-                        },
-                        {
-                            value: 19,
-                            label: 19,
-                        },
-                        {
-                            value: 20,
-                            label: 20,
-                        },
-                        {
-                            value: 21,
-                            label: 21,
-                        },
-                        {
-                            value: 22,
-                            label: 22,
-                        },
-                        {
-                            value: 23,
-                            label: 23,
-                        },
-                        {
-                            value: 24,
-                            label: 24,
-                        },
-                        {
-                            value: 25,
-                            label: 25,
-                        },
-                        {
-                            value: 26,
-                            label: 26,
-                        },
-                        {
-                            value: 27,
-                            label: 27,
-                        },
-                        {
-                            value: 28,
-                            label: 28,
-                        },
-                        {
-                            value: 29,
-                            label: 29,
-                        },
-                        {
-                            value: 30,
-                            label: 30,
-                        },
-                    ],
-
-                    workoutThemeMap: new Map([
-                        ["Easy", "green"],
-                        ["Tempo", "blue"],
-                        ["Speed", "red"],
-                        ["Long", "purple"],
-                    ]),
-
-                    openEventModal: false,
-
-                    generatePlan() {
-                        const numWeeksUntilRace = this.validateFormInput();
-                        if (numWeeksUntilRace) this.calculateTrainingPlan(numWeeksUntilRace);
+                    {
+                        value: "blue",
+                        label: "Tempo",
                     },
+                    {
+                        value: "red",
+                        label: "Speed",
+                    },
+                    {
+                        value: "purple",
+                        label: "Long",
+                    },
+                ],
 
-                    async calculateTrainingPlan(numWeeksUntilRace) {
-                        try {
-                            const trainingController = await import("./trainingPlanGenerator.js");
-                            const allRuns = trainingController.createTrainingPlan(
+                miles: [
+                    {
+                        value: 1,
+                        label: 1,
+                    },
+                    {
+                        value: 2,
+                        label: 2,
+                    },
+                    {
+                        value: 3,
+                        label: 3,
+                    },
+                    {
+                        value: 4,
+                        label: 4,
+                    },
+                    {
+                        value: 5,
+                        label: 5,
+                    },
+                    {
+                        value: 6,
+                        label: 6,
+                    },
+                    {
+                        value: 7,
+                        label: 7,
+                    },
+                    {
+                        value: 8,
+                        label: 8,
+                    },
+                    {
+                        value: 9,
+                        label: 9,
+                    },
+                    {
+                        value: 10,
+                        label: 10,
+                    },
+                    {
+                        value: 11,
+                        label: 11,
+                    },
+                    {
+                        value: 12,
+                        label: 12,
+                    },
+                    {
+                        value: 13,
+                        label: 13,
+                    },
+                    {
+                        value: 14,
+                        label: 14,
+                    },
+                    {
+                        value: 15,
+                        label: 15,
+                    },
+                    {
+                        value: 16,
+                        label: 16,
+                    },
+                    {
+                        value: 17,
+                        label: 17,
+                    },
+                    {
+                        value: 18,
+                        label: 18,
+                    },
+                    {
+                        value: 19,
+                        label: 19,
+                    },
+                    {
+                        value: 20,
+                        label: 20,
+                    },
+                    {
+                        value: 21,
+                        label: 21,
+                    },
+                    {
+                        value: 22,
+                        label: 22,
+                    },
+                    {
+                        value: 23,
+                        label: 23,
+                    },
+                    {
+                        value: 24,
+                        label: 24,
+                    },
+                    {
+                        value: 25,
+                        label: 25,
+                    },
+                    {
+                        value: 26,
+                        label: 26,
+                    },
+                    {
+                        value: 27,
+                        label: 27,
+                    },
+                    {
+                        value: 28,
+                        label: 28,
+                    },
+                    {
+                        value: 29,
+                        label: 29,
+                    },
+                    {
+                        value: 30,
+                        label: 30,
+                    },
+                ],
+
+                workoutThemeMap: new Map([
+                    ["Easy", "green"],
+                    ["Tempo", "blue"],
+                    ["Speed", "red"],
+                    ["Long", "purple"],
+                ]),
+
+                openEventModal: false,
+
+                generatePlan() {
+                    const numWeeksUntilRace = this.validateFormInput();
+                    if (numWeeksUntilRace) this.calculateTrainingPlan(numWeeksUntilRace);
+                },
+
+                async calculateTrainingPlan(numWeeksUntilRace) {
+                    try {
+                        //const trainingController = await import("./trainingPlanGenerator.js");
+                        const allRuns = createTrainingPlan(
                             this.start_date,
                             this.weekly_mileage_goal,
                             this.race_date,
                             this.workout_map,
                             numWeeksUntilRace
-                            );
+                        );
 
-                            allRuns.forEach((run) => {
+                        allRuns.forEach((run) => {
                             this.event_date = run.event_date;
                             this.event_title = run.event_title;
                             this.event_workout = run.event_workout;
@@ -313,22 +313,22 @@
                             this.event_notes = run.event_notes;
                             this.event_theme = run.event_theme;
                             this.addEvent(false);
-                            });
-                        } catch (e) {
-                            console.log(e);
-                        }
-                        toggleSetupWizard();
-                    },
+                        });
+                    } catch (e) {
+                        console.log(e);
+                    }
+                    toggleSetupWizard();
+                },
 
-                    validateFormInput() {
-                        this.weekly_mileage_goal = document.querySelector(".value").textContent;
-                        this.start_date = document.getElementById("startDate").value;
-                        this.race_date = document.getElementById("dateInput").value;
-                        const workouts = document.querySelectorAll('[data-name="workout"]');
-                        this.workout_map = new Map();
+                validateFormInput() {
+                    this.weekly_mileage_goal = document.querySelector(".value").textContent;
+                    this.start_date = document.getElementById("startDate").value;
+                    this.race_date = document.getElementById("dateInput").value;
+                    const workouts = document.querySelectorAll('[data-name="workout"]');
+                    this.workout_map = new Map();
 
-                        for (const element of workouts) {
-                            if (element.checked) {
+                    for (const element of workouts) {
+                        if (element.checked) {
                             let keyPair = element.name.split("_");
                             let key = keyPair[0];
                             let value = keyPair[1];
@@ -340,416 +340,730 @@
                             } else {
                                 this.workout_map.set(key, [value]);
                             }
-                            }
                         }
-                        const formComplete =
-                            this.start_date &&
-                            this.weekly_mileage_goal &&
-                            this.race_date &&
-                            this.workout_map;
+                    }
+                    const formComplete =
+                        this.start_date &&
+                        this.weekly_mileage_goal &&
+                        this.race_date &&
+                        this.workout_map;
 
-                        const numWeeksUntilRace = parseInt(
-                            this.numberOfWeeksUntilDate(this.start_date, this.race_date)
-                        );
+                    const numWeeksUntilRace = parseInt(
+                        this.numberOfWeeksUntilDate(this.start_date, this.race_date)
+                    );
 
-                        if (!formComplete) {
-                            this.showErrorToast("All fields are required", 5000);
-                            return false;
-                        } else if (numWeeksUntilRace < 4) {
-                            this.showErrorToast(
+                    if (!formComplete) {
+                        this.showErrorToast("All fields are required", 5000);
+                        return false;
+                    } else if (numWeeksUntilRace < 4) {
+                        this.showErrorToast(
                             "Race date must be 4 weeks minimum from today's date",
                             5000
-                            );
-                            return false;
-                        } else {
-                            this.workouts = [];
-                            return numWeeksUntilRace;
-                        }
-                    },
+                        );
+                        return false;
+                    } else {
+                        this.workouts = [];
+                        return numWeeksUntilRace;
+                    }
+                },
 
-                    numberOfWeeksUntilDate(startingDate, futureDate) {
-                        const now = this.formatDate(new Date());
+                numberOfWeeksUntilDate(startingDate, futureDate) {
+                    const now = this.formatDate(new Date());
 
-                        // Create two Date objects from the given date strings
-                        const date1 = startingDate
-                            ? new Date(startingDate)
-                            : new Date(this.formatDate(new Date()));
-                        const date2 = new Date(futureDate);
+                    // Create two Date objects from the given date strings
+                    const date1 = startingDate
+                        ? new Date(startingDate)
+                        : new Date(this.formatDate(new Date()));
+                    const date2 = new Date(futureDate);
 
-                        // Calculate the difference in milliseconds between the two dates
-                        const diffInMs = Math.abs(date1 - date2);
+                    // Calculate the difference in milliseconds between the two dates
+                    const diffInMs = Math.abs(date1 - date2);
 
-                        // Calculate the number of weeks between the two dates
-                        const weeksApart = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7));
-                        return weeksApart;
-                        },
+                    // Calculate the number of weeks between the two dates
+                    const weeksApart = Math.floor(diffInMs / (1000 * 60 * 60 * 24 * 7));
+                    return weeksApart;
+                },
 
-                        showErrorToast(message, duration) {
-                        const toast = document.getElementById("error-toast");
-                        const toastMessage = toast.querySelector(".bg-red-500");
-                        toastMessage.textContent = message;
-                        toast.classList.remove("hidden");
-                        setTimeout(() => {
-                            toast.classList.add("hidden");
-                        }, duration);
-                    },
+                showErrorToast(message, duration) {
+                    const toast = document.getElementById("error-toast");
+                    const toastMessage = toast.querySelector(".bg-red-500");
+                    toastMessage.textContent = message;
+                    toast.classList.remove("hidden");
+                    setTimeout(() => {
+                        toast.classList.add("hidden");
+                    }, duration);
+                },
 
-                    initDate() {
-                        let today = new Date();
-                        this.month = today.getMonth();
-                        this.year = today.getFullYear();
-                        this.datepickerValue = new Date(
-                            this.year,
-                            this.month,
-                            today.getDate()
-                        ).toDateString();
-                    },
+                initDate() {
+                    let today = new Date();
+                    this.month = today.getMonth();
+                    this.year = today.getFullYear();
+                    this.datepickerValue = new Date(
+                        this.year,
+                        this.month,
+                        today.getDate()
+                    ).toDateString();
+                },
 
-                    inputSliderInit() {
-                        const slider = document.querySelector(".slider");
-                        const value = document.querySelector(".value");
-                        slider.addEventListener("input", function () {
-                            value.textContent = this.value;
-                        });
-                    },
+                inputSliderInit() {
+                    const slider = document.querySelector(".slider");
+                    const value = document.querySelector(".value");
+                    slider.addEventListener("input", function () {
+                        value.textContent = this.value;
+                    });
+                },
 
-                    isToday(date) {
-                        const today = new Date();
-                        const d = new Date(this.year, this.month, date);
+                isToday(date) {
+                    const today = new Date();
+                    const d = new Date(this.year, this.month, date);
 
-                        return today.toDateString() === d.toDateString() ? true : false;
-                    },
+                    return today.toDateString() === d.toDateString() ? true : false;
+                },
 
-                    showEventModal(date, dateIndex, eventTitle) {
-                        // open the modal
-                        let dIndx = this.fetchCalendarEventByDateIndex(dateIndex + 1);
-                        if (dIndx != -1) {
-                            if (!eventTitle) {
+                showEventModal(date, dateIndex, eventTitle) {
+                    // open the modal
+                    let dIndx = this.fetchCalendarEventByDateIndex(dateIndex + 1);
+                    if (dIndx != -1) {
+                        if (!eventTitle) {
                             let selectedWorkout = this.workouts[dIndx];
                             this.event_title = selectedWorkout.event_title;
                             this.event_workout = selectedWorkout.event_workout;
                             this.event_distance = selectedWorkout.event_distance;
                             this.event_notes = selectedWorkout.event_notes;
                             this.event_theme = selectedWorkout.event_theme;
-                            } else {
+                        } else {
                             let selectedWorkout =
                                 this.workouts[dIndx].event_title == eventTitle
-                                ? this.workouts[dIndx]
-                                : this.workouts[dIndx + 1];
+                                    ? this.workouts[dIndx]
+                                    : this.workouts[dIndx + 1];
                             this.event_title = selectedWorkout.event_title;
                             this.event_workout = selectedWorkout.event_workout;
                             this.event_distance = selectedWorkout.event_distance;
                             this.event_notes = selectedWorkout.event_notes;
                             this.event_theme = selectedWorkout.event_theme;
-                            }
-                        } else {
-                            this.event_title = "";
-                            this.event_workout = "Easy";
-                            this.event_distance = 1;
-                            this.event_notes = "";
-                            this.event_theme = "green";
                         }
+                    } else {
+                        this.event_title = "";
+                        this.event_workout = "Easy";
+                        this.event_distance = 1;
+                        this.event_notes = "";
+                        this.event_theme = "green";
+                    }
 
-                        this.setSelectedOption("workoutSelect", this.event_workout);
-                        this.openEventModal = true;
-                        this.event_date = new Date(this.year, this.month, date).toDateString();
-                    },
+                    this.setSelectedOption("workoutSelect", this.event_workout);
+                    this.openEventModal = true;
+                    this.event_date = new Date(this.year, this.month, date).toDateString();
+                },
 
-                    addEvent(findExisting) {
-                        if (!this.event_title || !this.event_distance || !this.event_workout) {
-                            return;
-                        } else {
-                            let eventIndex = this.findIndex(
+                addEvent(findExisting) {
+                    if (!this.event_title || !this.event_distance || !this.event_workout) {
+                        return;
+                    } else {
+                        let eventIndex = this.findIndex(
                             this.workouts,
                             "event_date",
                             this.event_date
-                            );
-                            let workoutEvent = {
+                        );
+                        let workoutEvent = {
                             event_date: this.event_date,
                             event_title: this.event_title,
                             event_theme: this.event_theme,
                             event_workout: this.event_workout,
                             event_distance: this.event_distance,
                             event_notes: this.event_notes,
-                            };
+                        };
 
-                            if (findExisting && eventIndex != -1) {
+                        if (findExisting && eventIndex != -1) {
                             this.workouts[eventIndex] = workoutEvent;
-                            } else {
+                        } else {
                             this.workouts.push(workoutEvent);
-                            }
                         }
+                    }
 
-                        // clear the form data
+                    // clear the form data
+                    this.event_title = "";
+                    this.event_date = "";
+                    this.event_theme = "";
+                    this.event_workout = "";
+                    this.event_distance = 1;
+                    this.event_notes = "";
+
+                    //close the modal
+                    this.openEventModal = false;
+                },
+
+                deleteEvent() {
+                    let eventIndex = this.findIndex(
+                        this.workouts,
+                        "event_date",
+                        this.event_date
+                    );
+
+                    if (eventIndex != -1) {
+                        this.workouts.splice(eventIndex, 1);
                         this.event_title = "";
                         this.event_date = "";
-                        this.event_theme = "";
-                        this.event_workout = "";
+                        this.event_theme = this.workoutThemeMap.get(this.event_workout); // 'blue';
+                        this.event_workout = "Easy";
                         this.event_distance = 1;
                         this.event_notes = "";
-
-                        //close the modal
                         this.openEventModal = false;
-                    },
+                    }
+                },
 
-                    deleteEvent() {
-                        let eventIndex = this.findIndex(
-                            this.workouts,
-                            "event_date",
-                            this.event_date
-                        );
+                deleteAllEvents() {
+                    this.workouts = [];
+                },
 
-                        if (eventIndex != -1) {
-                            this.workouts.splice(eventIndex, 1);
-                            this.event_title = "";
-                            this.event_date = "";
-                            this.event_theme = this.workoutThemeMap.get(this.event_workout); // 'blue';
-                            this.event_workout = "Easy";
-                            this.event_distance = 1;
-                            this.event_notes = "";
-                            this.openEventModal = false;
-                        }
-                    },
+                toggleWeeklySummaryModal() {
+                    this.showWeeklySummaryModal = !this.showWeeklySummaryModal;
+                },
 
-                    deleteAllEvents() {
-                        this.workouts = [];
-                    },
+                getNoOfDays() {
+                    let daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
 
-                    toggleWeeklySummaryModal() {
-                        this.showWeeklySummaryModal = !this.showWeeklySummaryModal;
-                    },
+                    // find where to start calendar day of week
+                    let dayOfWeek = new Date(this.year, this.month).getDay();
+                    let blankdaysArray = [];
+                    for (var i = 1; i <= dayOfWeek; i++) {
+                        blankdaysArray.push(i);
+                    }
 
-                    getNoOfDays() {
-                        let daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
+                    let daysArray = [];
+                    for (var i = 1; i <= daysInMonth; i++) {
+                        daysArray.push(i);
+                    }
 
-                        // find where to start calendar day of week
-                        let dayOfWeek = new Date(this.year, this.month).getDay();
-                        let blankdaysArray = [];
-                        for (var i = 1; i <= dayOfWeek; i++) {
-                            blankdaysArray.push(i);
-                        }
+                    this.blankdays = blankdaysArray;
+                    this.no_of_days = daysArray;
+                },
 
-                        let daysArray = [];
-                        for (var i = 1; i <= daysInMonth; i++) {
-                            daysArray.push(i);
-                        }
+                findIndex(array, property, value) {
+                    return array.findIndex((item) => item[property] == value);
+                },
 
-                        this.blankdays = blankdaysArray;
-                        this.no_of_days = daysArray;
-                    },
+                fetchCalendarEventByDateIndex(dateIndex) {
+                    return this.workouts.findIndex((item) =>
+                        JSON.stringify(item["event_date"]).includes(dateIndex)
+                    );
+                },
 
-                    findIndex(array, property, value) {
-                        return array.findIndex((item) => item[property] == value);
-                    },
+                setWorkoutType(event) {
+                    var select = event.target;
+                    var selectedOptionIndex = select.selectedIndex;
+                    var selectedOption = select.options[selectedOptionIndex];
+                    var label = selectedOption.text;
+                    this.event_theme = selectedOption.value;
+                    this.event_workout = label;
+                },
 
-                    fetchCalendarEventByDateIndex(dateIndex) {
-                        return this.workouts.findIndex((item) =>
-                            JSON.stringify(item["event_date"]).includes(dateIndex)
-                        );
-                    },
+                setSelectedOption(selectId, optionValue) {
+                    var select = document.getElementById(selectId);
 
-                    setWorkoutType(event) {
-                        var select = event.target;
-                        var selectedOptionIndex = select.selectedIndex;
-                        var selectedOption = select.options[selectedOptionIndex];
-                        var label = selectedOption.text;
-                        this.event_theme = selectedOption.value;
-                        this.event_workout = label;
-                    },
-
-                    setSelectedOption(selectId, optionValue) {
-                        var select = document.getElementById(selectId);
-
-                        for (var i = 0; i < select.options.length; i++) {
-                            if (select.options[i].text === optionValue) {
+                    for (var i = 0; i < select.options.length; i++) {
+                        if (select.options[i].text === optionValue) {
                             select.options[i].selected = true;
                             break;
+                        }
+                    }
+                },
+
+                formatDate(date) {
+                    const initialDate = new Date(date);
+
+                    // Extract the year, month, and day from the date object
+                    const year = initialDate.getFullYear();
+                    const month = ("0" + (initialDate.getMonth() + 1)).slice(-2);
+                    const day = ("0" + initialDate.getDate()).slice(-2);
+
+                    // Create the formatted date string using the extracted components
+                    const formattedDate = `${year}-${month}-${day}`;
+                    return formattedDate;
+                },
+
+                async downloadCalendar(event) {
+                    //const downloadHelper = await import("./calendarDownload.js");
+                    downloadCalendarFile(this.workouts);
+                },
+
+                downloadCalendarFile(events) {
+                    const calendarData = generateCalendarData(events);
+                    downloadFile(calendarData, "calendar.ics");
+                },
+
+                generateCalendarData(events) {
+                    const calendarLines = [
+                        "BEGIN:VCALENDAR",
+                        "VERSION:2.0",
+                        "PRODID:-//My Company//EN",
+                    ];
+
+                    events.forEach((event) => {
+                        const start = formatDate(event.event_date);
+                        const end = formatDate(event.event_date);
+                        const description = event.event_notes || "";
+                        const title = event.event_title || "";
+
+                        const eventLines = [
+                            "BEGIN:VEVENT",
+                            `DTSTART:${start}`,
+                            `DTEND:${end}`,
+                            `DESCRIPTION:${description}`,
+                            `LOCATION:${location}`,
+                            `SUMMARY:${title}`,
+                            "END:VEVENT",
+                        ];
+
+                        calendarLines.push(...eventLines);
+                    });
+
+                    calendarLines.push("END:VCALENDAR");
+
+                    return calendarLines.join("\n");
+                },
+
+                downloadFile(data, filename) {
+                    const blob = new Blob([data], { type: "text/calendar" });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement("a");
+                    link.href = url;
+                    link.download = filename;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                },
+
+                padNumber(number) {
+                    return number.toString().padStart(2, "0");
+                },
+
+                formatDate(dateString) {
+                    const date = new Date(dateString);
+                    const year = date.getUTCFullYear();
+                    const month = padNumber(date.getUTCMonth() + 1);
+                    const day = padNumber(date.getUTCDate());
+                    const hours = padNumber(date.getUTCHours());
+                    const minutes = padNumber(date.getUTCMinutes());
+                    const seconds = padNumber(date.getUTCSeconds());
+
+                    return `${year}${month}${day}T${hours}${minutes}${seconds}Z`;
+                }
+            };
+
+            const weekdayMap = new Map();
+            const themeMap = new Map();
+
+            let nextRun = "";
+
+            (function () {
+                weekdayMap.set(0, "Sunday");
+                weekdayMap.set(1, "Monday");
+                weekdayMap.set(2, "Tuesday");
+                weekdayMap.set(3, "Wednesday");
+                weekdayMap.set(4, "Thursday");
+                weekdayMap.set(5, "Friday");
+                weekdayMap.set(6, "Saturday");
+
+                themeMap.set("Easy", "green");
+                themeMap.set("Tempo", "blue");
+                themeMap.set("Speed", "red");
+                themeMap.set("Long", "purple");
+            })();
+
+            Date.prototype.addDays = function (days) {
+                var date = new Date(this.valueOf());
+                date.setDate(date.getDate() + days);
+                return date;
+            };
+
+            function createTrainingPlan(
+                startDay, // Start date user selects
+                mileageGoal, // 1-100 miles
+                raceDate, // Race date user selects
+                workoutMap, // Day of the Week => Workout Selection
+                numWeeksUntilRace // # weeks for training
+            ) {
+                // Set the first day of training to the date which the user selected
+                nextRun = new Date(startDay); //(startDay);
+
+                // Create an array storing the total weekly number of miles for each week of training
+                const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal);
+
+                // Check which workouts are included in the week (we only care about unique values)
+                let uniqueWorkouts = new Set();
+                workoutMap.forEach((val) => {
+                    uniqueWorkouts.add(val[0]);
+                });
+                const selectedWorkouts = Array.from(uniqueWorkouts);
+                const workoutRatio = createWorkoutPercentileMap(selectedWorkouts);
+                const workoutCount = countUniqueValuesInMap(workoutMap);
+
+                // An array of calendar events up until the race date
+                return generateRuns(nextRun, milesPerWeek, workoutMap, workoutRatio, workoutCount, raceDate);
+            }
+
+            function generateRuns(
+                nextRun,
+                milesPerWeek,
+                workoutMap,
+                workoutRatio,
+                workoutCount,
+                raceDate
+            ) {
+                let allRuns = [];
+                let longRunIncluded = longRunIncludedInPlan(workoutMap);
+                for (let i = 0; i < milesPerWeek.length; i++) {
+                    for (let x = 0; x < 7; x++) {
+                        let dayOfWeek = weekdayMap.get(nextRun.getDay());
+
+                        if (nextRun == raceDate) {
+
+                            // create event for the race
+                            let raceShakeout = createWorkout(nextRun)
+
+                        } else if (workoutMap.has(dayOfWeek)) {
+
+                            let workoutType = workoutMap.get(dayOfWeek)[0];
+
+                            let numMiles = Math.ceil(
+                                (milesPerWeek[i] * workoutRatio.get(workoutType)) /
+                                workoutCount.get(workoutType)
+                            );
+
+                            if (longRunIncluded && workoutType != 'Long') {
+                                let doDoubleDay = splitRunIntoTwo(numMiles, milesPerWeek[i], workoutRatio, workoutCount);
+                                if (doDoubleDay) {
+                                    let result = splitRun(numMiles);
+                                    let morningRun = createWorkout(nextRun, result[0], workoutType, `Morning ${workoutType} - ${result[0]} miles`);
+                                    let eveningRun = createWorkout(nextRun, result[1], workoutType, `Evening ${workoutType} - ${result[1]} miles`);
+                                    allRuns.push(morningRun);
+                                    allRuns.push(eveningRun);
+                                } else {
+                                    let workout = createWorkout(nextRun, numMiles, workoutType, null);
+                                    allRuns.push(workout);
+                                }
+                            } else {
+                                let workout = createWorkout(nextRun, numMiles, workoutType, null);
+                                allRuns.push(workout);
                             }
                         }
-                    },
+                        nextRun = nextRun.addDays(1);
+                    }
+                }
+                return allRuns;
+            }
 
-                    formatDate(date) {
-                        const initialDate = new Date(date);
+            function longRunIncludedInPlan(workoutMap) {
+                let longRunIncluded = false;
+                for (const workout of workoutMap.values()) {
+                    if (workout[0] === 'Long') {
+                        longRunIncluded = true;
+                    }
+                }
+                return longRunIncluded;
+            }
 
-                        // Extract the year, month, and day from the date object
-                        const year = initialDate.getFullYear();
-                        const month = ("0" + (initialDate.getMonth() + 1)).slice(-2);
-                        const day = ("0" + initialDate.getDate()).slice(-2);
+            function splitRunIntoTwo(numMilesForWorkout, numMilesForWeek, workoutRatioMap, workoutCountMap) {
+                let longRunMiles = Math.ceil(
+                    (numMilesForWeek * workoutRatioMap.get('Long')) /
+                    workoutCountMap.get('Long')
+                );
+                return numMilesForWorkout < longRunMiles ? false : true;
+            }
 
-                        // Create the formatted date string using the extracted components
-                        const formattedDate = `${year}-${month}-${day}`;
-                        return formattedDate;
-                        },
+            function splitRun(numMiles) {
+                const largerNum = Math.ceil(numMiles * 0.7);
+                const smallerNum = numMiles - largerNum;
 
-                        async downloadCalendar(event) {
-                        const downloadHelper = await import("./calendarDownload.js");
-                        downloadHelper.downloadCalendarFile(this.workouts);
-                    },
+                return [largerNum, smallerNum];
+            }
+
+            function createWorkout(dateOfWorkout, numberOfMiles, workoutType, eventTitle) {
+                return {
+                    event_date: dateOfWorkout,
+                    event_title: eventTitle != null ? eventTitle : `${workoutType} - ${numberOfMiles} miles`,
+                    event_workout: workoutType,
+                    event_distance: numberOfMiles,
+                    event_notes: "",
+                    event_theme: themeMap.get(workoutType)
                 };
             }
 
-                /*function resizeListener(elementId) {
-                var $element = $("#" + elementId);
-                var $children = $element.children();
-                var initial = false;
-                $(window)
-                    .on("resize", function () {
-                    if (initial) {
-                        var width = $(window).width() / $element.width();
-                        var height = $(window).height() / $element.height();
-                        var scale = "scale(" + Math.min(width, height) + ")";
+            function createWorkoutPercentileMap(workouts) {
+                let workoutRatio = new Map();
+                workouts.sort(); // => Easy, Long, Speed, Tempo
+                const selectedWorkouts = workouts.join(", ");
 
-                        $element.css({
-                        "-webkit-transform": scale,
-                        "-moz-transform": scale,
-                        "-ms-transform": scale,
-                        "-o-transform": scale,
-                        transform: scale,
-                        });
-                        $children.css({
-                        "-webkit-transform": scale,
-                        "-moz-transform": scale,
-                        "-ms-transform": scale,
-                        "-o-transform": scale,
-                        transform: scale,
-                        });
+                switch (selectedWorkouts) {
+                    /* All possibilities for 2 options */
+                    case "Easy, Long":
+                        workoutRatio.set("Easy", 0.7);
+                        workoutRatio.set("Long", 0.3);
+                        break;
+                    case "Easy, Speed":
+                        workoutRatio.set("Easy", 0.8);
+                        workoutRatio.set("Speed", 0.2);
+                        break;
+                    case "Easy, Tempo":
+                        workoutRatio.set("Easy", 0.8);
+                        workoutRatio.set("Tempo", 0.2);
+                        break;
+                    case "Long, Speed":
+                        workoutRatio.set("Long", 0.8);
+                        workoutRatio.set("Speed", 0.2);
+                        break;
+                    case "Long, Tempo":
+                        workoutRatio.set("Long", 0.8);
+                        workoutRatio.set("Tempo", 0.2);
+                        break;
+                    case "Speed, Tempo":
+                        workoutRatio.set("Speed", 0.5);
+                        workoutRatio.set("Tempo", 0.5);
+                        break;
+
+                    /* All possibilities for 3 options */
+                    case "Easy, Long, Speed":
+                        workoutRatio.set("Easy", 0.56);
+                        workoutRatio.set("Long", 0.3);
+                        workoutRatio.set("Speed", 0.14);
+                        break;
+                    case "Easy, Long, Tempo":
+                        workoutRatio.set("Easy", 0.56);
+                        workoutRatio.set("Long", 0.3);
+                        workoutRatio.set("Tempo", 0.14);
+                        break;
+                    case "Long, Speed, Tempo":
+                        workoutRatio.set("Long", 0.3);
+                        workoutRatio.set("Speed", 0.14);
+                        workoutRatio.set("Tempo", 0.56);
+                        break;
+
+                    /* Only possibility for 4 options */
+                    case "Easy, Long, Speed, Tempo":
+                        workoutRatio.set("Easy", 0.6);
+                        workoutRatio.set("Long", 0.25);
+                        workoutRatio.set("Speed", 0.05);
+                        workoutRatio.set("Tempo", 0.1);
+                        break;
+
+                    /* Only 1 workout type is selected */
+                    default:
+                        workoutRatio.set(workouts[0], 1);
+                }
+
+                return workoutRatio;
+            }
+
+            function countUniqueValuesInMap(map) {
+                const count = new Map();
+
+                map.forEach((valueArray) => {
+                    valueArray.forEach((value) => {
+                        const currentValueCount = count.get(value) || 0;
+                        count.set(value, currentValueCount + 1);
+                    });
+                });
+
+                return count;
+            }
+
+            function createWeeklyMileage(numOfWeeks, maxMileage) {
+                let milesPerWeek = [];
+                const startingMileage = Number(Math.ceil(0.65 * maxMileage));
+                const diff = maxMileage - startingMileage;
+                const timespan = numOfWeeks - 2; // Allows for a 2 week taper
+                const weeklyIncrement = Number(diff / timespan); // Increments of weekly mileage to increase each week
+                const taper = numOfWeeks - 2;
+
+                for (let i = 1; i <= taper; i++) {
+                    if (i == taper) {
+                        milesPerWeek.push(parseInt(maxMileage));
                     } else {
-                        initial = true;
+                        milesPerWeek.push(
+                            Number(Math.ceil(startingMileage + weeklyIncrement * i + 1))
+                        );
                     }
-                    })
-                    .trigger("resize");
-                }*/
+                }
+
+                // These are the two weeks of tapering before the race
+                milesPerWeek.push(Number(Math.ceil(0.4 * maxMileage)));
+                milesPerWeek.push(Number(Math.ceil(0.2 * maxMileage)));
+
+                return milesPerWeek;
+            }
+
+            function isEven(num) {
+                if (num % 2 === 0) {
+                    return true; // even
+                } else {
+                    return false; // odd
+                }
+            }
+        }
+
+        /*function resizeListener(elementId) {
+        var $element = $("#" + elementId);
+        var $children = $element.children();
+        var initial = false;
+        $(window)
+            .on("resize", function () {
+            if (initial) {
+                var width = $(window).width() / $element.width();
+                var height = $(window).height() / $element.height();
+                var scale = "scale(" + Math.min(width, height) + ")";
+
+                $element.css({
+                "-webkit-transform": scale,
+                "-moz-transform": scale,
+                "-ms-transform": scale,
+                "-o-transform": scale,
+                transform: scale,
+                });
+                $children.css({
+                "-webkit-transform": scale,
+                "-moz-transform": scale,
+                "-ms-transform": scale,
+                "-o-transform": scale,
+                transform: scale,
+                });
+            } else {
+                initial = true;
+            }
+            })
+            .trigger("resize");
+        }*/
     </script>
     <script>
         function handleCheckboxClick(event, domId) {
-          const checkboxRow = document.getElementById(domId);
-          const checkboxes = checkboxRow.querySelectorAll("input[type=checkbox]");
-          let selected = 0;
-      
-          checkboxes.forEach(checkbox => {
-            if (checkbox.checked) {
-              selected++;
+            const checkboxRow = document.getElementById(domId);
+            const checkboxes = checkboxRow.querySelectorAll("input[type=checkbox]");
+            let selected = 0;
+
+            checkboxes.forEach(checkbox => {
+                if (checkbox.checked) {
+                    selected++;
+                }
+            });
+
+            if (selected === 1) { // was 2 before, now restricting to 1
+                checkboxes.forEach(checkbox => {
+                    if (!checkbox.checked) {
+                        checkbox.disabled = true;
+                    }
+                });
+            } else {
+                checkboxes.forEach(checkbox => {
+                    checkbox.disabled = false;
+                });
             }
-          });
-      
-          if (selected === 1) { // was 2 before, now restricting to 1
-            checkboxes.forEach(checkbox => {
-              if (!checkbox.checked) {
-                checkbox.disabled = true;
-              }
-            });
-          } else {
-            checkboxes.forEach(checkbox => {
-              checkbox.disabled = false;
-            });
-          }
         }
     </script>
     <style>
+        .close {
+            color: #aaaaaa;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+            cursor: pointer;
+            position: relative;
+            top: -22px;
+            right: 3px;
+        }
 
-.close {
-    color: #aaaaaa;
-    float: right;
-    font-size: 28px;
-    font-weight: bold;
-    cursor: pointer;
-    position: relative;
-    top: -22px;
-    right: 3px;
-  }
-  
-  .close:hover,
-  .close:focus {
-    color: #000;
-    text-decoration: none;
-    cursor: pointer;
-  }
-  
-  label {
-    display: inline-block;
-    margin-right: 10px;
-  }
-  
-  .relative {
-    perspective: 1000px;
-  }
-  
-  .front,
-  .back {
-    position: absolute;
-    top: 0;
-    left: 0;
-    transition: transform 0.6s ease-in-out;
-  }
-  
-  .back {
-    transform: rotateY(180deg);
-  }
-  
-  /* Add this class to flip the card */
-  .flip-card-active .front {
-    transform: rotateY(180deg);
-  }
-  
-  .flip-card-active .back {
-    transform: rotateY(360deg);
-  }
-  
-  .slider {
-    width: 100%;
-    height: 15px;
-    background: #ddd;
-    outline: none;
-    opacity: 0.7;
-    transition: opacity 0.2s;
-  }
-  
-  .slider::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    appearance: none;
-    width: 25px;
-    height: 25px;
-    background: #4caf50;
-    cursor: pointer;
-  }
-  
-  .slider::-moz-range-thumb {
-    width: 25px;
-    height: 25px;
-    background: #4caf50;
-    cursor: pointer;
-  }
-  
-  .slider::-ms-thumb {
-    width: 25px;
-    height: 25px;
-    background: #4caf50;
-    cursor: pointer;
-  }
-  
-  /* Firefox */
-  @-moz-document url-prefix() {
-    .slider {
-      width: calc(100% - 10px); /* Adjust width to accommodate the thumb */
-    }
-  }
-  
-  /* Edge */
-  @supports (-ms-ime-align: auto) {
-    .slider {
-      width: calc(100% - 10px); /* Adjust width to accommodate the thumb */
-    }
-  }
-  
-  .value {
-    margin-left: 1rem;
-    font-weight: bold;
-  }
-  
-  #error-toast .bg-red-500 {
-    max-width: 90vw;
-  }
-  
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        label {
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .relative {
+            perspective: 1000px;
+        }
+
+        .front,
+        .back {
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .back {
+            transform: rotateY(180deg);
+        }
+
+        /* Add this class to flip the card */
+        .flip-card-active .front {
+            transform: rotateY(180deg);
+        }
+
+        .flip-card-active .back {
+            transform: rotateY(360deg);
+        }
+
+        .slider {
+            width: 100%;
+            height: 15px;
+            background: #ddd;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity 0.2s;
+        }
+
+        .slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 25px;
+            height: 25px;
+            background: #4caf50;
+            cursor: pointer;
+        }
+
+        .slider::-moz-range-thumb {
+            width: 25px;
+            height: 25px;
+            background: #4caf50;
+            cursor: pointer;
+        }
+
+        .slider::-ms-thumb {
+            width: 25px;
+            height: 25px;
+            background: #4caf50;
+            cursor: pointer;
+        }
+
+        /* Firefox */
+        @-moz-document url-prefix() {
+            .slider {
+                width: calc(100% - 10px);
+                /* Adjust width to accommodate the thumb */
+            }
+        }
+
+        /* Edge */
+        @supports (-ms-ime-align: auto) {
+            .slider {
+                width: calc(100% - 10px);
+                /* Adjust width to accommodate the thumb */
+            }
+        }
+
+        .value {
+            margin-left: 1rem;
+            font-weight: bold;
+        }
+
+        #error-toast .bg-red-500 {
+            max-width: 90vw;
+        }
     </style>
 </head>
 
@@ -955,12 +1269,13 @@
                                         </div>
                                     </div>
                                 </div>
-                                
+
                                 <!-- Workout Selector Component -->
                                 <div>
                                     <div class="overflow-hidden bg-white shadow sm:rounded-lg">
                                         <div class="px-4 py-5 sm:px-6 text-center">
-                                            <h3 class="text-lg font-medium leading-6 text-gray-900">Workout Schedule</h3>
+                                            <h3 class="text-lg font-medium leading-6 text-gray-900">Workout Schedule
+                                            </h3>
                                             <!--<p class="text-gray-500">Select one workout per day to coordinate a schedule
                                                 that works for best for you. If you don't select any workout on a particular day, that will be considered a rest day.</p>-->
                                         </div>
@@ -972,19 +1287,31 @@
                                                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                                                         <div class="flex flex-wrap" id="monday">
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Monday_Easy" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'monday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Monday_Easy"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'monday')" />
                                                                 <span class="ml-2">Easy Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Monday_Tempo" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'monday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Monday_Tempo"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'monday')" />
                                                                 <span class="ml-2">Tempo Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Monday_Speed" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'monday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Monday_Speed"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'monday')" />
                                                                 <span class="ml-2">Speed Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Monday_Long" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'monday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Monday_Long"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'monday')" />
                                                                 <span class="ml-2">Long Run</span>
                                                             </label>
                                                         </div>
@@ -999,19 +1326,31 @@
                                                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                                                         <div class="flex flex-wrap" id="tuesday">
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Tuesday_Easy" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'tuesday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Tuesday_Easy"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'tuesday')" />
                                                                 <span class="ml-2">Easy Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Tuesday_Tempo" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'tuesday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Tuesday_Tempo"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'tuesday')" />
                                                                 <span class="ml-2">Tempo Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Tuesday_Speed" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'tuesday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Tuesday_Speed"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'tuesday')" />
                                                                 <span class="ml-2">Speed Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Tuesday_Long" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'tuesday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Tuesday_Long"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'tuesday')" />
                                                                 <span class="ml-2">Long Run</span>
                                                             </label>
                                                         </div>
@@ -1026,19 +1365,31 @@
                                                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                                                         <div class="flex flex-wrap" id="wednesday">
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Wednesday_Easy" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'wednesday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Wednesday_Easy"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'wednesday')" />
                                                                 <span class="ml-2">Easy Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Wednesday_Tempo" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'wednesday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Wednesday_Tempo"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'wednesday')" />
                                                                 <span class="ml-2">Tempo Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Wednesday_Speed" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'wednesday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Wednesday_Speed"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'wednesday')" />
                                                                 <span class="ml-2">Speed Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Wednesday_Long" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'wednesday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Wednesday_Long"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'wednesday')" />
                                                                 <span class="ml-2">Long Run</span>
                                                             </label>
                                                         </div>
@@ -1053,19 +1404,31 @@
                                                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                                                         <div class="flex flex-wrap" id="thursday">
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Thursday_Easy" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'thursday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Thursday_Easy"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'thursday')" />
                                                                 <span class="ml-2">Easy Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Thursday_Tempo" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'thursday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Thursday_Tempo"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'thursday')" />
                                                                 <span class="ml-2">Tempo Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Thursday_Speed" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'thursday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Thursday_Speed"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'thursday')" />
                                                                 <span class="ml-2">Speed Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Thursday_Long" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'thursday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Thursday_Long"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'thursday')" />
                                                                 <span class="ml-2">Long Run</span>
                                                             </label>
                                                         </div>
@@ -1080,19 +1443,31 @@
                                                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                                                         <div class="flex flex-wrap" id="friday">
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Friday_Easy" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'friday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Friday_Easy"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'friday')" />
                                                                 <span class="ml-2">Easy Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Friday_Tempo" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'friday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Friday_Tempo"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'friday')" />
                                                                 <span class="ml-2">Tempo Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Friday_Speed" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'friday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Friday_Speed"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'friday')" />
                                                                 <span class="ml-2">Speed Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Friday_Long" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'friday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Friday_Long"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'friday')" />
                                                                 <span class="ml-2">Long Run</span>
                                                             </label>
                                                         </div>
@@ -1107,19 +1482,31 @@
                                                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                                                         <div class="flex flex-wrap" id="saturday">
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Saturday_Easy" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'saturday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Saturday_Easy"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'saturday')" />
                                                                 <span class="ml-2">Easy Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Saturday_Tempo" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'saturday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Saturday_Tempo"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'saturday')" />
                                                                 <span class="ml-2">Tempo Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Saturday_Speed" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'saturday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Saturday_Speed"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'saturday')" />
                                                                 <span class="ml-2">Speed Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Saturday_Long" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'saturday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Saturday_Long"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'saturday')" />
                                                                 <span class="ml-2">Long Run</span>
                                                             </label>
                                                         </div>
@@ -1134,19 +1521,31 @@
                                                     <dd class="mt-1 text-sm text-gray-900 sm:col-span-2 sm:mt-0">
                                                         <div class="flex flex-wrap" id="sunday">
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Sunday_Easy" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'sunday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Sunday_Easy"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'sunday')" />
                                                                 <span class="ml-2">Easy Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Sunday_Tempo" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'sunday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Sunday_Tempo"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'sunday')" />
                                                                 <span class="ml-2">Tempo Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Sunday_Speed" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'sunday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Sunday_Speed"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'sunday')" />
                                                                 <span class="ml-2">Speed Run</span>
                                                             </label>
                                                             <label class="inline-flex items-center mr-4">
-                                                                <input type="checkbox" data-name="workout" name="Sunday_Long" class="form-checkbox h-4 w-4 text-indigo-600" onclick="handleCheckboxClick(event, 'sunday')"/>
+                                                                <input type="checkbox" data-name="workout"
+                                                                    name="Sunday_Long"
+                                                                    class="form-checkbox h-4 w-4 text-indigo-600"
+                                                                    onclick="handleCheckboxClick(event, 'sunday')" />
                                                                 <span class="ml-2">Long Run</span>
                                                             </label>
                                                         </div>
@@ -1232,9 +1631,9 @@
                                 </div>
                             </dl>
                         </div>
-                        
+
                         <canvas id="myChart" width="50%" height="20%"></canvas>
-                        
+
                         <div class="mt-8 text-right">
                             <button type="button"
                                 class="bg-white hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm mr-2"
