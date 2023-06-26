@@ -162,6 +162,7 @@
                     this.themeMap.set("Tempo", "blue");
                     this.themeMap.set("Speed", "red");
                     this.themeMap.set("Long", "purple");
+                    console.log('set weekday map', this.weekdayMap);
                 },
 
 
@@ -430,6 +431,7 @@
                         this.month,
                         today.getDate()
                     ).toDateString();
+                    console.log('set init date', this.datepickerValue);
                 },
 
                 inputSliderInit() {
@@ -438,6 +440,7 @@
                     slider.addEventListener("input", function () {
                         value.textContent = this.value;
                     });
+                    console.log('set input slider');
                 },
 
                 isToday(date) {
@@ -563,6 +566,7 @@
 
                     this.blankdays = blankdaysArray;
                     this.no_of_days = daysArray;
+                    console.log('got no. of days', this.no_of_days);
                 },
 
                 findIndex(array, property, value) {
