@@ -223,8 +223,42 @@
                                     </div>
                                 </div>
 
-                                <div id="workoutSelector"></div>
-                                <!--<div id="workoutSelector2"></div>-->
+                                <div class="flex justify-center">
+                                    <div x-data="{ days: [
+                                        { name: 'Monday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                        { name: 'Tuesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                        { name: 'Wednesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                        { name: 'Thursday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                        { name: 'Friday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                        { name: 'Saturday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                        { name: 'Sunday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 }
+                                    ] }">
+                                        <div class="flex space-x-4">
+                                            <template x-for="(day, index) in days" :key="index">
+                                                <div class="w-28 p-4 rounded-lg"
+                                                    style="background: rgba(207, 206, 219, 0.41);">
+                                                    <h3 class="text-lg mb-2 dayOfWeek" x-text="day.name"
+                                                        style="text-align: center;" x-ref="day.name">
+                                                    </h3>
+                                                    <div class="flex justify-between">
+                                                        <button
+                                                            class="text-gray-600 focus:outline-none hover:text-gray-800"
+                                                            x-on:click="day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length">
+                                                            <i class="fas fa-chevron-left text-sm"></i>
+                                                        </button>
+                                                        <span class="text-sm workout"
+                                                            x-text="day.options[day.activeOption]"></span>
+                                                        <button
+                                                            class="text-gray-600 focus:outline-none hover:text-gray-800"
+                                                            x-on:click="day.activeOption = (day.activeOption + 1) % day.options.length">
+                                                            <i class="fas fa-chevron-right text-sm"></i>
+                                                        </button>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+                                </div>
 
                                 <!--<input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">-->
 
@@ -300,9 +334,9 @@
                                 </div>
                             </dl>
                         </div>
-                        
+
                         <canvas id="myChart" width="50%" height="20%"></canvas>
-                        
+
                         <div class="mt-8 text-right">
                             <button type="button"
                                 class="bg-white hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm mr-2"
