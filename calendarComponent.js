@@ -15,11 +15,12 @@ const MONTH_NAMES = [
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-window.onload = function () {
-  loadComponent("workoutSelector", "./workoutSelector.html"); 
-  //loadComponent("workoutSelector2", "./playground.html");
-  setupBarChart();
-};
+jQuery(window).on("load", function () {
+  setTimeout(function () {
+    //loadComponent("workoutSelector", "./playground.html");
+    setupBarChart();
+  }, 100);
+});
 
 function loadComponent(domId, pathToFile) {
   $("#" + domId).load(pathToFile);
@@ -309,24 +310,24 @@ function app() {
       this.weekly_mileage_goal = document.querySelector(".value").textContent;
       this.start_date = document.getElementById("startDate").value;
       this.race_date = document.getElementById("dateInput").value;
-      const workouts = document.querySelectorAll('[data-name="workout"]');
       this.workout_map = new Map();
 
-      for (const element of workouts) {
-        if (element.checked) {
-          let keyPair = element.name.split("_");
-          let key = keyPair[0];
-          let value = keyPair[1];
+      const days = document.querySelectorAll(".dayOfWeek");
+      const workouts = document.querySelectorAll(".workout");
 
-          if (this.workout_map.has(key)) {
-            let currentValue = this.workout_map.get(key);
-            currentValue.push(value);
-            this.workout_map.set(key, currentValue);
-          } else {
-            this.workout_map.set(key, [value]);
-          }
+      for (let i = 0; i < 7; i++) {
+        let key = days[i].textContent
+        let value = workouts[i].textContent;
+
+        if (this.workout_map.has(key)) {
+          let currentValue = this.workout_map.get(key);
+          currentValue.push(value);
+          this.workout_map.set(key, currentValue);
+        } else {
+          this.workout_map.set(key, [value]);
         }
       }
+
       const formComplete =
         this.start_date &&
         this.weekly_mileage_goal &&
