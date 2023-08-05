@@ -15,9 +15,11 @@
     <link href="fontawesome-free-6.2.1-web/css/solid.css" rel="stylesheet">
     <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
     </link>
-    <link rel="stylesheet" href="./calendarComponent.css" rel="stylesheet">
+    <link rel="stylesheet" href="calendarComponent.css">
     <script src="calendarComponent.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <link rel="stylesheet" href="./dist/nouislider.min.css">
+    <script src="./dist/nouislider.min.js"></script>
 </head>
 
 <body style="min-height: 100%;">
@@ -242,14 +244,14 @@
                                                     <div class="flex justify-between">
                                                         <button
                                                             class="text-gray-600 focus:outline-none hover:text-gray-800"
-                                                            x-on:click="day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length">
+                                                            x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
                                                             <i class="fas fa-chevron-left text-sm"></i>
                                                         </button>
                                                         <span class="text-sm workout"
                                                             x-text="day.options[day.activeOption]"></span>
                                                         <button
                                                             class="text-gray-600 focus:outline-none hover:text-gray-800"
-                                                            x-on:click="day.activeOption = (day.activeOption + 1) % day.options.length">
+                                                            x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption + 1) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
                                                             <i class="fas fa-chevron-right text-sm"></i>
                                                         </button>
                                                     </div>
@@ -259,6 +261,12 @@
                                     </div>
                                 </div>
 
+                                <br/>
+
+                                <div style="max-width: 50%;">
+                                    <div id="slider"></div>
+                                </div>
+                                
                                 <!--<input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">-->
 
 

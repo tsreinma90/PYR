@@ -19,6 +19,7 @@ jQuery(window).on("load", function () {
   setTimeout(function () {
     //loadComponent("workoutSelector", "./playground.html");
     setupBarChart();
+    configureSlider(null);
   }, 100);
 });
 
@@ -42,7 +43,16 @@ function setupBarChart() {
   var myChart = new Chart(ctx, {
     type: "bar",
     data: {
-      labels: ["January", "February", "March", "April", "May", "June", "July", "August"],
+      labels: [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+      ],
       datasets: [
         {
           label: "Easy",
@@ -95,6 +105,107 @@ function setupBarChart() {
   });
 }
 
+function configureSlider(details) {
+  var slider = document.getElementById("slider");
+
+  if (!details) {
+    noUiSlider.create(slider, {
+      start: [20, 40, 60],
+      connect: [true, true, true, true],
+      range: {
+        min: [0],
+        max: [100],
+      },
+    });
+  } else { 
+    slider.noUiSlider.destroy();
+    noUiSlider.create(slider, details);
+    details.disabled === true ? slider.noUiSlider.disable() : slider.noUiSlider.enable();
+  }
+
+  var connect = slider.querySelectorAll(".noUi-connect");
+  var classes = [
+    "c-1-color",
+    "c-2-color",
+    "c-3-color",
+    "c-4-color",
+    "c-5-color",
+  ];
+
+  for (var i = 0; i < connect.length; i++) {
+    connect[i].classList.add(classes[i]);
+  }
+}
+
+function calculateDefaults(selectedWorkouts) {
+  const conditions = {
+    Easy : false,
+    Tempo : false,
+    Speed : false,
+    Long : false,
+  };
+      
+  for (const key in selectedWorkouts) {
+    const value = selectedWorkouts[key];
+    if (value > 0) conditions[key] = true;
+  }
+
+  const trueConditions = Object.keys(conditions).filter((key) => conditions[key]);
+  const key = trueConditions.join('+');
+  let result;
+
+  switch (key) {
+    case 'Easy':
+      result = {
+        start: [100],
+        connect: [true, true],
+        range: { min: [0], max: [100]},
+        disabled: true
+      };
+      return result;
+    
+    case 'Easy+Tempo':
+      result = {
+        start: [80],
+        connect: [true, true],
+        range: { min: [0], max: [100]},
+        disabled: false
+      };
+      return result;
+
+    case 'Easy+Tempo+Speed':
+      result = {
+        start: [60, 85],
+        connect: [true, true, true],
+        range: { min: [0], max: [100]},
+        disabled: false
+      };
+      return result;
+    
+    case 'Easy+Tempo+Speed':
+      result = {
+        start: [60, 85],
+        connect: [true, true, true],
+        range: { min: [0], max: [100]},
+        disabled: false
+      };
+      return result;
+
+    case 'Easy+Tempo+Speed+Long':
+      result = {
+        start: [20, 40, 60],
+        connect: [true, true, true, true],
+        range: {
+          min: [0],
+          max: [100],
+        },
+      };
+      return result;
+
+    default:
+      return null;
+  }
+}
 
 function app() {
   return {
@@ -123,6 +234,24 @@ function app() {
     start_date: "",
     race_date: "",
     workout_map: new Map(),
+
+    uniqueWorkoutTracker : {
+      "Rest" : 0,
+      "Easy" : 0,
+      "Tempo" : 0,
+      "Speed" : 0,
+      "Long" : 0
+    },
+
+    handleWorkoutSelection(addSelection, selection) {
+      if (addSelection) {
+        this.uniqueWorkoutTracker[selection] = this.uniqueWorkoutTracker[selection] + 1;
+        let sliderPresets = calculateDefaults(this.uniqueWorkoutTracker);
+        configureSlider(sliderPresets);
+      } else {
+        if (this.uniqueWorkoutTracker[selection] > 0) this.uniqueWorkoutTracker[selection] = this.uniqueWorkoutTracker[selection] - 1;
+      }
+    },
 
     workoutColorPairs: [
       {
@@ -316,7 +445,7 @@ function app() {
       const workouts = document.querySelectorAll(".workout");
 
       for (let i = 0; i < 7; i++) {
-        let key = days[i].textContent
+        let key = days[i].textContent;
         let value = workouts[i].textContent;
 
         if (this.workout_map.has(key)) {
