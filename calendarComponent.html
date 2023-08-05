@@ -20,6 +20,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <link rel="stylesheet" href="./dist/nouislider.min.css">
     <script src="./dist/nouislider.min.js"></script>
+    <script src="sliderOptions.js"></script>
 </head>
 
 <body style="min-height: 100%;">
@@ -214,7 +215,47 @@
 
                                     </div>
                                 </div>
-                                <div class="flex justify-center">
+
+                                <div style="padding-left: 22%; padding-right: 22%;">
+                                    <div class="flex justify-center">
+                                        <div x-data="{ days: [
+                                            { name: 'Monday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                            { name: 'Tuesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                            { name: 'Wednesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                            { name: 'Thursday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                            { name: 'Friday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                            { name: 'Saturday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+                                            { name: 'Sunday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 }
+                                        ] }">
+                                            <div class="flex space-x-4">
+                                                <template x-for="(day, index) in days" :key="index">
+                                                    <div class="w-28 p-4 rounded-lg">
+                                                        <h3 class="text-lg mb-2 dayOfWeek" x-text="day.name"
+                                                            style="text-align: center;" x-ref="day.name">
+                                                        </h3>
+                                                        <div class="flex justify-between">
+                                                            <button
+                                                                class="text-gray-600 focus:outline-none hover:text-gray-800"
+                                                                x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
+                                                                <i class="fas fa-chevron-left text-sm"></i>
+                                                            </button>
+                                                            <span class="text-sm workout"
+                                                                x-text="day.options[day.activeOption]"></span>
+                                                            <button
+                                                                class="text-gray-600 focus:outline-none hover:text-gray-800"
+                                                                x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption + 1) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
+                                                                <i class="fas fa-chevron-right text-sm"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <br/>
+
                                     <div class="w-1/2">
                                         <span>What is your goal for peak weekly mileage?</span>
                                         <div class="p-4">
@@ -223,48 +264,15 @@
                                             <span class="value">50</span>
                                         </div>
                                     </div>
-                                </div>
-
-                                <div class="flex justify-center">
-                                    <div x-data="{ days: [
-                                        { name: 'Monday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                        { name: 'Tuesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                        { name: 'Wednesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                        { name: 'Thursday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                        { name: 'Friday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                        { name: 'Saturday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                        { name: 'Sunday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 }
-                                    ] }">
-                                        <div class="flex space-x-4">
-                                            <template x-for="(day, index) in days" :key="index">
-                                                <div class="w-28 p-4 rounded-lg">
-                                                    <h3 class="text-lg mb-2 dayOfWeek" x-text="day.name"
-                                                        style="text-align: center;" x-ref="day.name">
-                                                    </h3>
-                                                    <div class="flex justify-between">
-                                                        <button
-                                                            class="text-gray-600 focus:outline-none hover:text-gray-800"
-                                                            x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
-                                                            <i class="fas fa-chevron-left text-sm"></i>
-                                                        </button>
-                                                        <span class="text-sm workout"
-                                                            x-text="day.options[day.activeOption]"></span>
-                                                        <button
-                                                            class="text-gray-600 focus:outline-none hover:text-gray-800"
-                                                            x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption + 1) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
-                                                            <i class="fas fa-chevron-right text-sm"></i>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                        </div>
+                                    <div style="padding-left: 22%; padding-right: 22%;">
+                                        <span>What is your goal for peak weekly mileage?</span>
+                                        <div id="slider1"></div>
                                     </div>
-                                </div>
 
-                                <br/>
-
-                                <div style="max-width: 50%;">
-                                    <div id="slider"></div>
+                                <br/><br/>
+                                
+                                <div style="padding-left: 22%; padding-right: 22%;">
+                                    <div id="slider2"></div>
                                 </div>
                                 
                                 <!--<input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">-->

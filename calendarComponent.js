@@ -106,12 +106,22 @@ function setupBarChart() {
 }
 
 function configureSlider(details) {
-  var slider = document.getElementById("slider");
+  var slider1 = document.getElementById("slider1");
+  var slider = document.getElementById("slider2");
 
   if (!details) {
     noUiSlider.create(slider, {
       start: [20, 40, 60],
       connect: [true, true, true, true],
+      range: {
+        min: [0],
+        max: [100],
+      },
+    });
+
+    noUiSlider.create(slider1, {
+      start: [25],
+      connect: [true, true],
       range: {
         min: [0],
         max: [100],
@@ -153,58 +163,7 @@ function calculateDefaults(selectedWorkouts) {
   const trueConditions = Object.keys(conditions).filter((key) => conditions[key]);
   const key = trueConditions.join('+');
   let result;
-
-  switch (key) {
-    case 'Easy':
-      result = {
-        start: [100],
-        connect: [true, true],
-        range: { min: [0], max: [100]},
-        disabled: true
-      };
-      return result;
-    
-    case 'Easy+Tempo':
-      result = {
-        start: [80],
-        connect: [true, true],
-        range: { min: [0], max: [100]},
-        disabled: false
-      };
-      return result;
-
-    case 'Easy+Tempo+Speed':
-      result = {
-        start: [60, 85],
-        connect: [true, true, true],
-        range: { min: [0], max: [100]},
-        disabled: false
-      };
-      return result;
-    
-    case 'Easy+Tempo+Speed':
-      result = {
-        start: [60, 85],
-        connect: [true, true, true],
-        range: { min: [0], max: [100]},
-        disabled: false
-      };
-      return result;
-
-    case 'Easy+Tempo+Speed+Long':
-      result = {
-        start: [20, 40, 60],
-        connect: [true, true, true, true],
-        range: {
-          min: [0],
-          max: [100],
-        },
-      };
-      return result;
-
-    default:
-      return null;
-  }
+  return window.slider.getOptions(key);
 }
 
 function app() {
