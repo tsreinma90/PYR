@@ -1,5 +1,12 @@
 // file1.js
 const getOptions = function (key) {
+  const classes = [
+    "c-1-color", // easy
+    "c-2-color", // tempo
+    "c-3-color", // speed
+    "c-4-color", // long
+  ];
+
   switch (key) {
     case "Easy":
       result = {
@@ -7,6 +14,7 @@ const getOptions = function (key) {
         connect: [true, true],
         range: { min: [0], max: [100] },
         disabled: true,
+        classes: [classes[0]],
       };
       return result;
 
@@ -16,6 +24,7 @@ const getOptions = function (key) {
         connect: [true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes: [classes[0], classes[1]],
       };
       return result;
 
@@ -25,6 +34,7 @@ const getOptions = function (key) {
         connect: [true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes: [classes[0], classes[2]],
       };
       return result;
 
@@ -34,6 +44,7 @@ const getOptions = function (key) {
         connect: [true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes: [classes[0], classes[3]],
       };
       return result;
 
@@ -43,6 +54,7 @@ const getOptions = function (key) {
         connect: [true, true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes: [classes[0], classes[1], classes[2]],
       };
       return result;
 
@@ -52,6 +64,7 @@ const getOptions = function (key) {
         connect: [true, true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes: [classes[0], classes[1], classes[3]],
       };
       return result;
 
@@ -61,6 +74,7 @@ const getOptions = function (key) {
         connect: [true, true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes: [classes[0], classes[2], classes[3]],
       };
       return result;
 
@@ -72,6 +86,8 @@ const getOptions = function (key) {
           min: [0],
           max: [100],
         },
+        disabled: false,
+        classes:[classes[0], classes[1], classes[2], classes[3]]
       };
       return result;
 
@@ -81,6 +97,7 @@ const getOptions = function (key) {
         connect: [true, true],
         range: { min: [0], max: [100] },
         disabled: true,
+        classes:[classes[1]]
       };
       return result;
 
@@ -90,6 +107,7 @@ const getOptions = function (key) {
         connect: [true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes:[classes[1], classes[2]]
       };
       return result;
 
@@ -99,6 +117,7 @@ const getOptions = function (key) {
         connect: [true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes:[classes[1], classes[3]]
       };
       return result;
 
@@ -108,6 +127,7 @@ const getOptions = function (key) {
         connect: [true, true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes:[classes[1], classes[2], classes[3]]
       };
       return result;
 
@@ -117,6 +137,7 @@ const getOptions = function (key) {
         connect: [true, true],
         range: { min: [0], max: [100] },
         disabled: true,
+        classes:[classes[2]]
       };
       return result;
 
@@ -126,6 +147,7 @@ const getOptions = function (key) {
         connect: [true, true],
         range: { min: [0], max: [100] },
         disabled: false,
+        classes:[classes[2], classes[3]]
       };
       return result;
 

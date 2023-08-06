@@ -254,27 +254,53 @@
                                     </div>
                                 </div>
 
-                                <br/>
+                                <br />
 
-                                    <div class="w-1/2">
-                                        <span>What is your goal for peak weekly mileage?</span>
-                                        <div class="p-4">
-                                            <input type="range" data-name="milesSlider" class="slider w-full" min="0"
-                                                max="100" value="50" />
-                                            <span class="value">50</span>
+                                <!--<div class="w-1/2">
+                                    <span>What is your goal for peak weekly mileage?</span>
+                                    <div class="p-4">
+                                        <input type="range" data-name="milesSlider" class="slider w-full" min="0"
+                                            max="100" value="50" />
+                                        <span class="value">50</span>
+                                    </div>
+                                </div>-->
+                                <div style="padding-left: 22%; padding-right: 22%;">
+                                    <div>What is your weekly mileage goal?</div>
+                                    <br /> <br />
+                                    <div id="weeklyMileageSlider"></div>
+                                </div>
+
+                                <br /><br />
+
+                                <div style="padding-left: 22%; padding-right: 22%;">
+                                    <div>Specify what % of your mileage will go to each workout below:</div>
+                                    <br />
+                                    <div class="legend">
+                                        <div class="legend-item">
+                                            <div class="square c-1-color"></div>
+                                            <div class="text">Easy</div>
+                                            <div class="text" id="easy">0%</div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="square c-2-color"></div>
+                                            <div class="text">Tempo</div>
+                                            <div class="text" id="tempo">0%</div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="square c-3-color"></div>
+                                            <div class="text">Speed</div>
+                                            <div class="text" id="speed">0%</div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="square c-4-color"></div>
+                                            <div class="text">Long</div>
+                                            <div class="text" id="long">0%</div>
                                         </div>
                                     </div>
-                                    <div style="padding-left: 22%; padding-right: 22%;">
-                                        <span>What is your goal for peak weekly mileage?</span>
-                                        <div id="slider1"></div>
-                                    </div>
-
-                                <br/><br/>
-                                
-                                <div style="padding-left: 22%; padding-right: 22%;">
-                                    <div id="slider2"></div>
+                                    <br />
+                                    <div id="workoutPercentSlider"></div>
                                 </div>
-                                
+
                                 <!--<input type="date" id="dateInput" class="bg-white focus:outline-none focus:shadow-outline border border-gray-300 rounded-lg py-2 px-4 block w-full appearance-none leading-normal">-->
 
 
