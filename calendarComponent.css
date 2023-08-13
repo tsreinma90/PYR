@@ -106,3 +106,34 @@ label {
 .c-2-color { background: linear-gradient(to right, rgb(128, 172, 128), rgb(203, 203, 20)) !important;}
 .c-3-color { background:  linear-gradient(to right, rgb(203, 203, 20), rgb(159, 34, 31)) !important; }
 .c-4-color { background:  linear-gradient(to right, rgb(159, 34, 31), rgb(105, 0, 166)) !important; }
+
+/* Style for the legend container */
+.legend {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 400px; /* Adjust the width as needed */
+  height: 50px; /* Adjust the height as needed */
+  margin: 10px; /* Adjust the margin as needed */
+}
+
+/* Style for the individual squares */
+.square {
+  width: 30px; /* Adjust the width of each square */
+  height: 15px; /* Adjust the height of each square */
+  border: 1px solid #000;
+}
+
+/* The rest of the CSS remains the same as in the previous example */
+
+/* Additional style for the legend-item container */
+.legend-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* Style for the text below the squares */
+.text {
+  margin-top: 5px; /* Adjust the margin as needed */
+}
