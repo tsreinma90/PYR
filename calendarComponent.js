@@ -120,7 +120,7 @@ function configureSlider(details) {
       },
     };
 
-    for (let i = 1; i <= 100; i++) {
+    for (let i = 0; i < 100; i++) {
       valuesForSlider.push(i);
     }
 
@@ -130,7 +130,7 @@ function configureSlider(details) {
       tooltips: true,
       format: format,
       range: {
-        min: [0],
+        min: [1],
         max: [100],
       },
     });
