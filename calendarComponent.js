@@ -191,14 +191,13 @@ function updateSliderLegend(details, values, handle) {
   let second = legendMap.get(selectedWorkouts[1]);
   let third = legendMap.get(selectedWorkouts[2]);
   let fourth = legendMap.get(selectedWorkouts[3]);
-
-
-  for (let [key, value] in legendMap.keys) {
-    console.log(key, selectedWorkouts);
+  
+  for (const [key] of legendMap) {
     if (!selectedWorkouts.includes(key)) {
-      value.innerHTML = 0 + '%';
+      legendMap.get(key).innerHTML = 0 + '%';
     }
   }
+  
   if (oneHundred) {
     legendMap.get(selectedWorkouts[0]).innerHTML = 100 + '%';
   } else {
