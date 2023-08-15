@@ -106,6 +106,7 @@ label {
 .c-2-color { background: linear-gradient(to right, rgb(128, 172, 128), rgb(203, 203, 20)) !important;}
 .c-3-color { background:  linear-gradient(to right, rgb(203, 203, 20), rgb(159, 34, 31)) !important; }
 .c-4-color { background:  linear-gradient(to right, rgb(159, 34, 31), rgb(105, 0, 166)) !important; }
+.c-5-color { background: grey !important; }
 
 /* Style for the legend container */
 .legend {

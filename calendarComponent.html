@@ -24,7 +24,7 @@
 </head>
 
 <body style="min-height: 100%;">
-    <div x-data="app()" x-init="[initDate(), getNoOfDays(), inputSliderInit()]" x-cloak>
+    <div x-data="app()" x-init="[initDate(), getNoOfDays()]" x-cloak>
         <div class="container mx-auto px-4 py-2 md:py-24" id="container" style="opacity: .95;">
             <div class="relative">
                 <div="w-64 h-64 bg-gray-200 rounded-lg">
@@ -277,22 +277,22 @@
                                     <br />
                                     <div class="legend">
                                         <div class="legend-item">
-                                            <div class="square c-1-color"></div>
+                                            <div class="square c-1-color" id="c-1-color"></div>
                                             <div class="text">Easy</div>
                                             <div class="text" id="easy">0%</div>
                                         </div>
                                         <div class="legend-item">
-                                            <div class="square c-2-color"></div>
+                                            <div class="square c-2-color" id="c-2-color"></div>
                                             <div class="text">Tempo</div>
                                             <div class="text" id="tempo">0%</div>
                                         </div>
                                         <div class="legend-item">
-                                            <div class="square c-3-color"></div>
+                                            <div class="square c-3-color" id="c-3-color"></div>
                                             <div class="text">Speed</div>
                                             <div class="text" id="speed">0%</div>
                                         </div>
                                         <div class="legend-item">
-                                            <div class="square c-4-color"></div>
+                                            <div class="square c-4-color" id="c-4-color"></div>
                                             <div class="text">Long</div>
                                             <div class="text" id="long">0%</div>
                                         </div>

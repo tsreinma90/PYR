@@ -105,11 +105,15 @@ function setupBarChart() {
   });
 }
 
+let init = false;
+activeSliderListeners = [];
+
 function configureSlider(details) {
   var weeklyMileageSlider = document.getElementById("weeklyMileageSlider");
   var workoutPercentSlider = document.getElementById("workoutPercentSlider");
-
-  if (!details) {
+  
+  if (!details && !init) {
+    init = true;
     let valuesForSlider = [];
     const format = {
       to: function (value) {
@@ -124,6 +128,7 @@ function configureSlider(details) {
       valuesForSlider.push(i);
     }
 
+    /* Single Weekly Mileage Slider */
     noUiSlider.create(weeklyMileageSlider, {
       start: [20],
       connect: [true, true],
@@ -135,15 +140,7 @@ function configureSlider(details) {
       },
     });
 
-    /*noUiSlider.create(workoutPercentSlider, {
-      start: [80],
-      connect: [true, true],
-      range: {
-        min: [0],
-        max: [100]
-      },
-    });*/
-
+    /* Multiple Workout % Slider */
     noUiSlider.create(workoutPercentSlider, {
       start: [80],
       connect: [true, true],
@@ -153,17 +150,95 @@ function configureSlider(details) {
       },
     });
     let connect = workoutPercentSlider.querySelectorAll(".noUi-connect");
-    connect[0].classList.add('c-1-color');
-  } else {
+    connect[0].classList.add("c-1-color");
+
+  } else if (details) {
+
+    // Workout % Slider should re-render*/
+    workoutPercentSlider.noUiSlider.off('update', activeSliderListeners[0]);
     workoutPercentSlider.noUiSlider.destroy();
     noUiSlider.create(workoutPercentSlider, details);
-    details.disabled === true
+    details?.disabled === true
       ? workoutPercentSlider.noUiSlider.disable()
       : workoutPercentSlider.noUiSlider.enable();
-      let connect = workoutPercentSlider.querySelectorAll(".noUi-connect");
-      for (var i = 0; i < details.classes.length; i++) {
-        connect[i].classList.add(details.classes[i]);
-      }
+    let connect = workoutPercentSlider.querySelectorAll(".noUi-connect");
+    for (var i = 0; i < details.classes.length; i++) {
+      connect[i].classList.add(details.classes[i]);
+    }
+
+    
+      const sliderUpdate = workoutPercentSlider.noUiSlider.on('update', function (values, handle) {
+        updateSliderLegend(details, values, handle);
+      });
+
+      activeSliderListeners.push(sliderUpdate);
+  }
+}
+
+function updateSliderLegend(details, values, handle) {
+  const oneHundred =
+    details["start"].length === 1 && details["start"][0] === 100;
+  const selectedWorkouts = details["classes"];
+  const numSelections = values.length;
+
+  let legendMap = new Map();
+  legendMap.set('c-1-color', document.getElementById('easy'));
+  legendMap.set('c-2-color', document.getElementById('tempo'));
+  legendMap.set('c-3-color', document.getElementById('speed'));
+  legendMap.set('c-4-color', document.getElementById('long'));
+
+  let first = legendMap.get(selectedWorkouts[0]);
+  let second = legendMap.get(selectedWorkouts[1]);
+  let third = legendMap.get(selectedWorkouts[2]);
+  let fourth = legendMap.get(selectedWorkouts[3]);
+
+
+  for (let [key, value] in legendMap.keys) {
+    console.log(key, selectedWorkouts);
+    if (!selectedWorkouts.includes(key)) {
+      value.innerHTML = 0 + '%';
+    }
+  }
+  if (oneHundred) {
+    legendMap.get(selectedWorkouts[0]).innerHTML = 100 + '%';
+  } else {
+    switch (numSelections) {  
+      case 1:
+        first.innerHTML = Math.round(values[handle]) + '%';
+        second.innerHTML = Math.round(100 - values[handle]) + '%';
+        return null;
+
+      case 2:
+        if (handle === 0) {
+          first.innerHTML = Math.round(values[handle]) + '%';
+          second.innerHTML = Math.round(values[handle+1] - values[handle]) + '%';
+          return null;
+        } else if (handle === 1) {
+          //first.innerHTML = Math.round(values[0]) + '%';
+          third.innerHTML = Math.round(100 - values[handle]) + '%';
+          second.innerHTML = Math.round(100 - (Math.round(values[0]) + Math.round(100 - values[handle]))) + '%';
+          return null;
+        }
+
+        case 3:
+          if (handle === 0) {
+            first.innerHTML = Math.round(values[handle]) + '%';
+            second.innerHTML = Math.round(values[handle+1] - values[handle]) + '%';
+            return null;
+          } else if (handle === 1) {
+            //first.innerHTML = Math.round(values[0]) + '%';
+            second.innerHTML = Math.round(values[1] - values[0]) + '%';
+            third.innerHTML = Math.round(values[2] - values[1]) + '%';
+            //fourth.innerHTML = Math.round(100 - (Math.round(values[0]) + Math.round(values[1] - values[0]) + Math.round(values[2] - values[1]))) + '%';
+            return null;
+          } else if (handle === 2) {
+            third.innerHTML = Math.round(values[2] - values[1]) + '%';
+            fourth.innerHTML = Math.round(100 - (Math.round(values[0]) + Math.round(values[1] - values[0]) + Math.round(values[2] - values[1]))) + '%';
+          }
+
+      default:
+        return null;
+    }
   }
 }
 
@@ -504,13 +579,13 @@ function app() {
       ).toDateString();
     },
 
-    inputSliderInit() {
+    /*inputSliderInit() {
       const slider = document.querySelector(".slider");
       const value = document.querySelector(".value");
       slider.addEventListener("input", function () {
         value.textContent = this.value;
       });
-    },
+    },*/
 
     isToday(date) {
       const today = new Date();
