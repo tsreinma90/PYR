@@ -142,13 +142,13 @@ function configureSlider(details) {
 
     /* Multiple Workout % Slider */
     noUiSlider.create(workoutPercentSlider, {
-      start: [80],
+      start: [100],
       connect: [true, true],
-      range: {
-        min: [0],
-        max: [100],
-      },
-    });
+      range: { min: [0], max: [100] },
+      disabled: true,
+      classes:[]
+    },
+    );
     let connect = workoutPercentSlider.querySelectorAll(".noUi-connect");
     connect[0].classList.add("c-1-color");
 
@@ -166,20 +166,19 @@ function configureSlider(details) {
       connect[i].classList.add(details.classes[i]);
     }
 
-    
-      const sliderUpdate = workoutPercentSlider.noUiSlider.on('update', function (values, handle) {
-        updateSliderLegend(details, values, handle);
-      });
+    const sliderUpdate = workoutPercentSlider.noUiSlider.on('update', function (values, handle) {
+      updateSliderLegend(details, values, handle);
+    });
 
-      activeSliderListeners.push(sliderUpdate);
+    activeSliderListeners.push(sliderUpdate);
   }
 }
 
 function updateSliderLegend(details, values, handle) {
-  const oneHundred =
-    details["start"].length === 1 && details["start"][0] === 100;
   const selectedWorkouts = details["classes"];
   const numSelections = values.length;
+  const oneHundred =
+    details["start"].length === 1 && details["start"][0] === 100 && selectedWorkouts.length > 0;
 
   let legendMap = new Map();
   legendMap.set('c-1-color', document.getElementById('easy'));
@@ -191,16 +190,16 @@ function updateSliderLegend(details, values, handle) {
   let second = legendMap.get(selectedWorkouts[1]);
   let third = legendMap.get(selectedWorkouts[2]);
   let fourth = legendMap.get(selectedWorkouts[3]);
-  
+    
   for (const [key] of legendMap) {
     if (!selectedWorkouts.includes(key)) {
       legendMap.get(key).innerHTML = 0 + '%';
     }
   }
-  
+
   if (oneHundred) {
     legendMap.get(selectedWorkouts[0]).innerHTML = 100 + '%';
-  } else {
+  } else if (selectedWorkouts.length) {
     switch (numSelections) {  
       case 1:
         first.innerHTML = Math.round(values[handle]) + '%';
@@ -213,7 +212,6 @@ function updateSliderLegend(details, values, handle) {
           second.innerHTML = Math.round(values[handle+1] - values[handle]) + '%';
           return null;
         } else if (handle === 1) {
-          //first.innerHTML = Math.round(values[0]) + '%';
           third.innerHTML = Math.round(100 - values[handle]) + '%';
           second.innerHTML = Math.round(100 - (Math.round(values[0]) + Math.round(100 - values[handle]))) + '%';
           return null;
@@ -224,12 +222,12 @@ function updateSliderLegend(details, values, handle) {
             first.innerHTML = Math.round(values[handle]) + '%';
             second.innerHTML = Math.round(values[handle+1] - values[handle]) + '%';
             return null;
+
           } else if (handle === 1) {
-            //first.innerHTML = Math.round(values[0]) + '%';
             second.innerHTML = Math.round(values[1] - values[0]) + '%';
             third.innerHTML = Math.round(values[2] - values[1]) + '%';
-            //fourth.innerHTML = Math.round(100 - (Math.round(values[0]) + Math.round(values[1] - values[0]) + Math.round(values[2] - values[1]))) + '%';
             return null;
+
           } else if (handle === 2) {
             third.innerHTML = Math.round(values[2] - values[1]) + '%';
             fourth.innerHTML = Math.round(100 - (Math.round(values[0]) + Math.round(values[1] - values[0]) + Math.round(values[2] - values[1]))) + '%';
@@ -258,7 +256,6 @@ function calculateDefaults(selectedWorkouts) {
     (key) => conditions[key]
   );
   const key = trueConditions.join("+");
-  let result;
   return window.slider.getOptions(key);
 }
 

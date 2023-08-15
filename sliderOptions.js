@@ -80,7 +80,7 @@ const getOptions = function (key) {
 
     case "Easy+Tempo+Speed+Long":
       result = {
-        start: [20, 40, 60],
+        start: [60, 72, 80],
         connect: [true, true, true, true],
         range: {
           min: [0],
@@ -151,8 +151,25 @@ const getOptions = function (key) {
       };
       return result;
 
+    case "Long":
+      result = {
+        start: [100],
+        connect: [true, true],
+        range: { min: [0], max: [100] },
+        disabled: true,
+        classes:[classes[3]]
+      };
+      return result;
+
     default:
-      return null;
+      result = {
+        start: [100],
+        connect: [true, true],
+        range: { min: [0], max: [100] },
+        disabled: true,
+        classes:[]
+      };
+      return result;
   }
 };
 
