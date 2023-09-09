@@ -491,9 +491,9 @@ function app() {
     },
 
     validateFormInput() {
-      this.weekly_mileage_goal = document.querySelector(".value").textContent;
-      this.start_date = document.getElementById("startDate").value;
-      this.race_date = document.getElementById("dateInput").value;
+      this.weekly_mileage_goal = document.querySelector("#weeklyMileageSlider > div > div.noUi-origin > div > div.noUi-tooltip").textContent;
+      this.start_date = document.querySelector("#startDate").value;
+      this.race_date = document.querySelector("#dateInput").value;
       this.workout_map = new Map();
 
       const days = document.querySelectorAll(".dayOfWeek");

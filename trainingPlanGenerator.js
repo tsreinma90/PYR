@@ -31,6 +31,7 @@ function createTrainingPlan(
   workoutMap, // Day of the Week => Workout Selection
   numWeeksUntilRace // # weeks for training
 ) {
+
   // Set the first day of training to the date which the user selected
   nextRun = new Date(startDay); //(startDay);
 
