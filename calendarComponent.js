@@ -286,6 +286,7 @@ function app() {
     start_date: "",
     race_date: "",
     workout_map: new Map(),
+    zonePreferences: [],
 
     uniqueWorkoutTracker: {
       Rest: 0,
@@ -472,7 +473,8 @@ function app() {
           this.weekly_mileage_goal,
           this.race_date,
           this.workout_map,
-          numWeeksUntilRace
+          this.zonePreferences,
+          numWeeksUntilRace,
         );
 
         allRuns.forEach((run) => {
@@ -512,11 +514,19 @@ function app() {
         }
       }
 
+      let percent_easy = parseInt(document.querySelector("#easy").textContent) / 100.0;
+      let percent_tempo = parseInt(document.querySelector("#tempo").textContent) / 100.0;
+      let percent_speed = parseInt(document.querySelector("#speed").textContent) / 100.0;
+      let percent_long = parseInt(document.querySelector("#long").textContent) / 100.0;
+
+      let zonePreferenceSet = (percent_easy != 0 || percent_tempo != 0 || percent_speed != 0 || percent_long != 0);
+
       const formComplete =
         this.start_date &&
         this.weekly_mileage_goal &&
         this.race_date &&
-        this.workout_map;
+        this.workout_map && 
+        zonePreferenceSet;
 
       const numWeeksUntilRace = parseInt(
         this.numberOfWeeksUntilDate(this.start_date, this.race_date)
@@ -533,6 +543,10 @@ function app() {
         return false;
       } else {
         this.workouts = [];
+        this.zonePreferences.push(percent_easy);
+        this.zonePreferences.push(percent_tempo);
+        this.zonePreferences.push(percent_speed);
+        this.zonePreferences.push(percent_long);
         return numWeeksUntilRace;
       }
     },
