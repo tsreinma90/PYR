@@ -113,7 +113,7 @@ function splitRunIntoTwo(numMilesForWorkout, numMilesForWeek, workoutRatioMap, w
 }
 
 function splitRun(numMiles) {
-  const largerNum = Math.ceil(numMiles * 0.7);
+  const largerNum = Math.floor(numMiles * 0.6);
   const smallerNum = numMiles - largerNum;
 
   return [largerNum, smallerNum];
