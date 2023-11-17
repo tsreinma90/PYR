@@ -107,8 +107,7 @@
                             <div class="border rounded-lg px-1" style="padding-top: 2px;">
                                 <button type="button"
                                     class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    :class="{'cursor-not-allowed opacity-25': month == 0 }"
-                                    :disabled="month == 0 ? true : false" @click="month--; getNoOfDays()">
+                                    @click="getNoOfDays(-1)"> <!--:class="{'cursor-not-allowed opacity-25': month == 0 }" :disabled="month == 0 ? true : false"-->
                                     <svg class="h-6 w-6 text-gray-500 inline-flex leading-none" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -118,8 +117,7 @@
                                 <div class="border-r inline-flex h-6"></div>
                                 <button type="button"
                                     class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex items-center cursor-pointer hover:bg-gray-200 p-1"
-                                    :class="{'cursor-not-allowed opacity-25': month == 11 }"
-                                    :disabled="month == 11 ? true : false" @click="month++; getNoOfDays()">
+                                    @click="getNoOfDays(1)"> <!--:class="{'cursor-not-allowed opacity-25': month == 11 }" :disabled="month == 11 ? true : false"-->
                                     <svg class="h-6 w-6 text-gray-500 inline-flex leading-none" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -360,19 +358,19 @@
 
                         <h2 class="font-bold text-2xl mb-6 text-gray-800 border-b pb-2">Training Block Summary</h2>
                         <div>
-                            <h3 class="text-base font-semibold leading-6 text-gray-900">Last 30 days</h3>
+                            <h3 class="text-base font-semibold leading-6 text-gray-900">Volume Details</h3>
                             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
                                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-                                    <dt class="truncate text-sm font-medium text-gray-500">Total Subscribers</dt>
-                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">71,897</dd>
+                                    <dt class="truncate text-sm font-medium text-gray-500">Number of Weeks in Training</dt>
+                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900" x-text="numOfWeeksInTraining"></dd>
                                 </div>
                                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-                                    <dt class="truncate text-sm font-medium text-gray-500">Avg. Open Rate</dt>
+                                    <dt class="truncate text-sm font-medium text-gray-500">Avg. Weekly Mileage</dt>
                                     <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">58.16%</dd>
                                 </div>
                                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-                                    <dt class="truncate text-sm font-medium text-gray-500">Avg. Click Rate</dt>
-                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900">24.57%</dd>
+                                    <dt class="truncate text-sm font-medium text-gray-500">Average Daily Mileage</dt>
+                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900" x-text="testNumber"></dd>
                                 </div>
                             </dl>
                         </div>

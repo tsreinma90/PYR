@@ -296,6 +296,19 @@ function app() {
       Long: 0,
     },
 
+    get numOfWeeksInTraining() {
+      return parseInt(
+        this.numberOfWeeksUntilDate(this.start_date, this.race_date)
+      );
+    },
+
+    /*get averageWeeklyMileage() {
+      const totalMileage = 0;
+      this.workouts.forEach(workout => {
+        totalMileage += workout.
+      })
+    },*/
+
     handleWorkoutSelection(addSelection, selection) {
       if (addSelection) {
         this.uniqueWorkoutTracker[selection] =
@@ -703,9 +716,21 @@ function app() {
       this.showWeeklySummaryModal = !this.showWeeklySummaryModal;
     },
 
-    getNoOfDays() {
-      let daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
+    getNoOfDays(increment) {
+      if (increment) {
+        this.month += increment;
 
+        // Adjust the year if necessary
+        if (this.month == 12) {
+            this.month = 0;
+            this.year++;
+        } else if (this.month <= 0) {
+            this.month = 12;
+            this.year--;
+        }
+      }
+
+      let daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
       // find where to start calendar day of week
       let dayOfWeek = new Date(this.year, this.month).getDay();
       let blankdaysArray = [];
