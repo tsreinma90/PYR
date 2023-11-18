@@ -71,7 +71,7 @@ function generateRuns(
           workoutCount.get(workoutType)
         );
           
-        if (longRunIncluded && workoutType != 'Long') {
+        if (longRunIncluded && workoutType != 'Long' && numMiles >= 12) {
           let doDoubleDay = splitRunIntoTwo(numMiles, milesPerWeek[i], workoutRatio, workoutCount);
           if (doDoubleDay) {
             let result = splitRun(numMiles);
