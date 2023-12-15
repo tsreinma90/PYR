@@ -32,7 +32,6 @@ function createTrainingPlan(
   zonePreferences, // The % of mileage specified for each workout type
   numWeeksUntilRace // # weeks for training
 ) {
-
   nextRun = new Date(startDay); //(startDay);
   const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal); // [10, 15, 20, etc., taper]
   const workoutRatio = createWorkoutPercentileMap(zonePreferences);

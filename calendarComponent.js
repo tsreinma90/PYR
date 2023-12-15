@@ -12,7 +12,6 @@ const MONTH_NAMES = [
   "November",
   "December",
 ];
-
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 jQuery(window).on("load", function () {
@@ -22,10 +21,6 @@ jQuery(window).on("load", function () {
     configureSlider(null);
   }, 100);
 });
-
-function loadComponent(domId, pathToFile) {
-  $("#" + domId).load(pathToFile);
-}
 
 function toggleSetupWizard() {
   const card = document.querySelector(".relative");
@@ -287,6 +282,8 @@ function app() {
     race_date: "",
     workout_map: new Map(),
     zonePreferences: [],
+    average_mileage_weekly: 0,
+    average_mileage_daily: 0,
 
     uniqueWorkoutTracker: {
       Rest: 0,
@@ -296,18 +293,7 @@ function app() {
       Long: 0,
     },
 
-    get numOfWeeksInTraining() {
-      return parseInt(
-        this.numberOfWeeksUntilDate(this.start_date, this.race_date)
-      );
-    },
-
-    /*get averageWeeklyMileage() {
-      const totalMileage = 0;
-      this.workouts.forEach(workout => {
-        totalMileage += workout.
-      })
-    },*/
+    numOfWeeksInTraining : 0,
 
     handleWorkoutSelection(addSelection, selection) {
       if (addSelection) {
@@ -475,7 +461,14 @@ function app() {
 
     generatePlan() {
       const numWeeksUntilRace = this.validateFormInput();
-      if (numWeeksUntilRace) this.calculateTrainingPlan(numWeeksUntilRace);
+      if (numWeeksUntilRace) {
+        this.calculateTrainingPlan(numWeeksUntilRace).then(totalMileage => {
+          this.average_mileage_weekly = Math.ceil(totalMileage / numWeeksUntilRace);
+          let daysPerWeekRunning = Array.from(this.workout_map.values()).filter(val => val[0] !== 'Rest').length;
+          this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / daysPerWeekRunning);
+          toggleSetupWizard();
+        });
+      }
     },
 
     async calculateTrainingPlan(numWeeksUntilRace) {
@@ -489,7 +482,7 @@ function app() {
           this.zonePreferences,
           numWeeksUntilRace,
         );
-
+        let totalMileage = 0;
         allRuns.forEach((run) => {
           this.event_date = run.event_date;
           this.event_title = run.event_title;
@@ -498,11 +491,12 @@ function app() {
           this.event_notes = run.event_notes;
           this.event_theme = run.event_theme;
           this.addEvent(false);
+          if (!isNaN(run.event_distance)) totalMileage += run.event_distance;
         });
+        return totalMileage;
       } catch (e) {
         console.log(e);
       }
-      toggleSetupWizard();
     },
 
     validateFormInput() {
@@ -562,10 +556,12 @@ function app() {
       }
        else {
         this.workouts = [];
+        this.zonePreferences = [];
         this.zonePreferences.push(percent_easy);
         this.zonePreferences.push(percent_tempo);
         this.zonePreferences.push(percent_speed);
         this.zonePreferences.push(percent_long);
+        this.numOfWeeksInTraining = numWeeksUntilRace;
         return numWeeksUntilRace;
       }
     },
@@ -720,6 +716,9 @@ function app() {
 
     toggleWeeklySummaryModal() {
       this.showWeeklySummaryModal = !this.showWeeklySummaryModal;
+      /*parseInt(
+        this.numberOfWeeksUntilDate(this.start_date, this.race_date)
+      );*/
     },
 
     getNoOfDays(increment) {
@@ -803,7 +802,7 @@ function app() {
   };
 }
 
-/*function resizeListener(elementId) {
+function resizeListener(elementId) {
   var $element = $("#" + elementId);
   var $children = $element.children();
   var initial = false;
@@ -833,4 +832,4 @@ function app() {
       }
     })
     .trigger("resize");
-}*/
+}
