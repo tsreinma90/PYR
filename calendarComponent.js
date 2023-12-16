@@ -30,7 +30,7 @@ function toggleSetupWizard() {
     let back = document.querySelector("#back");
     front.style.display = front.style.display === "none" ? "block" : "none";
     back.style.display = back.style.display === "none" ? "block" : "none";
-  }, 600);
+  }, 500);
 }
 
 function setupBarChart() {
