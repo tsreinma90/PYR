@@ -565,13 +565,13 @@ function app() {
         return false;
       } else if (numWeeksUntilRace < 4) {
         this.showErrorToast(
-          "Race date must be 4 weeks minimum from today's date",
+          "Training Plan Must Be 4 Weeks Long Minimum",
           12000
         );
         return false;
       } else if (numWeeksUntilRace > 20) {
         this.showErrorToast(
-          "Training plan cannot be longer more than 20 weeks in length",
+          "Training Plan Must Be 20 Weeks Long or Less",
            12000
         );
       }

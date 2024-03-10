@@ -156,3 +156,14 @@ label {
 .text {
   margin-top: 5px; /* Adjust the margin as needed */
 }
+
+.centered-title {
+  text-align: center;
+  margin-top: 50px; /* Adjust as needed */
+}
+
+.centered-title h1 {
+  font-size: 32px;
+  font-weight: bold;
+  color: #333;
+}
