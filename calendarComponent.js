@@ -17,87 +17,108 @@ const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 jQuery(window).on("load", function () {
   setTimeout(function () {
     //loadComponent("workoutSelector", "./playground.html");
-    setupBarChart();
+    setupBarChart(null);
     configureSlider(null);
   }, 100);
 });
 
-function toggleSetupWizard() {
+function toggleSetupWizard(flipToBuilder) {
   const card = document.querySelector(".relative");
   card.classList.toggle("flip-card-active");
-  setTimeout(() => {
-    let front = document.querySelector("#front");
-    let back = document.querySelector("#back");
+  let front = document.querySelector("#front");
+  let back = document.querySelector("#back");
+  
+  if (!flipToBuilder) {
+    setTimeout(() => {
+      front.style.display = front.style.display === "none" ? "block" : "none";
+      back.style.display = back.style.display === "none" ? "block" : "none";
+    }, 450);
+  } else {
     front.style.display = front.style.display === "none" ? "block" : "none";
     back.style.display = back.style.display === "none" ? "block" : "none";
-  }, 500);
+  }
 }
 
-function setupBarChart() {
-  var ctx = document.getElementById("myChart").getContext("2d");
-  var myChart = new Chart(ctx, {
-    type: "bar",
-    data: {
-      labels: [
-        "January",
-        "February",
-        "March",
-        "April",
-        "May",
-        "June",
-        "July",
-        "August",
-      ],
-      datasets: [
-        {
-          label: "Easy",
-          backgroundColor: "rgba(167, 243, 208, .2)",
-          borderColor: "rgba(167,243,208,2)",
-          borderWidth: 1,
-          data: [20, 25, 30, 35, 40, 45, 50],
-        },
-        {
-          label: "Tempo",
-          backgroundColor: "rgba(59, 130, 246, 0.2)",
-          borderColor: "rgba(59, 130, 246, 1)",
-          borderWidth: 1,
-          data: [15, 20, 25, 30, 35, 40, 45],
-        },
-        {
-          label: "Speed",
-          backgroundColor: "rgba(216, 4, 4, 0.2)",
-          borderColor: "rgba(216, 4, 4, 1)",
-          borderWidth: 1,
-          data: [10, 15, 20, 25, 30, 35, 40],
-        },
-        {
-          label: "Long",
-          backgroundColor: "rgba(118, 1, 168, 0.2)",
-          borderColor: "rgba(118, 1, 168, 1)",
-          borderWidth: 1,
-          data: [10, 15, 20, 25, 30, 35, 40],
-        },
-      ],
-    },
-    options: {
-      scales: {
-        xAxes: [
+function getMonthName(dateString) {
+  const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  const date = new Date(dateString);
+  return months[date.getMonth()];
+}
+
+function setupBarChart(workoutEvents) {
+  if (workoutEvents) {
+    const aggregatedData = {};
+    // Iterate over events to aggregate data
+    workoutEvents.forEach(w => {
+      const month = getMonthName(w.event_date);
+      if (!aggregatedData[month]) {
+        aggregatedData[month] = {
+          "easy": 0,
+          "tempo": 0,
+          "speed": 0,
+          "long": 0
+        };
+      }
+      aggregatedData[month][w.event_workout] += w.event_distance;
+      console.log('***', w.event_workout);
+    });
+
+    var ctx = document.getElementById("myChart").getContext("2d");
+    var myChart = new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels: Object.keys(aggregatedData),
+        datasets: [
           {
-            ticks: {
-              beginAtZero: true,
-            },
+            label: "Easy",
+            backgroundColor: "rgba(167, 243, 208, .2)",
+            borderColor: "rgba(167,243,208,2)",
+            borderWidth: 1,
+            data: Object.values(aggregatedData).map(monthData => monthData.easy),
           },
-        ],
-        yAxes: [
           {
-            ticks: {
-              beginAtZero: true,
-            },
+            label: "Tempo",
+            backgroundColor: "rgba(59, 130, 246, 0.2)",
+            borderColor: "rgba(59, 130, 246, 1)",
+            borderWidth: 1,
+            data: Object.values(aggregatedData).map(monthData => monthData.tempo),
+          },
+          {
+            label: "Speed",
+            backgroundColor: "rgba(216, 4, 4, 0.2)",
+            borderColor: "rgba(216, 4, 4, 1)",
+            borderWidth: 1,
+            data: Object.values(aggregatedData).map(monthData => monthData.speed),
+          },
+          {
+            label: "Long",
+            backgroundColor: "rgba(118, 1, 168, 0.2)",
+            borderColor: "rgba(118, 1, 168, 1)",
+            borderWidth: 1,
+            data: Object.values(aggregatedData).map(monthData => monthData.long),
           },
         ],
       },
-    },
-  });
+      options: {
+        scales: {
+          xAxes: [
+            {
+              ticks: {
+                beginAtZero: true,
+              },
+            },
+          ],
+          yAxes: [
+            {
+              ticks: {
+                beginAtZero: true,
+              },
+            },
+          ],
+        },
+      },
+    });
+  }
 }
 
 let init = false;
@@ -466,7 +487,7 @@ function app() {
           this.average_mileage_weekly = Math.ceil(totalMileage / numWeeksUntilRace);
           let daysPerWeekRunning = Array.from(this.workout_map.values()).filter(val => val[0] !== 'Rest').length;
           this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / daysPerWeekRunning);
-          toggleSetupWizard();
+          toggleSetupWizard(false);
         });
       }
     },
@@ -715,7 +736,22 @@ function app() {
     },
 
     toggleWeeklySummaryModal() {
-      this.showWeeklySummaryModal = !this.showWeeklySummaryModal;
+      setupBarChart(this.workouts);
+      setTimeout(() => {
+        this.showWeeklySummaryModal = !this.showWeeklySummaryModal;
+      }, 500);
+      // this.workouts will contain events that look like this:
+      /*{
+        \"event_date\": \"2024-04-04T23:00:00.000Z\",
+        \"event_title\": \"Speed - 4 miles\",
+        \"event_theme\": \"red\",
+        \"event_workout\": \"Speed\",
+        \"event_distance\": 4,
+        \"event_notes\": \"\"
+      },*/
+
+      // so we need the total distance from each event per month, by workout type. each should have a bar graph within the month
+      
       /*parseInt(
         this.numberOfWeeksUntilDate(this.start_date, this.race_date)
       );*/
