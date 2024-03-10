@@ -45,26 +45,30 @@ function getMonthName(dateString) {
   return months[date.getMonth()];
 }
 
+var myChart;
+
 function setupBarChart(workoutEvents) {
   if (workoutEvents) {
-    const aggregatedData = {};
+    let aggregatedData = {};
     // Iterate over events to aggregate data
     workoutEvents.forEach(w => {
       const month = getMonthName(w.event_date);
       if (!aggregatedData[month]) {
         aggregatedData[month] = {
-          "easy": 0,
-          "tempo": 0,
-          "speed": 0,
-          "long": 0
+          "Easy": 0,
+          "Tempo": 0,
+          "Speed": 0,
+          "Long": 0
         };
       }
       aggregatedData[month][w.event_workout] += w.event_distance;
-      console.log('***', w.event_workout);
     });
 
     var ctx = document.getElementById("myChart").getContext("2d");
-    var myChart = new Chart(ctx, {
+    if (myChart) {
+      myChart.destroy();
+    }
+    myChart = new Chart(ctx, {
       type: "bar",
       data: {
         labels: Object.keys(aggregatedData),
@@ -74,28 +78,28 @@ function setupBarChart(workoutEvents) {
             backgroundColor: "rgba(167, 243, 208, .2)",
             borderColor: "rgba(167,243,208,2)",
             borderWidth: 1,
-            data: Object.values(aggregatedData).map(monthData => monthData.easy),
+            data: Object.values(aggregatedData).map(monthData => monthData.Easy),
           },
           {
             label: "Tempo",
             backgroundColor: "rgba(59, 130, 246, 0.2)",
             borderColor: "rgba(59, 130, 246, 1)",
             borderWidth: 1,
-            data: Object.values(aggregatedData).map(monthData => monthData.tempo),
+            data: Object.values(aggregatedData).map(monthData => monthData.Tempo),
           },
           {
             label: "Speed",
             backgroundColor: "rgba(216, 4, 4, 0.2)",
             borderColor: "rgba(216, 4, 4, 1)",
             borderWidth: 1,
-            data: Object.values(aggregatedData).map(monthData => monthData.speed),
+            data: Object.values(aggregatedData).map(monthData => monthData.Speed),
           },
           {
             label: "Long",
             backgroundColor: "rgba(118, 1, 168, 0.2)",
             borderColor: "rgba(118, 1, 168, 1)",
             borderWidth: 1,
-            data: Object.values(aggregatedData).map(monthData => monthData.long),
+            data: Object.values(aggregatedData).map(monthData => monthData.Long),
           },
         ],
       },
