@@ -14,16 +14,37 @@ const MONTH_NAMES = [
 ];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-jQuery(window).on("load", function () {
+document.addEventListener('DOMContentLoaded', function() {
   setTimeout(function () {
-    //loadComponent("workoutSelector", "./playground.html");
-    setupBarChart(null);
-    configureSlider(null);
+      //loadComponent("workoutSelector", "./playground.html");
+      setupBarChart(null);
+      configureSlider(null);
   }, 100);
+
+  const startButton = document.getElementById('startButton');
+  const sidebar = document.getElementById('sidebar');
+
+  startButton.addEventListener('click', (event) => {
+      console.log('***', event.target);
+      event.stopPropagation();
+      sidebar.classList.toggle('-translate-x-full');
+  });
+
+  document.addEventListener('click', (event) => {
+      // Close the sidebar if the click is outside the sidebar and the toggle button
+      if (!sidebar.contains(event.target) && !startButton.contains(event.target)) {
+          sidebar.classList.add('-translate-x-full');
+      }
+  });
+
+  // Prevent the sidebar from closing when clicking inside it
+  sidebar.addEventListener('click', (event) => {
+      event.stopPropagation();
+  });
 });
 
 function toggleSetupWizard(flipToBuilder) {
-  const card = document.querySelector(".relative");
+  /*const card = document.querySelector(".relative");
   card.classList.toggle("flip-card-active");
   let front = document.querySelector("#front");
   let back = document.querySelector("#back");
@@ -36,7 +57,8 @@ function toggleSetupWizard(flipToBuilder) {
   } else {
     front.style.display = front.style.display === "none" ? "block" : "none";
     back.style.display = back.style.display === "none" ? "block" : "none";
-  }
+  }*/
+    document.getElementById('sidebar').classList.toggle('-translate-x-full');
 }
 
 function getMonthName(dateString) {
@@ -320,7 +342,9 @@ function app() {
 
     numOfWeeksInTraining : 0,
 
-    handleWorkoutSelection(addSelection, selection) {
+    handleWorkoutSelection(event, addSelection, selection) {
+      event.stopPropagation();
+
       if (addSelection) {
         this.uniqueWorkoutTracker[selection] =
           this.uniqueWorkoutTracker[selection] + 1;
@@ -527,11 +551,13 @@ function app() {
     validateFormInput() {
       this.weekly_mileage_goal = document.querySelector("#weeklyMileageSlider > div > div.noUi-origin > div > div.noUi-tooltip").textContent;
       this.start_date = document.querySelector("#startDate").value;
-      this.race_date = document.querySelector("#dateInput").value;
+      this.race_date = document.querySelector("#endInput").value;
       this.workout_map = new Map();
 
       const days = document.querySelectorAll(".dayOfWeek");
       const workouts = document.querySelectorAll(".workout");
+
+       console.log(this.weekly_mileage_goal, this.start_date, this.event_date, days, workouts);
 
       for (let i = 0; i < 7; i++) {
         let key = days[i].textContent;
@@ -563,6 +589,8 @@ function app() {
       const numWeeksUntilRace = parseInt(
         this.numberOfWeeksUntilDate(this.start_date, this.race_date)
       );
+
+      console.log('***', formComplete);
 
       if (!formComplete) {
         this.showErrorToast("All fields are required", 5000);
