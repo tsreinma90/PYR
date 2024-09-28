@@ -8,8 +8,22 @@ jQuery(window).on("load", function () {
   setTimeout(function () {
     setupBarChart(null);
     configureSlider(null);
+    callOpenAI(null);
   }, 100);
 });
+
+async function callOpenAI(userInput) {
+  const response = await fetch('https://devpro-dev-ed.my.salesforce.com/services/apexrest/openai/', {
+      method: 'POST',
+      headers: {
+          'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ userInput: userInput })
+  });
+  
+  const data = await response.json();
+  console.log('***', data); // Process the response
+}
 
 function toggleSetupWizard(flipToBuilder) {
   const card = document.querySelector(".relative");
