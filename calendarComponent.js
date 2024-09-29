@@ -177,10 +177,6 @@ function app() {
       }, duration);
     },
 
-    load() {
-      console.log('***', window.popcorn);
-    },
-
     initDate() {
       let today = new Date();
       this.month = today.getMonth();
