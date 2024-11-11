@@ -305,6 +305,10 @@ function app() {
 
     numOfWeeksInTraining: 0,
 
+    selectPlan(planType) {
+      console.log('***', planType);
+    },
+
     handleWorkoutSelection(addSelection, selection) {
       if (addSelection) {
         this.uniqueWorkoutTracker[selection] += 1;
