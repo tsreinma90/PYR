@@ -8,6 +8,7 @@ jQuery(window).on("load", function () {
   setTimeout(function () {
     setupBarChart(null);
     configureSlider(null);
+    preventRightClickOnPage();
     // callOpenAI(null);
   }, 100);
 });
@@ -181,6 +182,10 @@ function configureSlider(details) {
   }
 }
 
+function preventRightClickOnPage() {
+  //document.addEventListener('contextmenu', event => event.preventDefault());
+}
+
 function updateSliderLegend(details, values, handle) {
   const selectedWorkouts = details["classes"];
   const numSelections = values.length;
@@ -306,7 +311,30 @@ function app() {
     numOfWeeksInTraining: 0,
 
     selectPlan(planType) {
-      console.log('***', planType);
+      switch (planType) {  
+        case 'beginner':
+          this.weekly_mileage_goal = 25;
+          document.querySelector("#weeklyMileageSlider .noUi-tooltip").textContent = 25;
+          document.querySelector('.noUi-origin').style = 'transform: translate(-75.0000%, 0px)';
+          document.querySelector('.noUi-handle noUi-handle-lower').setAttribute('aria-valuenow', 25);
+          break;
+        case 'intermediate':
+          this.weekly_mileage_goal = 50;
+          document.querySelector("#weeklyMileageSlider .noUi-tooltip").textContent = 50;
+          document.querySelector('.noUi-origin').style = 'transform: translate(-50.000%, 0px)';
+          document.querySelector('.noUi-handle noUi-handle-lower').setAttribute('aria-valuenow', 50);
+          break;
+        case 'advanced':
+          this.weekly_mileage_goal = 75;
+          document.querySelector("#weeklyMileageSlider .noUi-tooltip").textContent = 75;
+          document.querySelector('.noUi-origin').style = 'transform: translate(-25.000%, 0px)';
+          document.querySelector('.noUi-handle noUi-handle-lower').setAttribute('aria-valuenow', 75);
+          break;
+        case 'custom':
+          break;
+        default:
+          break;
+      }
     },
 
     handleWorkoutSelection(addSelection, selection) {
