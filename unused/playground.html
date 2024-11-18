@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Playground</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <link href="fontawesome-free-6.2.1-web/css/fontawesome.css" rel="stylesheet">
+  <link href="fontawesome-free-6.2.1-web/css/brands.css" rel="stylesheet">
+  <link href="fontawesome-free-6.2.1-web/css/solid.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  </link>
+</head>
+
+<body>
+  <!-- Add this link to the head section of your HTML file to use Font Awesome icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
+  <div x-data="{ days: [
+        { name: 'Mon', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Tues', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Wed', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Thur', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Fri', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Sat', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+        { name: 'Sun', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 }
+      ] }"
+      style="zoom: 60%;">
+    <div class="flex space-x-4">
+      <template x-for="(day, index) in days" :key="index">
+        <div class="w-14 p-2 rounded-lg" style="background: rgba(207, 206, 219, 0.41);">
+          <h3 class="text-lg mb-2" x-text="day.name" style="text-align: center;"></h3>
+          <div class="flex justify-between">
+            <button class="text-gray-600 focus:outline-none hover:text-gray-800"
+              x-on:click="day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length">
+              <i class="fas fa-chevron-left text-sm"></i>
+            </button>
+            <span class="text-sm" x-text="day.options[day.activeOption]"></span>
+            <button class="text-gray-600 focus:outline-none hover:text-gray-800" x-on:click="day.activeOption = (day.activeOption + 1) % day.options.length">
+              <i class="fas fa-chevron-right text-sm"></i>
+            </button>
+          </div>
+        </div>
+      </template>
+    </div>
+  </div>
+
+  
+</body>
+
+</html>
