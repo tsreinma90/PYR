@@ -183,7 +183,7 @@ function configureSlider(details) {
 }
 
 function preventRightClickOnPage() {
-  //document.addEventListener('contextmenu', event => event.preventDefault());
+  document.addEventListener('contextmenu', event => event.preventDefault());
 }
 
 function updateSliderLegend(details, values, handle) {
