@@ -434,10 +434,10 @@ function app() {
         this.showErrorToast("All fields are required", 5000);
         return false;
       } else if (numWeeksUntilRace < 4) {
-        this.showErrorToast("Training Plan Must Be 4 Weeks Long Minimum", 12000);
+        this.showErrorToast("Training window must be at least 4 weeks long", 12000);
         return false;
       } else if (numWeeksUntilRace > 20) {
-        this.showErrorToast("Training Plan Must Be 20 Weeks Long or Less", 12000);
+        this.showErrorToast("Training window must be less than 20 weeks", 12000);
         return false;
       } else {
         this.workouts = [];
