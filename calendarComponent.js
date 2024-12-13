@@ -4,27 +4,38 @@ const MONTH_NAMES = [
 ];
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+const DAYS_OF_WEEK = [
+  { name: 'Monday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+  { name: 'Tuesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+  { name: 'Wednesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+  { name: 'Thursday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+  { name: 'Friday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+  { name: 'Saturday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
+  { name: 'Sunday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 }
+]; 
+
+// 0 = rest, 1 = easy, 2 = tempo, 3 = speed, 4 = long
+const PLANS = new Map([
+  ['beginner', [1, 1, 0, 1, 0, 4, 1]], 
+  ['intermediate', [1, 2, 1, 3, 0, 4, 1]], 
+  ['advanced', [1, 2, 1, 3, 1, 4, 1]]
+]);
+
+const WORKOUT_INDEX_MAP = new Map([
+  [0, 'Rest'],
+  [1, 'Easy'],
+  [2, 'Tempo'],
+  [3, 'Speed'],
+  [4, 'Long']
+]);
+
 jQuery(window).on("load", function () {
   setTimeout(function () {
     setupBarChart(null);
     configureSlider(null);
     preventRightClickOnPage();
-    // callOpenAI(null);
   }, 100);
 });
-
-/*async function callOpenAI(userInput) {
-  const response = await fetch('https://devpro-dev-ed.my.salesforce.com/services/apexrest/openai/', {
-      method: 'POST',
-      headers: {
-          'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ userInput: userInput })
-  });
-  
-  const data = await response.json();
-  console.log('***', data); // Process the response
-}*/
 
 function toggleSetupWizard(flipToBuilder) {
   const card = document.querySelector(".relative");
@@ -277,6 +288,9 @@ function app() {
     no_of_days: [],
     blankdays: [],
     days: DAYS,
+    daysOfWeek: DAYS_OF_WEEK,
+    plans: PLANS,
+    workoutIndexMap: WORKOUT_INDEX_MAP,
 
     /* Properties used for a single calendar event */
     workouts: [],
@@ -309,6 +323,20 @@ function app() {
     },
 
     numOfWeeksInTraining: 0,
+    
+    clearWorkouts() {
+      this.uniqueWorkoutTracker = {
+        Rest: 0,
+        Easy: 0,
+        Tempo: 0,
+        Speed: 0,
+        Long: 0
+      };
+
+      this.daysOfWeek.forEach(day => {
+        day.activeOption = 0;
+      });
+    },
 
     selectPlan(planType) {
       switch (planType) {  
@@ -316,19 +344,32 @@ function app() {
           this.weekly_mileage_goal = 25;
           document.querySelector("#weeklyMileageSlider .noUi-tooltip").textContent = 25;
           document.querySelector('.noUi-origin').style = 'transform: translate(-75.0000%, 0px)';
-          document.querySelector('.noUi-handle noUi-handle-lower').setAttribute('aria-valuenow', 25);
+          this.clearWorkouts();
+          const beginnerPlan = this.plans.get('beginner');
+          this.daysOfWeek.forEach((day, index) => {
+            day.activeOption = beginnerPlan[index];
+            this.handleWorkoutSelection(true, this.workoutIndexMap.get(beginnerPlan[index]));
+          });
           break;
         case 'intermediate':
           this.weekly_mileage_goal = 50;
           document.querySelector("#weeklyMileageSlider .noUi-tooltip").textContent = 50;
           document.querySelector('.noUi-origin').style = 'transform: translate(-50.000%, 0px)';
-          document.querySelector('.noUi-handle noUi-handle-lower').setAttribute('aria-valuenow', 50);
+          const intermediatePlan = this.plans.get('intermediate');
+          this.daysOfWeek.forEach((day, index) => {
+            day.activeOption = intermediatePlan[index];
+            this.handleWorkoutSelection(true, this.workoutIndexMap.get(intermediatePlan[index]));
+          });
           break;
         case 'advanced':
           this.weekly_mileage_goal = 75;
           document.querySelector("#weeklyMileageSlider .noUi-tooltip").textContent = 75;
           document.querySelector('.noUi-origin').style = 'transform: translate(-25.000%, 0px)';
-          document.querySelector('.noUi-handle noUi-handle-lower').setAttribute('aria-valuenow', 75);
+          const advancedPlan = this.plans.get('advanced');
+          this.daysOfWeek.forEach((day, index) => {
+            day.activeOption = advancedPlan[index];
+            this.handleWorkoutSelection(true, this.workoutIndexMap.get(advancedPlan[index]));
+          });
           break;
         case 'custom':
           break;

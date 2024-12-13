@@ -243,30 +243,25 @@
 
                                 <div style="padding-left: 22%; padding-right: 22%;">
                                     <div class="flex justify-center">
-                                        <div x-data="{ days: [
-                                            { name: 'Monday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                            { name: 'Tuesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                            { name: 'Wednesday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                            { name: 'Thursday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                            { name: 'Friday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                            { name: 'Saturday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
-                                            { name: 'Sunday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 }
-                                        ] }">
+                                        <div x-data="{ daysOfWeek }">
                                             <div class="flex space-x-4">
-                                                <template x-for="(day, index) in days" :key="index">
+                                                <template x-for="(day, index) in daysOfWeek" :key="index">
                                                     <div class="w-28 p-4 rounded-lg">
                                                         <h3 class="text-lg mb-2 dayOfWeek" x-text="day.name"
                                                             style="text-align: center;" x-ref="day.name">
                                                         </h3>
                                                         <div class="flex justify-between">
                                                             <button
+                                                                id="workout-button-left"
                                                                 class="text-gray-600 focus:outline-none hover:text-gray-800"
                                                                 x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
                                                                 <i class="fas fa-chevron-left text-sm"></i>
                                                             </button>
                                                             <span class="text-sm workout"
-                                                                x-text="day.options[day.activeOption]"></span>
+                                                                x-text="day.options[day.activeOption]">
+                                                            </span>
                                                             <button
+                                                                id="workout-button-right"
                                                                 class="text-gray-600 focus:outline-none hover:text-gray-800"
                                                                 x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption + 1) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
                                                                 <i class="fas fa-chevron-right text-sm"></i>
