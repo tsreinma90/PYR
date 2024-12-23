@@ -13,8 +13,7 @@
     <link href="fontawesome-free-6.2.1-web/css/fontawesome.css" rel="stylesheet">
     <link href="fontawesome-free-6.2.1-web/css/brands.css" rel="stylesheet">
     <link href="fontawesome-free-6.2.1-web/css/solid.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
-    </link>
+    <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css"></link>
     <link rel="stylesheet" href="calendarComponent.css">
     <script src="calendarComponent.js" type="text/javascript"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
@@ -291,6 +290,71 @@
                                 </div>
 
                                 <br /><br />
+
+                                <div x-data="workoutMenu" class="p-4">
+
+                                    <!-- Level Selection -->
+                                    <div class="flex space-x-4 justify-center mb-6">
+                                        <template x-for="(level, index) in levels" :key="index">
+                                        <button 
+                                            @click="selectLevel(level)" 
+                                            :class="{
+                                            'bg-green-500 text-white': selectedLevel === level,
+                                            'bg-gray-200 text-gray-800': selectedLevel !== level
+                                            }" 
+                                            class="px-4 py-2 rounded-md transition duration-300">
+                                            <span x-text="level"></span>
+                                        </button>
+                                        </template>
+                                    </div>
+                                
+                                    <!-- Category Selection -->
+                                    <div class="flex space-x-4 justify-center mb-6">
+                                        <template x-for="(option, index) in categories" :key="index">
+                                        <button 
+                                            @click="selectCategory(option)" 
+                                            :class="{
+                                            'bg-blue-500 text-white': selectedCategory === option,
+                                            'bg-gray-200 text-gray-800': selectedCategory !== option
+                                            }" 
+                                            class="px-4 py-2 rounded-md transition duration-300">
+                                            <span x-text="option"></span>
+                                        </button>
+                                        </template>
+                                    </div>
+                                
+                                    <!-- Multi-Select Dropdown -->
+                                    <div class="mb-6">
+                                        <label for="workout-multiselect" class="block text-lg font-medium text-gray-700 mb-2">Select Workouts:</label>
+                                        <div class="border border-gray-300 rounded-md p-4 shadow-sm bg-white">
+                                        <template x-for="(workout, index) in filteredWorkouts" :key="index">
+                                            <div class="flex items-center space-x-3 mb-2">
+                                            <input 
+                                                type="checkbox" 
+                                                :id="'workout-' + workout.id" 
+                                                :value="workout.name" 
+                                                @change="toggleWorkoutSelection(workout.name)"
+                                                :checked="selectedWorkouts.includes(workout.name)"
+                                                class="h-5 w-5 text-blue-600 border-gray-300 rounded focus:ring-blue-500">
+                                            <label :for="'workout-' + workout.id" class="text-gray-700 text-md">
+                                                <span x-text="workout.name"></span>
+                                            </label>
+                                            </div>
+                                        </template>
+                                        </div>
+                                    </div>
+                                
+                                    <!-- Selected Workouts Display -->
+                                    <div x-show="selectedWorkouts.length > 0" class="mt-6 text-center text-lg text-gray-800">
+                                        <strong>Selected Workouts:</strong>
+                                        <ul class="mt-2 space-y-1">
+                                        <template x-for="(workout, index) in selectedWorkouts" :key="index">
+                                            <li x-text="workout" class="text-blue-600"></li>
+                                        </template>
+                                        </ul>
+                                    </div>
+                                
+                                </div>
 
                                 <div style="padding-left: 22%; padding-right: 22%;">
                                     <div>Specify what % of your mileage will go to each workout below:</div>

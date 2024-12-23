@@ -37,6 +37,101 @@ jQuery(window).on("load", function () {
   }, 100);
 });
 
+document.addEventListener('alpine:init', () => {
+  Alpine.data('workoutMenu', () => ({
+    // Categories for radio buttons
+    categories: ['Tempo', 'Speed', 'Strength'],
+
+    // Levels for filtering workouts
+    levels: ['Beginner', 'Intermediate', 'Advanced', 'Custom'],
+
+    // State for selected category, level, and workouts
+    selectedCategory: 'Tempo',
+    selectedLevel: 'Beginner',
+    selectedWorkouts: [],
+
+    // List of all workouts
+    workouts : [
+      // Speed Workouts
+      { id: 1, name: '4 x 200m at 1-mile pace, 200m walk recovery', category: 'Speed', level: 'Beginner', selected: false },
+      { id: 2, name: '8 x 400m at 5K pace, 200m jog recovery', category: 'Speed', level: 'Beginner', selected: false },
+      { id: 3, name: '6 x 300m at 3K pace, 200m jog recovery', category: 'Speed', level: 'Beginner', selected: false },
+      { id: 4, name: '5 x 400m at 1-mile pace, 400m walk recovery', category: 'Speed', level: 'Beginner', selected: false },
+      { id: 5, name: '6 x 400m at Interval Pace, 200m jog recovery', category: 'Speed', level: 'Beginner', selected: false },
+      { id: 6, name: '10 x 300m at 3K pace, 200m jog recovery', category: 'Speed', level: 'Intermediate', selected: false },
+      { id: 7, name: '5 x 800m at 5K pace, 400m jog recovery', category: 'Speed', level: 'Intermediate', selected: false },
+      { id: 8, name: '8 x 600m at Interval Pace, 2-minute jog recovery', category: 'Speed', level: 'Intermediate', selected: false },
+      { id: 9, name: '6 x 800m at 5K pace, 400m jog recovery', category: 'Speed', level: 'Intermediate', selected: false },
+      { id: 10, name: '3 x 1,200m at Threshold Pace, 3-minute jog recovery', category: 'Speed', level: 'Intermediate', selected: false },
+      { id: 11, name: '10 x 400m at Interval Pace, 1-minute rest', category: 'Speed', level: 'Advanced', selected: false },
+      { id: 12, name: '12 x 400m at Interval Pace, 1-minute jog recovery', category: 'Speed', level: 'Advanced', selected: false },
+      { id: 13, name: '4 x 1,200m at 5K pace, 600m jog recovery', category: 'Speed', level: 'Advanced', selected: false },
+      { id: 14, name: '6 x 1,000m at 5K pace, 2-minute jog recovery', category: 'Speed', level: 'Advanced', selected: false },
+      { id: 15, name: '3 x 1-mile at 10K pace, 3-minute jog recovery', category: 'Speed', level: 'Advanced', selected: false },
+    
+      // Tempo Workouts
+      { id: 16, name: '3 miles at marathon pace, even splits', category: 'Tempo', level: 'Beginner', selected: false },
+      { id: 17, name: '15-minute progression run, finishing at Threshold Pace', category: 'Tempo', level: 'Beginner', selected: false },
+      { id: 18, name: '2 x 10 minutes at Threshold Pace, 2-minute jog recovery', category: 'Tempo', level: 'Beginner', selected: false },
+      { id: 19, name: '20 minutes continuous at Threshold Pace', category: 'Tempo', level: 'Beginner', selected: false },
+      { id: 20, name: '4 miles at marathon pace', category: 'Tempo', level: 'Beginner', selected: false },
+      { id: 21, name: '6 miles at marathon pace', category: 'Tempo', level: 'Intermediate', selected: false },
+      { id: 22, name: '5 miles alternating marathon pace and Threshold Pace', category: 'Tempo', level: 'Intermediate', selected: false },
+      { id: 23, name: '30 minutes continuous at Threshold Pace', category: 'Tempo', level: 'Intermediate', selected: false },
+      { id: 24, name: '3 x 12 minutes at Threshold Pace, 3-minute jog recovery', category: 'Tempo', level: 'Intermediate', selected: false },
+      { id: 25, name: '3 x 15 minutes at Threshold Pace, 5-minute jog recovery', category: 'Tempo', level: 'Intermediate', selected: false },
+      { id: 26, name: '8 miles at marathon pace', category: 'Tempo', level: 'Advanced', selected: false },
+      { id: 27, name: '40 minutes at marathon pace', category: 'Tempo', level: 'Advanced', selected: false },
+      { id: 28, name: '10K progression run: start at marathon pace, end at 10K pace', category: 'Tempo', level: 'Advanced', selected: false },
+      { id: 29, name: '3 x 20 minutes at Threshold Pace, 5-minute jog recovery', category: 'Tempo', level: 'Advanced', selected: false },
+      { id: 30, name: '4 x 15 minutes at Threshold Pace, 4-minute jog recovery', category: 'Tempo', level: 'Advanced', selected: false },
+    
+      // Strength Workouts
+      { id: 31, name: '3 x 8 bodyweight squats, 2-minute rest', category: 'Strength', level: 'Beginner', selected: false },
+      { id: 32, name: '4 x 10 push-ups, 2-minute rest', category: 'Strength', level: 'Beginner', selected: false },
+      { id: 33, name: '5 x 1-minute wall sits', category: 'Strength', level: 'Beginner', selected: false },
+      { id: 34, name: '4 x 1 mile at Threshold Pace, 1-minute jog recovery', category: 'Strength', level: 'Beginner', selected: false },
+      { id: 35, name: '6 miles at marathon pace minus 10 seconds per mile', category: 'Strength', level: 'Beginner', selected: false },
+      { id: 36, name: '3 x 12 weighted squats, 3-minute rest', category: 'Strength', level: 'Intermediate', selected: false },
+      { id: 37, name: '6 x 1 mile at Threshold Pace, 1-minute jog recovery', category: 'Strength', level: 'Intermediate', selected: false },
+      { id: 38, name: '8 miles at marathon pace minus 10 seconds per mile', category: 'Strength', level: 'Intermediate', selected: false },
+      { id: 39, name: '8 x 1 mile at Threshold Pace, 1-minute jog recovery', category: 'Strength', level: 'Advanced', selected: false },
+      { id: 40, name: '10 miles at marathon pace minus 10 seconds per mile', category: 'Strength', level: 'Advanced', selected: false },
+    ],    
+
+    // Computed property to filter workouts
+    get filteredWorkouts() {
+      if (this.selectedLevel === 'Custom') {
+        return this.workouts.filter(workout => workout.category === this.selectedCategory);
+      }
+      return this.workouts.filter(
+        workout => workout.category === this.selectedCategory && workout.level === this.selectedLevel
+      );
+    },
+
+    // Method to select a category
+    selectCategory(category) {
+      this.selectedCategory = category;
+      this.selectedWorkouts = []; // Reset selected workouts
+    },
+
+    // Method to select a level
+    selectLevel(level) {
+      this.selectedLevel = level;
+      this.selectedWorkouts = []; // Reset selected workouts
+    },
+
+    // Method to toggle workout selection
+    toggleWorkoutSelection(workoutName) {
+      if (this.selectedWorkouts.includes(workoutName)) {
+        this.selectedWorkouts = this.selectedWorkouts.filter(w => w !== workoutName);
+      } else {
+        this.selectedWorkouts.push(workoutName);
+      }
+    },
+  }));
+});
+
 function toggleSetupWizard(flipToBuilder) {
   const card = document.querySelector(".relative");
   card.classList.toggle("flip-card-active");
@@ -83,28 +178,28 @@ function setupBarChart(workoutEvents) {
           {
             label: "Easy",
             backgroundColor: "rgba(167, 243, 208, 0.2)",
-            borderColor: "rgba(167, 243, 208, 1)",
+            borderColor: "rgb(70, 125, 100)",
             borderWidth: 1,
             data: Object.values(aggregatedData).map(monthData => monthData.Easy)
           },
           {
             label: "Tempo",
             backgroundColor: "rgba(59, 130, 246, 0.2)",
-            borderColor: "rgba(59, 130, 246, 1)",
+            borderColor: "rgb(38, 70, 121)",
             borderWidth: 1,
             data: Object.values(aggregatedData).map(monthData => monthData.Tempo)
           },
           {
             label: "Speed",
             backgroundColor: "rgba(216, 4, 4, 0.2)",
-            borderColor: "rgba(216, 4, 4, 1)",
+            borderColor: "rgb(110, 5, 5)",
             borderWidth: 1,
             data: Object.values(aggregatedData).map(monthData => monthData.Speed)
           },
           {
             label: "Long",
             backgroundColor: "rgba(118, 1, 168, 0.2)",
-            borderColor: "rgba(118, 1, 168, 1)",
+            borderColor: "rgb(52, 1, 73)",
             borderWidth: 1,
             data: Object.values(aggregatedData).map(monthData => monthData.Long)
           }
