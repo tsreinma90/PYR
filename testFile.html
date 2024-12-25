@@ -1,0 +1,115 @@
+<div class="w-full h-full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8" x-data="racePlanner()">
+  <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+    <div class="lg:col-span-1 space-y-6">
+
+      <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
+        <h3 class="text-lg font-semibold text-white">Race Details</h3>
+        <p class="text-sm text-gray-400">What type of race are you training for and how long do you have to train?</p>
+        <br/>
+        <div>
+          <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
+            Race Distance
+          </label>
+          <select 
+            id="raceDistance" 
+            x-model="selectedRaceDistance" 
+            class="w-full bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500"
+          >
+            <option value="" disabled>Select a distance</option>
+            <template x-for="option in raceDistanceOptions" :key="option.value">
+              <option :value="option.value" x-text="option.label"></option>
+            </template>
+          </select>
+        </div>
+        <br/>
+        <div>
+          <label
+            for="raceDate"
+            class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2"
+          >
+            Training Block
+          </label>
+          <select 
+            id="raceDate" 
+            x-model="selectedRaceDate" 
+            class="w-full text-black bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500"
+          >
+            <option value="" disabled>Select a date</option>
+            <template x-for="option in raceDateOptions" :key="option.value">
+              <option :value="option.value" x-text="option.label"></option>
+            </template>
+          </select>
+        </div>
+      </div>
+      <!-- Card 2 -->
+      <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
+        <h3 class="text-lg font-semibold text-white">Card 2</h3>
+        <p class="text-sm text-gray-400">This is the content for the second card.</p>
+      </div>
+      <!-- Card 3 -->
+      <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
+        <h3 class="text-lg font-semibold text-white">Card 3</h3>
+        <p class="text-sm text-gray-400">This is the content for the third card.</p>
+      </div>
+    </div>
+
+    <!-- Right Column -->
+    <div class="lg:col-span-2">
+      <div class="rounded-lg bg-gray-800 p-8 shadow-lg ring-1 ring-white/15 h-full">
+        <h3 class="text-2xl font-semibold text-white">Large Card</h3>
+        <p class="text-lg text-gray-400 mt-4">
+          This is the content for the larger card. It spans 2/3 of the screen and can hold more detailed information.
+        </p>
+        <p class="text-gray-400 mt-4">
+          Lorem ipsum dolor sit amet, consectetur adipiscing elit. Quisque euismod, nisi ut pulvinar facilisis, sapien
+          nisi luctus lorem, eu sollicitudin sapien nisi eu nisi.
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  function racePlanner() {
+    return {
+      selectedRaceDistance: '',
+      selectedRaceDate: '',
+      raceDistanceOptions: [
+        { label: '5K', value: '5k' },
+        { label: '10K', value: '10k' },
+        { label: 'Half Marathon', value: 'half-marathon' },
+        { label: 'Marathon', value: 'marathon' },
+      ],
+      raceDateOptions: [
+        { label: '4 Week Training Plan', value: '4-weeks' },
+        { label: '8 Week Training Plan', value: '8-weeks' },
+        { label: '12 Week Training Plan', value: '12-weeks' },
+        { label: '16 Week Training Plan', value: '16-weeks' },
+        { label: '20 Week Training Plan', value: '20-weeks' },
+      ],
+    };
+  }
+</script>
+
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Training Plan</title>
+  <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+  <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js"></script>
+  <link href="fontawesome-free-6.2.1-web/css/fontawesome.css" rel="stylesheet">
+  <link href="fontawesome-free-6.2.1-web/css/brands.css" rel="stylesheet">
+  <link href="fontawesome-free-6.2.1-web/css/solid.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
+  </link>
+  <link rel="stylesheet" href="calendarComponent.css">
+  <script src="calendarComponent.js" type="text/javascript"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+  <link rel="stylesheet" href="./dist/nouislider.min.css">
+  <script src="./dist/nouislider.min.js"></script>
+  <script src="sliderOptions.js"></script>
+</head>
