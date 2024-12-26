@@ -42,17 +42,53 @@
           </select>
         </div>
       </div>
-      <!-- Card 2 -->
+
       <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
-        <h3 class="text-lg font-semibold text-white">Card 2</h3>
-        <p class="text-sm text-gray-400">This is the content for the second card.</p>
+        <h3 class="text-lg font-semibold text-white">Experience Level</h3>
+        <p class="text-sm text-gray-400">Based on your running experience, select the level that makes most sense for you.</p>
+        <br/>
+        <div class="plan-selection mb-4">
+          <label class="inline-flex items-center mr-4">
+              <input type="radio" name="planType" value="beginner" class="form-radio text-blue-600" @change="selectPlan('beginner')"/>
+              <span class="ml-2 text-white">Beginner</span>
+          </label>
+          <br/>
+          <label class="inline-flex items-center mr-4">
+              <input type="radio" name="planType" value="intermediate" class="form-radio text-blue-600" @change="selectPlan('intermediate')"/>
+              <span class="ml-2 text-white">Intermediate</span>
+          </label>
+          <br/>
+          <label class="inline-flex items-center mr-4">
+              <input type="radio" name="planType" value="advanced" class="form-radio text-blue-600" @change="selectPlan('advanced')"/>
+              <span class="ml-2 text-white">Advanced</span>
+          </label>
+        </div>
       </div>
-      <!-- Card 3 -->
+
       <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
-        <h3 class="text-lg font-semibold text-white">Card 3</h3>
-        <p class="text-sm text-gray-400">This is the content for the third card.</p>
+        <h3 class="text-lg font-semibold text-white">Approach To Training</h3>
+        <p class="text-sm text-gray-400">
+          Select a pre-made training template, or start from scratch and create your own.
+        </p>
+        <div class="mt-4 flex justify-start space-x-2">
+          <!-- Button Group -->
+          <button
+            type="button"
+            class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            Pre-made
+          </button>
+          <button
+            type="button"
+            class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          >
+            Custom
+          </button>
+        </div>
       </div>
+
     </div>
+           
 
     <!-- Right Column -->
     <div class="lg:col-span-2">
