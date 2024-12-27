@@ -66,27 +66,102 @@
       </div>
 
       <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
-        <h3 class="text-lg font-semibold text-white">Approach To Training</h3>
-        <p class="text-sm text-gray-400">
-          Choose a pre-made training plan or customize one to suit your unique needs.
-        </p>
-        <div class="mt-4 flex justify-start space-x-2">
-          <!-- Button Group -->
-          <button
-            type="button"
-            class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            Pre-made
-          </button>
-          <button
-            type="button"
-            class="inline-flex items-center rounded-md bg-white px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-gray-300 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-          >
-            Custom
-          </button>
+        <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
+          <div x-data="trainingPlanTabs()">
+            <h3 class="text-lg font-semibold text-white">Approach To Training</h3>
+            <p class="text-sm text-gray-400">Choose a pre-made training plan or customize one to suit your unique needs.</p>
+            <!-- Tabs -->
+            <div class="mt-6">
+              <nav class="flex border-b border-white/10">
+                <ul role="list" class="flex w-full justify-around text-sm font-semibold text-gray-400">
+                  <li>
+                    <button 
+                      @click="selectTab('Pre-Made')" 
+                      :class="selectedTab === 'Pre-Made' ? 'text-indigo-400 border-b-2 border-indigo-400 pb-2' : ''"
+                      class="w-full text-center hover:text-indigo-300">
+                      Pre-Made
+                    </button>
+                  </li>
+                  <li>
+                    <button 
+                      @click="selectTab('Custom')" 
+                      :class="selectedTab === 'Custom' ? 'text-indigo-400 border-b-2 border-indigo-400 pb-2' : ''"
+                      class="w-full text-center hover:text-indigo-300">
+                      Custom
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+            </div>
+        
+            <!-- Tab Content -->
+            <div class="mt-6">
+              <!-- Pre-Made Content -->
+              <div x-show="selectedTab === 'Pre-Made'" class="space-y-6">
+                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+                  <!-- Dynamically display filtered plans -->
+                  <template x-for="plan in filteredPlans" :key="plan.id">
+                    <div 
+                      class="rounded-lg bg-gray-700 p-6 shadow-md hover:shadow-lg cursor-pointer"
+                      style="min-width: 250px;"
+                      @click="selectPlan(plan)">
+                      <h5 class="text-base font-semibold text-white" x-text="plan.name"></h5>
+                      <p class="text-sm text-gray-300 mt-2" x-text="plan.description"></p>
+                    </div>
+                  </template>
+                </div>
+              </div>
+        
+              <!-- Custom Content -->
+              <div x-show="selectedTab === 'Custom'" class="text-gray-300">
+                <button 
+                  @click="openModal = true"
+                  class="mt-6 rounded-md bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                  Customize Plan
+                </button>
+              </div>
+            </div>
+        
+            <!-- Modal -->
+            <div 
+              x-show="openModal" 
+              class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
+              <div class="bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-2xl">
+                <!-- Example form fields -->
+                <div class="mt-4 space-y-6">
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300">Weekly Mileage</label>
+                    <input 
+                      type="number" 
+                      class="mt-2 w-full rounded-md bg-gray-700 text-white border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500">
+                  </div>
+                  <div>
+                    <label class="block text-sm font-medium text-gray-300">Training Duration (Weeks)</label>
+                    <input 
+                      type="number" 
+                      class="mt-2 w-full rounded-md bg-gray-700 text-white border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500">
+                  </div>
+                </div>
+                <!-- Modal Actions -->
+                <div class="mt-6 flex justify-end space-x-4">
+                  <button 
+                    @click="openModal = false"
+                    class="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-500">
+                    Cancel
+                  </button>
+                  <button 
+                    @click="openModal = false"
+                    class="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400">
+                    Save
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
+        
+        
       </div>
-
     </div>
            
 
@@ -302,6 +377,35 @@
       },
     };
   }
+
+  function trainingPlanTabs() {
+  return {
+    selectedTab: 'Pre-Made',
+    openModal: false,
+    raceType: '5K', // Example: dynamically set based on user input
+    skillLevel: 'Beginner', // Example: dynamically set based on user input
+    plans: [
+      { id: 1, name: '5K Beginner Plan', description: 'Perfect for new runners aiming to complete their first 5K.', race: '5K', level: 'Beginner' },
+      { id: 2, name: '5K Intermediate Plan', description: 'For experienced runners improving their 5K time.', race: '5K', level: 'Intermediate' },
+      { id: 3, name: '10K Beginner Plan', description: 'Great for runners tackling their first 10K.', race: '10K', level: 'Beginner' },
+      { id: 4, name: '10K Advanced Plan', description: 'Push your limits and achieve a PR.', race: '10K', level: 'Advanced' },
+      // Add more plans here...
+    ],
+    filteredPlans: [],
+
+    // Methods
+    selectTab(tab) {
+      this.selectedTab = tab;
+      this.filterPlans();
+    },
+    filterPlans() {
+      this.filteredPlans = this.plans.filter(plan => plan.race === this.raceType && plan.level === this.skillLevel);
+    },
+    selectPlan(plan) {
+      alert(`You selected: ${plan.name}`);
+    },
+  };
+}
 
 </script>
 
