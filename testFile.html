@@ -1,4 +1,4 @@
-<div class="w-full h-full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8" x-data="racePlanner()">
+<div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8" x-data="racePlanner()">
   <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
 
     <div class="lg:col-span-1 space-y-6">
@@ -66,7 +66,6 @@
       </div>
 
       <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
-        <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
           <div x-data="trainingPlanTabs()">
             <h3 class="text-lg font-semibold text-white">Approach To Training</h3>
             <p class="text-sm text-gray-400">Choose a pre-made training plan or customize one to suit your unique needs.</p>
@@ -158,9 +157,6 @@
               </div>
             </div>
           </div>
-        </div>
-        
-        
       </div>
     </div>
            
@@ -223,7 +219,6 @@
                 class="bg-gray-900 min-h-screen p-6 overflow-hidden"
               >
                 <div class="mx-auto max-w-7xl">
-                  <h1 class="text-base font-semibold text-white">Weekly Training Plan</h1>
                   <p class="mt-2 text-sm text-gray-300">
                     Double-click a cell to edit and enter notes. Press "Esc" to exit a cell.
                   </p>
@@ -284,9 +279,121 @@
               </div>                
             </template>
             <template x-if="currentTab === 'Calendar View'">
-              <div>
-                <h3 class="text-lg font-semibold text-indigo-600">Tab 2 Content</h3>
-                <p class="text-gray-600">This is the content for Tab 2.</p>
+              <div x-data="calendarComponent()" class="p-6 bg-gray-900 text-white">
+                <!-- Calendar Header -->
+                <div class="flex items-center justify-between py-4">
+                  <div>
+                    <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
+                    <span x-text="year" class="ml-1 text-lg font-normal"></span>
+                  </div>
+                  <div class="flex items-center space-x-4">
+                    <button
+                      @click="changeMonth(-1)"
+                      class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm"
+                    >
+                      Prev
+                    </button>
+                    <button
+                      @click="changeMonth(1)"
+                      class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm"
+                    >
+                      Next
+                    </button>
+                  </div>
+                </div>
+              
+                <!-- Weekdays -->
+                <div class="grid grid-cols-7 gap-1">
+                  <template x-for="day in DAYS" :key="day">
+                    <div class="text-center text-sm font-semibold text-gray-400 uppercase">
+                      <span x-text="day"></span>
+                    </div>
+                  </template>
+                </div>
+              
+                <!-- Calendar Dates -->
+                <div class="grid grid-cols-7 gap-1 border-t border-gray-700 pt-2">
+                  <!-- Blank Days -->
+                  <template x-for="blankday in blankdays" :key="blankday">
+                    <div class="h-20"></div>
+                  </template>
+              
+                  <!-- Days with Events -->
+                  <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
+                    <div class="relative h-20 border border-gray-700 rounded-lg px-2">
+                      <!-- Date Number -->
+                      <div
+                        @click="showEventModal(date)"
+                        class="cursor-pointer rounded-full bg-gray-800 w-8 h-8 flex items-center justify-center text-sm font-semibold"
+                        :class="{'bg-indigo-500 text-white': isToday(date)}"
+                      >
+                        <span x-text="date"></span>
+                      </div>
+              
+                      <!-- Events -->
+                      <div class="mt-2 space-y-1 overflow-y-auto max-h-12">
+                        <template
+                          x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() === new Date(year, month, date).toDateString())"
+                          :key="event.event_title"
+                        >
+                          <div
+                            @click="editEvent(event, date)"
+                            class="text-xs px-2 py-1 rounded-lg cursor-pointer"
+                            :class="{
+                              'bg-blue-100 text-blue-700': event.event_theme === 'blue',
+                              'bg-red-100 text-red-700': event.event_theme === 'red',
+                              'bg-yellow-100 text-yellow-700': event.event_theme === 'yellow',
+                              'bg-green-100 text-green-700': event.event_theme === 'green',
+                              'bg-purple-100 text-purple-700': event.event_theme === 'purple'
+                            }"
+                          >
+                            <span x-text="event.event_title"></span>
+                          </div>
+                        </template>
+                      </div>
+                    </div>
+                  </template>
+                </div>
+              
+                <!-- Event Modal -->
+                <div
+                  x-show="isModalOpen"
+                  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75"
+                >
+                  <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                    <h3 class="text-lg font-semibold text-white">Edit Event</h3>
+                    <div class="mt-4">
+                      <label class="block text-sm font-medium text-gray-300">Event Title</label>
+                      <input
+                        x-model="eventToEdit.event_title"
+                        type="text"
+                        class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2"
+                      />
+                    </div>
+                    <div class="mt-4">
+                      <label class="block text-sm font-medium text-gray-300">Notes</label>
+                      <textarea
+                        x-model="eventToEdit.event_notes"
+                        class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2"
+                        rows="3"
+                      ></textarea>
+                    </div>
+                    <div class="mt-6 flex justify-end space-x-4">
+                      <button
+                        @click="isModalOpen = false"
+                        class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg"
+                      >
+                        Cancel
+                      </button>
+                      <button
+                        @click="saveEvent()"
+                        class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-lg"
+                      >
+                        Save
+                      </button>
+                    </div>
+                  </div>
+                </div>
               </div>
             </template>
             <template x-if="currentTab === 'Training Load Summary'">
@@ -403,6 +510,77 @@
     },
     selectPlan(plan) {
       alert(`You selected: ${plan.name}`);
+    },
+  };
+}
+
+function calendarComponent() {
+  return {
+    month: new Date().getMonth(),
+    year: new Date().getFullYear(),
+    workouts: [
+      { event_date: "2024-12-28", event_title: "Rest day", event_notes: "Take it easy.", event_theme: "red" },
+      { event_date: "2024-12-27", event_title: "5 miles run", event_notes: "Moderate pace.", event_theme: "blue" },
+    ],
+    blankdays: [],
+    no_of_days: [],
+    isModalOpen: false,
+    eventToEdit: null,
+
+    MONTH_NAMES,
+    DAYS,
+
+    // Initialize Calendar
+    init() {
+      this.calculateDays();
+    },
+
+    // Navigate Months
+    changeMonth(step) {
+      this.month += step;
+      if (this.month > 11) {
+        this.month = 0;
+        this.year++;
+      } else if (this.month < 0) {
+        this.month = 11;
+        this.year--;
+      }
+      this.calculateDays();
+    },
+
+    // Calculate Days in Month
+    calculateDays() {
+      const firstDay = new Date(this.year, this.month, 1).getDay();
+      const daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
+
+      this.blankdays = Array(firstDay).fill(null);
+      this.no_of_days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
+    },
+
+    // Check if Today
+    isToday(date) {
+      const today = new Date();
+      const currentDay = new Date(this.year, this.month, date);
+      return today.toDateString() === currentDay.toDateString();
+    },
+
+    // Show Edit Modal
+    editEvent(event, date) {
+      this.eventToEdit = { ...event, date };
+      this.isModalOpen = true;
+    },
+
+    // Save Event
+    saveEvent() {
+      const index = this.workouts.findIndex(
+        (e) =>
+          new Date(e.event_date).toDateString() ===
+          new Date(this.year, this.month, this.eventToEdit.date).toDateString()
+      );
+      if (index !== -1) {
+        this.workouts[index] = { ...this.eventToEdit };
+      }
+      this.isModalOpen = false;
     },
   };
 }
