@@ -1,441 +1,448 @@
 <div x-data="sharedState()">
     <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8" x-data="racePlanner()">
-      <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
-    
-        <div class="lg:col-span-1 space-y-6">
-    
-          <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
-            <h3 class="text-lg font-semibold text-white">Preparation Details</h3>
-            <p class="text-sm text-gray-400">Select your race event and confirm the time available to prepare.</p>
-            <br/>
-            <div>
-              <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
-                Race Distance
-              </label>
-              <select 
-                id="raceDistance" 
-                x-model="selectedRaceDistance" 
-                class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500"
-              >
-                <option value="" disabled>Select a distance</option>
-                <template x-for="option in raceDistanceOptions" :key="option.value">
-                  <option :value="option.value" x-text="option.label"></option>
-                </template>
-              </select>
-            </div>
-            <br/>
-            <div>
-              <label
-                for="raceDate"
-                class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2"
-              >
-                Training Block
-              </label>
-              <select 
-                id="raceDate" 
-                x-model="selectedRaceDate" 
-                class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500"
-              >
-                <option value="" disabled>Select a date</option>
-                <template x-for="option in raceDateOptions" :key="option.value">
-                  <option :value="option.value" x-text="option.label"></option>
-                </template>
-              </select>
-            </div>
-            <br/>
-            <div>
-              <label
-                for="startDate"
-                class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2"
-              >
-                Start Date
-              </label>
-              <input 
-                type="date" 
-                id="startDate" 
-                x-model="startDate" 
-                class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none"
-              >
-            </div>        
-          </div>
-    
-          <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
-            <h3 class="text-lg font-semibold text-white">Experience Level</h3>
-            <p class="text-sm text-gray-400">Choose the level that best aligns with your running experience and goals.</p>
-            <br/>
-            <div class="plan-selection mb-4">
-              <label class="inline-flex items-center mr-4">
-                  <input type="radio" name="planType" value="beginner" class="form-radio text-blue-600" @change="selectPlan('beginner')"/>
-                  <span class="ml-2 text-white">Beginner</span>
-              </label>
-              <br/>
-              <label class="inline-flex items-center mr-4">
-                  <input type="radio" name="planType" value="intermediate" class="form-radio text-blue-600" @change="selectPlan('intermediate')"/>
-                  <span class="ml-2 text-white">Intermediate</span>
-              </label>
-              <br/>
-              <label class="inline-flex items-center mr-4">
-                  <input type="radio" name="planType" value="advanced" class="form-radio text-blue-600" @change="selectPlan('advanced')"/>
-                  <span class="ml-2 text-white">Advanced</span>
-              </label>
-            </div>
-          </div>
-    
-          <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
-              <div x-data="trainingPlanTabs()" x-init="filterPlans()">
-                <h3 class="text-lg font-semibold text-white">Approach To Training</h3>
-                <p class="text-sm text-gray-400">Choose a pre-made training plan or customize one to suit your unique needs.</p>
-                <!-- Tabs -->
-                <div class="mt-6">
-                  <nav class="flex border-b border-white/10">
-                    <ul role="list" class="flex w-full justify-around text-sm font-semibold text-gray-400">
-                      <li>
-                        <button 
-                          @click="selectTab('Pre-Made')" 
-                          :class="selectedTab === 'Pre-Made' ? 'text-indigo-400 border-b-2 border-indigo-400 pb-2' : ''"
-                          class="w-full text-center hover:text-indigo-300">
-                          Pre-Made
-                        </button>
-                      </li>
-                      <li>
-                        <button 
-                          @click="selectTab('Custom')" 
-                          :class="selectedTab === 'Custom' ? 'text-indigo-400 border-b-2 border-indigo-400 pb-2' : ''"
-                          class="w-full text-center hover:text-indigo-300">
-                          Custom
-                        </button>
-                      </li>
-                    </ul>
-                  </nav>
+        <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+            <div class="lg:col-span-1 space-y-6">
+
+                <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
+                    <h3 class="text-lg font-semibold text-white">Preparation Details</h3>
+                    <p class="text-sm text-gray-400">Select your race event and confirm the time available to prepare.
+                    </p>
+                    <br />
+                    <div>
+                        <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
+                            Race Distance
+                        </label>
+                        <select id="raceDistance" x-model="selectedRaceDistance"
+                            class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
+                            <option value="" disabled>Select a distance</option>
+                            <template x-for="option in raceDistanceOptions" :key="option.value">
+                                <option :value="option.value" x-text="option.label"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <br />
+                    <div>
+                        <label for="raceDate"
+                            class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
+                            Training Block
+                        </label>
+                        <select id="raceDate" x-model="selectedRaceDate"
+                            class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
+                            <option value="" disabled>Select a date</option>
+                            <template x-for="option in raceDateOptions" :key="option.value">
+                                <option :value="option.value" x-text="option.label"></option>
+                            </template>
+                        </select>
+                    </div>
+                    <br />
+                    <div>
+                        <label for="startDate"
+                            class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
+                            Start Date
+                        </label>
+                        <input type="date" id="startDate" x-model="startDate"
+                            class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none">
+                    </div>
                 </div>
-            
-                <!-- Tab Content -->
-                <div class="mt-6">
-                  <!-- Pre-Made Content -->
-                  <div x-show="selectedTab === 'Pre-Made'" class="space-y-6">
-                    <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
-                      <!-- Dynamically display filtered plans -->
-                      <template x-for="plan in filteredPlans" :key="plan.id">
-                        <div 
-                          class="rounded-lg bg-gray-700 p-6 shadow-md hover:shadow-lg cursor-pointer"
-                          style="min-width: 250px;"
-                          @click="selectPlan(plan)">
-                          <h5 class="text-base font-semibold text-white" x-text="plan.name"></h5>
-                          <p class="text-sm text-gray-300 mt-2" x-text="plan.description"></p>
+
+                <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
+                    <h3 class="text-lg font-semibold text-white">Experience Level</h3>
+                    <p class="text-sm text-gray-400">Choose the level that best aligns with your running experience and
+                        goals.</p>
+                    <br />
+                    <div class="plan-selection mb-4">
+                        <label class="inline-flex items-center mr-4">
+                            <input type="radio" name="planType" value="beginner" class="form-radio text-blue-600"
+                                @change="selectPlan('beginner')" />
+                            <span class="ml-2 text-white">Beginner</span>
+                        </label>
+                        <br />
+                        <label class="inline-flex items-center mr-4">
+                            <input type="radio" name="planType" value="intermediate" class="form-radio text-blue-600"
+                                @change="selectPlan('intermediate')" />
+                            <span class="ml-2 text-white">Intermediate</span>
+                        </label>
+                        <br />
+                        <label class="inline-flex items-center mr-4">
+                            <input type="radio" name="planType" value="advanced" class="form-radio text-blue-600"
+                                @change="selectPlan('advanced')" />
+                            <span class="ml-2 text-white">Advanced</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
+                    <div x-data="trainingPlanTabs()" x-init="filterPlans()">
+                        <h3 class="text-lg font-semibold text-white">Approach To Training</h3>
+                        <p class="text-sm text-gray-400">Choose a pre-made training plan or customize one to suit your
+                            unique needs.</p>
+                        <!-- Tabs -->
+                        <div class="mt-6">
+                            <nav class="flex border-b border-white/10">
+                                <ul role="list" class="flex w-full justify-around text-sm font-semibold text-gray-400">
+                                    <li>
+                                        <button @click="selectTab('Pre-Made')"
+                                            :class="selectedTab === 'Pre-Made' ? 'text-indigo-400 border-b-2 border-indigo-400 pb-2' : ''"
+                                            class="w-full text-center hover:text-indigo-300">
+                                            Pre-Made
+                                        </button>
+                                    </li>
+                                    <li>
+                                        <button @click="selectTab('Custom')"
+                                            :class="selectedTab === 'Custom' ? 'text-indigo-400 border-b-2 border-indigo-400 pb-2' : ''"
+                                            class="w-full text-center hover:text-indigo-300">
+                                            Custom
+                                        </button>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
-                      </template>
+
+                        <!-- Tab Content -->
+                        <div class="mt-6">
+                            <!-- Pre-Made Content -->
+                            <div x-show="selectedTab === 'Pre-Made'" class="space-y-6">
+                                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+                                    <!-- Dynamically display filtered plans -->
+                                    <template x-for="plan in filteredPlans" :key="plan.id">
+                                        <div class="rounded-lg bg-gray-700 p-6 shadow-md hover:shadow-lg cursor-pointer"
+                                            style="min-width: 250px;" @click="selectPlan(plan)">
+                                            <h5 class="text-base font-semibold text-white" x-text="plan.name"></h5>
+                                            <p class="text-sm text-gray-300 mt-2" x-text="plan.description"></p>
+                                        </div>
+                                    </template>
+                                </div>
+                            </div>
+
+                            <!-- Custom Content -->
+                            <div x-show="selectedTab === 'Custom'" class="text-gray-300">
+                                <button @click="openModal = true"
+                                    class="mt-6 rounded-md bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                                    Customize Plan
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Modal -->
+                        <div x-show="openModal"
+                            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
+                            <div class="bg-gray-800 rounded-lg shadow-lg p-12 w-full max-w-5xl">
+
+                                <h2 class="text-lg font-semibold text-white text-center">Daily Workouts</h2>
+                                <div style="padding-left: 22%; padding-right: 22%;">
+                                    <div class="flex justify-center">
+                                        <div x-data="{ daysOfWeek }">
+                                            <div class="flex space-x-4">
+                                                <template x-for="(day, index) in daysOfWeek" :key="index">
+                                                    <div class="w-28 p-4 rounded-lg">
+                                                        <h3 class="text-lg text-white mb-2 dayOfWeek" x-text="day.name"
+                                                            style="text-align: center;" x-ref="day.name">
+                                                        </h3>
+                                                        <div class="flex justify-between items-center">
+                                                            <!-- Left Chevron Button -->
+                                                            <button id="workout-button-left"
+                                                                class="text-white hover:text-gray-300 focus:outline-none"
+                                                                x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
+                                                                <i class="fas fa-chevron-left text-sm text-white"></i>
+                                                            </button>
+                                                            <span class="text-sm workout text-white"
+                                                                x-text="day.options[day.activeOption]">
+                                                            </span>
+                                                            <!-- Right Chevron Button -->
+                                                            <button id="workout-button-right"
+                                                                class="text-white hover:text-gray-300 focus:outline-none"
+                                                                x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption + 1) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
+                                                                <i class="fas fa-chevron-right text-sm text-white"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <br/>
+
+                                <h2 class="text-lg font-semibold text-white text-center">Weekly Mileage Goal (Peak)</h2>
+                                <p class="text-sm text-white text-center">This represents the peak of your training block.</p>
+                                
+                                <br/><br/>
+
+                                <div class="p-2" style="padding-left: 22%; padding-right: 22%;">
+                                    <div id="weeklyMileageSlider"></div>
+                                </div>
+
+                                <br /><br />
+
+                                <div style="padding-left: 22%; padding-right: 22%;">
+                                    <h2 class="text-lg font-semibold text-white text-center">Focus Areas</h2>
+                                    <p class="text-sm text-white text-center">Specify what % of your mileage will go to each workout below:</p>
+                                    <br />
+                                    <div class="legend">
+                                        <div class="legend-item">
+                                            <div class="square c-1-color" id="c-1-color"></div>
+                                            <div class="text text-white">Easy</div>
+                                            <div class="text text-white" id="easy">0%</div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="square c-2-color" id="c-2-color"></div>
+                                            <div class="text text-white">Tempo</div>
+                                            <div class="text text-white" id="tempo">0%</div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="square c-3-color" id="c-3-color"></div>
+                                            <div class="text text-white">Speed</div>
+                                            <div class="text text-white" id="speed">0%</div>
+                                        </div>
+                                        <div class="legend-item">
+                                            <div class="square c-4-color" id="c-4-color"></div>
+                                            <div class="text text-white">Long</div>
+                                            <div class="text text-white" id="long">0%</div>
+                                        </div>
+                                    </div>
+                                    <br />
+                                    <div id="workoutPercentSlider"></div>
+                                </div>
+
+                                <!-- Modal Actions -->
+                                <div class="mt-6 flex justify-end space-x-4">
+                                    <button @click="openModal = false"
+                                        class="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-500">
+                                        Cancel
+                                    </button>
+                                    <button @click="openModal = false"
+                                        class="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400">
+                                        Save
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                  </div>
-            
-                  <!-- Custom Content -->
-                  <div x-show="selectedTab === 'Custom'" class="text-gray-300">
-                    <button 
-                      @click="openModal = true"
-                      class="mt-6 rounded-md bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
-                      Customize Plan
-                    </button>
-                  </div>
                 </div>
-            
-                <!-- Modal -->
-                <div 
-                  x-show="openModal" 
-                  class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
-                  <div class="bg-gray-800 rounded-lg shadow-lg p-8 w-full max-w-2xl">
-                    <!-- Example form fields -->
-                    <div class="mt-4 space-y-6">
-                      <div>
-                        <label class="block text-sm font-medium text-gray-300">Weekly Mileage</label>
-                        <input 
-                          type="number" 
-                          class="mt-2 w-full rounded-md bg-gray-700 text-white border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500">
-                      </div>
-                      <div>
-                        <label class="block text-sm font-medium text-gray-300">Training Duration (Weeks)</label>
-                        <input 
-                          type="number" 
-                          class="mt-2 w-full rounded-md bg-gray-700 text-white border border-gray-600 focus:ring-indigo-500 focus:border-indigo-500">
-                      </div>
-                    </div>
-                    <!-- Modal Actions -->
-                    <div class="mt-6 flex justify-end space-x-4">
-                      <button 
-                        @click="openModal = false"
-                        class="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-500">
-                        Cancel
-                      </button>
-                      <button 
-                        @click="openModal = false"
-                        class="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400">
-                        Save
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-          </div>
-        </div>
-               
-    
-        <!-- Right Column -->
-        <div class="lg:col-span-2">
-          <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15 h-full">
-            <div x-data="tabsComponent()">
-              <!-- Dropdown for small screens -->
-              <div class="grid grid-cols-1 sm:hidden">
-                <select
-                  x-model="currentTab"
-                  aria-label="Select a tab"
-                  class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600"
-                >
-                  <template x-for="tab in tabs" :key="tab.name">
-                    <option :value="tab.name" x-text="tab.name"></option>
-                  </template>
-                </select>
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  class="pointer-events-none col-start-1 row-start-1 mr-2 w-5 h-5 self-center justify-self-end fill-gray-500"
-                  viewBox="0 0 20 20"
-                  fill="currentColor"
-                  aria-hidden="true"
-                >
-                  <path
-                    fill-rule="evenodd"
-                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4 4a.75.75 0 01-1.06 0l-4-4a.75.75 0 01.02-1.06z"
-                    clip-rule="evenodd"
-                  />
-                </svg>
-              </div>
-            
-              <!-- Tabs for larger screens -->
-              <div class="hidden sm:block">
-                <div class="border-b border-gray-200">
-                  <nav aria-label="Tabs" class="-mb-px flex">
-                    <template x-for="tab in tabs" :key="tab.name">
-                      <a
-                        href="#"
-                        @click.prevent="currentTab = tab.name"
-                        :aria-current="currentTab === tab.name ? 'page' : undefined"
-                        :class="currentTab === tab.name
+            </div>
+
+
+            <!-- Right Column -->
+            <div class="lg:col-span-2">
+                <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15 h-full">
+                    <div x-data="tabsComponent()">
+                        <!-- Dropdown for small screens -->
+                        <div class="grid grid-cols-1 sm:hidden">
+                            <select x-model="currentTab" aria-label="Select a tab"
+                                class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600">
+                                <template x-for="tab in tabs" :key="tab.name">
+                                    <option :value="tab.name" x-text="tab.name"></option>
+                                </template>
+                            </select>
+                            <svg xmlns="http://www.w3.org/2000/svg"
+                                class="pointer-events-none col-start-1 row-start-1 mr-2 w-5 h-5 self-center justify-self-end fill-gray-500"
+                                viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                                <path fill-rule="evenodd"
+                                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4 4a.75.75 0 01-1.06 0l-4-4a.75.75 0 01.02-1.06z"
+                                    clip-rule="evenodd" />
+                            </svg>
+                        </div>
+
+                        <!-- Tabs for larger screens -->
+                        <div class="hidden sm:block">
+                            <div class="border-b border-gray-200">
+                                <nav aria-label="Tabs" class="-mb-px flex">
+                                    <template x-for="tab in tabs" :key="tab.name">
+                                        <a href="#" @click.prevent="currentTab = tab.name"
+                                            :aria-current="currentTab === tab.name ? 'page' : undefined" :class="currentTab === tab.name
                           ? 'border-indigo-500 text-indigo-600'
                           : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
-                        class="w-1/4 border-b-2 px-1 py-4 text-center text-sm font-medium"
-                        x-text="tab.name"
-                      ></a>
-                    </template>
-                  </nav>
-                </div>
-              </div>
-            
-              <!-- Tab Content -->
-              <div class="mt-6">
-                <template x-if="currentTab === 'Overview'">
-                  <div
-                    x-data="editableTable()"
-                    class="bg-gray-900 min-h-screen p-6 overflow-hidden"
-                  >
-                    <div class="mx-auto max-w-7xl">
-                      <p class="mt-2 text-sm text-gray-300">
-                        Double-click a cell to edit and enter notes. Press "Esc" to exit a cell.
-                      </p>
-                      <div
-                        class="mt-8 flow-root border border-gray-800 rounded-lg overflow-hidden"
-                        style="max-height: 600px; overflow-y: auto;"
-                      >
-                        <table class="min-w-full divide-y divide-gray-700">
-                          <!-- Table Head -->
-                          <thead>
-                            <tr>
-                              <template x-for="day in days" :key="day">
-                                <th
-                                  scope="col"
-                                  class="py-3.5 px-3 text-left text-sm font-semibold text-white"
-                                  x-text="day"
-                                ></th>
-                              </template>
-                            </tr>
-                          </thead>
-                          <!-- Table Body -->
-                          <tbody class="divide-y divide-gray-800">
-                            <template x-for="(week, index) in weeks" :key="index">
-                              <tr>
-                                <template x-for="(value, day) in week" :key="day">
-                                  <td
-                                    class="px-3 py-4 text-sm text-gray-300 align-top"
-                                    x-on:dblclick="editCell(index, day)"
-                                  >
-                                    <!-- Display Text (Truncated) -->
-                                    <template x-if="!(editingCell.index === index && editingCell.field === day)">
-                                      <div
-                                        class="truncate max-h-24 overflow-hidden"
-                                        style="white-space: pre-wrap; text-overflow: ellipsis;"
-                                        x-text="value"
-                                      ></div>
+                                            class="w-1/4 border-b-2 px-1 py-4 text-center text-sm font-medium"
+                                            x-text="tab.name"></a>
                                     </template>
-                                    <!-- Editable Textarea (Full View) -->
-                                    <template x-if="editingCell.index === index && editingCell.field === day">
-                                      <textarea
-                                        class="w-full bg-gray-700 text-white px-2 py-1 rounded focus:outline-indigo-500"
-                                        x-model="weeks[index][day]"
-                                        x-on:keydown.enter.stop
-                                        x-on:keydown.escape="cancelEdit()"
-                                        x-on:blur="saveCell()"
-                                        rows="3"
-                                        style="white-space: pre-wrap;"
-                                      ></textarea>
-                                    </template>
-                                  </td>
-                                </template>
-                              </tr>
-                            </template>
-                          </tbody>
-                        </table>
-                      </div>
-                    </div>
-                  </div>                
-                </template>
-                <template x-if="currentTab === 'Calendar View'">
-                  <div x-data="calendarComponent()" class="p-6 bg-gray-900 text-white">
-                    <!-- Calendar Header -->
-                    <div class="flex items-center justify-between py-4">
-                      <div>
-                        <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
-                        <span x-text="year" class="ml-1 text-lg font-normal"></span>
-                      </div>
-                      <div class="flex items-center space-x-4">
-                        <button
-                          @click="changeMonth(-1)"
-                          class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm"
-                        >
-                          Prev
-                        </button>
-                        <button
-                          @click="changeMonth(1)"
-                          class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm"
-                        >
-                          Next
-                        </button>
-                      </div>
-                    </div>
-                  
-                    <!-- Weekdays -->
-                    <div class="grid grid-cols-7 gap-1">
-                      <template x-for="day in DAYS" :key="day">
-                        <div class="text-center text-sm font-semibold text-gray-400 uppercase">
-                          <span x-text="day"></span>
+                                </nav>
+                            </div>
                         </div>
-                      </template>
-                    </div>
-                  
-                    <!-- Calendar Dates -->
-                    <div class="grid grid-cols-7 gap-1 border-t border-gray-700 pt-2">
-                      <!-- Blank Days -->
-                      <template x-for="blankday in blankdays" :key="blankday">
-                        <div class="h-20"></div>
-                      </template>
-                  
-                      <!-- Days with Events -->
-                      <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
-                        <div class="relative h-20 border border-gray-700 rounded-lg px-2">
-                          <!-- Date Number -->
-                          <div
-                            @click="showEventModal(date)"
-                            class="cursor-pointer rounded-full bg-gray-800 w-8 h-8 flex items-center justify-center text-sm font-semibold"
-                            :class="{'bg-indigo-500 text-white': isToday(date)}"
-                          >
-                            <span x-text="date"></span>
-                          </div>
-                  
-                          <!-- Events -->
-                          <div class="mt-2 space-y-1 overflow-y-auto max-h-12">
-                            <template
-                              x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() === new Date(year, month, date).toDateString())"
-                              :key="event.event_title"
-                            >
-                              <div
-                                @click="editEvent(event, date)"
-                                class="text-xs px-2 py-1 rounded-lg cursor-pointer"
-                                :class="{
+
+                        <!-- Tab Content -->
+                        <div class="mt-6">
+                            <template x-if="currentTab === 'Overview'">
+                                <div x-data="editableTable()" class="bg-gray-900 min-h-screen p-6 overflow-hidden">
+                                    <div class="mx-auto max-w-7xl">
+                                        <p class="mt-2 text-sm text-gray-300">
+                                            Double-click a cell to edit and enter notes. Press "Esc" to exit a cell.
+                                        </p>
+                                        <div class="mt-8 flow-root border border-gray-800 rounded-lg overflow-hidden"
+                                            style="max-height: 600px; overflow-y: auto;">
+                                            <table class="min-w-full divide-y divide-gray-700">
+                                                <!-- Table Head -->
+                                                <thead>
+                                                    <tr>
+                                                        <template x-for="day in days" :key="day">
+                                                            <th scope="col"
+                                                                class="py-3.5 px-3 text-left text-sm font-semibold text-white"
+                                                                x-text="day"></th>
+                                                        </template>
+                                                    </tr>
+                                                </thead>
+                                                <!-- Table Body -->
+                                                <tbody class="divide-y divide-gray-800">
+                                                    <template x-for="(week, index) in weeks" :key="index">
+                                                        <tr>
+                                                            <template x-for="(value, day) in week" :key="day">
+                                                                <td class="px-3 py-4 text-sm text-gray-300 align-top"
+                                                                    x-on:dblclick="editCell(index, day)">
+                                                                    <!-- Display Text (Truncated) -->
+                                                                    <template
+                                                                        x-if="!(editingCell.index === index && editingCell.field === day)">
+                                                                        <div class="truncate max-h-24 overflow-hidden"
+                                                                            style="white-space: pre-wrap; text-overflow: ellipsis;"
+                                                                            x-text="value"></div>
+                                                                    </template>
+                                                                    <!-- Editable Textarea (Full View) -->
+                                                                    <template
+                                                                        x-if="editingCell.index === index && editingCell.field === day">
+                                                                        <textarea
+                                                                            class="w-full bg-gray-700 text-white px-2 py-1 rounded focus:outline-indigo-500"
+                                                                            x-model="weeks[index][day]"
+                                                                            x-on:keydown.enter.stop
+                                                                            x-on:keydown.escape="cancelEdit()"
+                                                                            x-on:blur="saveCell()" rows="3"
+                                                                            style="white-space: pre-wrap;"></textarea>
+                                                                    </template>
+                                                                </td>
+                                                            </template>
+                                                        </tr>
+                                                    </template>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </template>
+                            <template x-if="currentTab === 'Calendar View'">
+                                <div x-data="calendarComponent()" class="p-6 bg-gray-900 text-white">
+                                    <!-- Calendar Header -->
+                                    <div class="flex items-center justify-between py-4">
+                                        <div>
+                                            <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
+                                            <span x-text="year" class="ml-1 text-lg font-normal"></span>
+                                        </div>
+                                        <div class="flex items-center space-x-4">
+                                            <button @click="changeMonth(-1)"
+                                                class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
+                                                Prev
+                                            </button>
+                                            <button @click="changeMonth(1)"
+                                                class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
+                                                Next
+                                            </button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Weekdays -->
+                                    <div class="grid grid-cols-7 gap-1">
+                                        <template x-for="day in DAYS" :key="day">
+                                            <div class="text-center text-sm font-semibold text-gray-400 uppercase">
+                                                <span x-text="day"></span>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Calendar Dates -->
+                                    <div class="grid grid-cols-7 gap-1 border-t border-gray-700 pt-2">
+                                        <!-- Blank Days -->
+                                        <template x-for="blankday in blankdays" :key="blankday">
+                                            <div class="h-20"></div>
+                                        </template>
+
+                                        <!-- Days with Events -->
+                                        <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
+                                            <div class="relative h-20 border border-gray-700 rounded-lg px-2">
+                                                <!-- Date Number -->
+                                                <div @click="showEventModal(date)"
+                                                    class="cursor-pointer rounded-full bg-gray-800 w-8 h-8 flex items-center justify-center text-sm font-semibold"
+                                                    :class="{'bg-indigo-500 text-white': isToday(date)}">
+                                                    <span x-text="date"></span>
+                                                </div>
+
+                                                <!-- Events -->
+                                                <div class="mt-2 space-y-1 overflow-y-auto max-h-12">
+                                                    <template
+                                                        x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() === new Date(year, month, date).toDateString())"
+                                                        :key="event.event_title">
+                                                        <div @click="editEvent(event, date)"
+                                                            class="text-xs px-2 py-1 rounded-lg cursor-pointer" :class="{
                                   'bg-blue-100 text-blue-700': event.event_theme === 'blue',
                                   'bg-red-100 text-red-700': event.event_theme === 'red',
                                   'bg-yellow-100 text-yellow-700': event.event_theme === 'yellow',
                                   'bg-green-100 text-green-700': event.event_theme === 'green',
                                   'bg-purple-100 text-purple-700': event.event_theme === 'purple'
-                                }"
-                              >
-                                <span x-text="event.event_title"></span>
-                              </div>
+                                }">
+                                                            <span x-text="event.event_title"></span>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </template>
+                                    </div>
+
+                                    <!-- Event Modal -->
+                                    <div x-show="isModalOpen"
+                                        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
+                                        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                                            <h3 class="text-lg font-semibold text-white">Edit Event</h3>
+                                            <div class="mt-4">
+                                                <label class="block text-sm font-medium text-gray-300">Event
+                                                    Title</label>
+                                                <input x-model="eventToEdit.event_title" type="text"
+                                                    class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2" />
+                                            </div>
+                                            <div class="mt-4">
+                                                <label class="block text-sm font-medium text-gray-300">Notes</label>
+                                                <textarea x-model="eventToEdit.event_notes"
+                                                    class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2"
+                                                    rows="3"></textarea>
+                                            </div>
+                                            <div class="mt-6 flex justify-end space-x-4">
+                                                <button @click="isModalOpen = false"
+                                                    class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg">
+                                                    Cancel
+                                                </button>
+                                                <button @click="saveEvent()"
+                                                    class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-lg">
+                                                    Save
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
                             </template>
-                          </div>
+                            <template x-if="currentTab === 'Training Load Summary'">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-indigo-600">Tab 3 Content</h3>
+                                    <p class="text-gray-600">This is the content for Tab 3.</p>
+                                </div>
+                            </template>
                         </div>
-                      </template>
                     </div>
-                  
-                    <!-- Event Modal -->
-                    <div
-                      x-show="isModalOpen"
-                      class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75"
-                    >
-                      <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-                        <h3 class="text-lg font-semibold text-white">Edit Event</h3>
-                        <div class="mt-4">
-                          <label class="block text-sm font-medium text-gray-300">Event Title</label>
-                          <input
-                            x-model="eventToEdit.event_title"
-                            type="text"
-                            class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2"
-                          />
-                        </div>
-                        <div class="mt-4">
-                          <label class="block text-sm font-medium text-gray-300">Notes</label>
-                          <textarea
-                            x-model="eventToEdit.event_notes"
-                            class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2"
-                            rows="3"
-                          ></textarea>
-                        </div>
-                        <div class="mt-6 flex justify-end space-x-4">
-                          <button
-                            @click="isModalOpen = false"
-                            class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg"
-                          >
-                            Cancel
-                          </button>
-                          <button
-                            @click="saveEvent()"
-                            class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-lg"
-                          >
-                            Save
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </template>
-                <template x-if="currentTab === 'Training Load Summary'">
-                  <div>
-                    <h3 class="text-lg font-semibold text-indigo-600">Tab 3 Content</h3>
-                    <p class="text-gray-600">This is the content for Tab 3.</p>
-                  </div>
-                </template>
-              </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
-    </div>
-    
-    <head>
-      <meta charset="UTF-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</div>
 
-      <title>Training Plan</title>
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-      <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <title>Training Plan</title>
 
-      <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-      <script type="text/javascript" src="./pyr.js"></script>
-    </head>
-    
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="./dist/nouislider.min.css">
+    <link rel="stylesheet" href="./pyr.css">
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script type="text/javascript" src="./pyr.js"></script>
+    <script src="./dist/nouislider.min.js"></script>
+    <script src="sliderOptions.js"></script>
+</head>
