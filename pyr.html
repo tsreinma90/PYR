@@ -162,13 +162,14 @@
                                         </div>
                                     </div>
                                 </div>
-                                
-                                <br/>
+
+                                <br />
 
                                 <h2 class="text-lg font-semibold text-white text-center">Weekly Mileage Goal (Peak)</h2>
-                                <p class="text-sm text-white text-center">This represents the peak of your training block.</p>
-                                
-                                <br/><br/>
+                                <p class="text-sm text-white text-center">This represents the peak of your training
+                                    block.</p>
+
+                                <br /><br />
 
                                 <div class="p-2" style="padding-left: 22%; padding-right: 22%;">
                                     <div id="weeklyMileageSlider"></div>
@@ -178,7 +179,8 @@
 
                                 <div style="padding-left: 22%; padding-right: 22%;">
                                     <h2 class="text-lg font-semibold text-white text-center">Focus Areas</h2>
-                                    <p class="text-sm text-white text-center">Specify what % of your mileage will go to each workout below:</p>
+                                    <p class="text-sm text-white text-center">Specify what % of your mileage will go to
+                                        each workout below:</p>
                                     <br />
                                     <div class="legend">
                                         <div class="legend-item">
@@ -267,10 +269,11 @@
                                 <div x-data="editableTable()" class="bg-gray-900 min-h-screen p-6 overflow-hidden">
                                     <div class="mx-auto max-w-7xl">
                                         <p class="mt-2 text-sm text-gray-300">
-                                            Double-click a cell to edit and enter notes. Press "Esc" to exit a cell.
+                                            Click on a cell to make changes.
                                         </p>
                                         <div class="mt-8 flow-root border border-gray-800 rounded-lg overflow-hidden"
                                             style="max-height: 600px; overflow-y: auto;">
+
                                             <table class="min-w-full divide-y divide-gray-700">
                                                 <!-- Table Head -->
                                                 <thead>
@@ -287,8 +290,8 @@
                                                     <template x-for="(week, index) in weeks" :key="index">
                                                         <tr>
                                                             <template x-for="(value, day) in week" :key="day">
-                                                                <td class="px-3 py-4 text-sm text-gray-300 align-top"
-                                                                    x-on:dblclick="editCell(index, day)">
+                                                                <td class="px-3 py-4 text-sm text-gray-300 align-top cursor-pointer"
+                                                                    x-on:click="editCell(index, day)">
                                                                     <!-- Display Text (Truncated) -->
                                                                     <template
                                                                         x-if="!(editingCell.index === index && editingCell.field === day)">
@@ -296,16 +299,27 @@
                                                                             style="white-space: pre-wrap; text-overflow: ellipsis;"
                                                                             x-text="value"></div>
                                                                     </template>
-                                                                    <!-- Editable Textarea (Full View) -->
+                                                                    <!-- Editable Textarea with Save and Cancel Buttons -->
                                                                     <template
                                                                         x-if="editingCell.index === index && editingCell.field === day">
-                                                                        <textarea
-                                                                            class="w-full bg-gray-700 text-white px-2 py-1 rounded focus:outline-indigo-500"
-                                                                            x-model="weeks[index][day]"
-                                                                            x-on:keydown.enter.stop
-                                                                            x-on:keydown.escape="cancelEdit()"
-                                                                            x-on:blur="saveCell()" rows="3"
-                                                                            style="white-space: pre-wrap;"></textarea>
+                                                                        <div>
+                                                                            <textarea
+                                                                                class="w-full bg-gray-700 text-white px-2 py-1 rounded focus:outline-indigo-500"
+                                                                                x-model="weeks[index][day]"
+                                                                                x-on:keydown.enter.stop
+                                                                                x-on:keydown.escape="cancelEdit()"
+                                                                                rows="3"
+                                                                                style="white-space: pre-wrap;"></textarea>
+                                                                            <div
+                                                                                class="mt-2 flex justify-end space-x-2">
+                                                                                <button
+                                                                                    class="bg-indigo-600 text-white px-3 py-1 rounded"
+                                                                                    x-on:click.stop="saveCell()">Save</button>
+                                                                                <button
+                                                                                    class="bg-gray-600 text-white px-3 py-1 rounded"
+                                                                                    x-on:click.stop="cancelEdit()">Cancel</button>
+                                                                            </div>
+                                                                        </div>
                                                                     </template>
                                                                 </td>
                                                             </template>
@@ -313,6 +327,7 @@
                                                     </template>
                                                 </tbody>
                                             </table>
+
                                         </div>
                                     </div>
                                 </div>
