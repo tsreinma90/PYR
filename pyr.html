@@ -103,22 +103,24 @@
                         <div class="mt-6">
                             <!-- Pre-Made Content -->
                             <div x-show="selectedTab === 'Pre-Made'" class="space-y-6">
-                                <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-2">
+                                <div class="grid gap-6">
                                     <!-- Dynamically display filtered plans -->
                                     <template x-for="plan in filteredPlans" :key="plan.id">
                                         <div class="rounded-lg bg-gray-700 p-6 shadow-md hover:shadow-lg cursor-pointer"
-                                            style="min-width: 250px;" @click="selectPlan(plan)">
+                                            style="width: 100%;" @click="selectPlan(plan)">
                                             <h5 class="text-base font-semibold text-white" x-text="plan.name"></h5>
                                             <p class="text-sm text-gray-300 mt-2" x-text="plan.description"></p>
                                         </div>
                                     </template>
                                 </div>
+
                             </div>
 
                             <!-- Custom Content -->
-                            <div x-show="selectedTab === 'Custom'" class="text-gray-300">
+                            <div x-show="selectedTab === 'Custom'"
+                                class="text-gray-300 flex items-center justify-center">
                                 <button @click="openModal = true"
-                                    class="mt-6 rounded-md bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
+                                    class="rounded-md bg-indigo-500 px-6 py-2 text-sm font-semibold text-white hover:bg-indigo-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-500">
                                     Customize Plan
                                 </button>
                             </div>
