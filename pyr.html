@@ -385,12 +385,12 @@
                                                         :key="event.event_title">
                                                         <div @click="editEvent(event, date)"
                                                             class="text-xs px-2 py-1 rounded-lg cursor-pointer" :class="{
-                                  'bg-blue-100 text-blue-700': event.event_theme === 'blue',
-                                  'bg-red-100 text-red-700': event.event_theme === 'red',
-                                  'bg-yellow-100 text-yellow-700': event.event_theme === 'yellow',
-                                  'bg-green-100 text-green-700': event.event_theme === 'green',
-                                  'bg-purple-100 text-purple-700': event.event_theme === 'purple'
-                                }">
+                                                                'bg-blue-100 text-blue-700': event.event_theme === 'blue',
+                                                                'bg-red-100 text-red-700': event.event_theme === 'red',
+                                                                'bg-yellow-100 text-yellow-700': event.event_theme === 'yellow',
+                                                                'bg-green-100 text-green-700': event.event_theme === 'green',
+                                                                'bg-purple-100 text-purple-700': event.event_theme === 'purple'
+                                                                }">
                                                             <span x-text="event.event_title"></span>
                                                         </div>
                                                     </template>

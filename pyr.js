@@ -378,8 +378,8 @@ function sharedState() {
                 month: new Date().getMonth(),
                 year: new Date().getFullYear(),
                 workouts: [
-                    { event_date: "2024-12-28", event_title: "Rest day", event_notes: "Take it easy.", event_theme: "red" },
-                    { event_date: "2024-12-27", event_title: "5 miles run", event_notes: "Moderate pace.", event_theme: "blue" },
+                    { event_date: "2025-1-5", event_title: "Rest day", event_notes: "Take it easy.", event_theme: "red" },
+                    { event_date: "2025-1-12", event_title: "5 miles run", event_notes: "Moderate pace.", event_theme: "blue" },
                 ],
                 blankdays: [],
                 no_of_days: [],
@@ -429,18 +429,47 @@ function sharedState() {
                     this.isModalOpen = true;
                 },
 
-                // Save Event
-                saveEvent() {
-                    const index = this.workouts.findIndex(
+                showEventModal(date) {
+                    const existingEvent = this.workouts.find(
                         (e) =>
                             new Date(e.event_date).toDateString() ===
-                            new Date(this.year, this.month, this.eventToEdit.date).toDateString()
+                            new Date(this.year, this.month, date).toDateString()
                     );
-                    if (index !== -1) {
-                        this.workouts[index] = { ...this.eventToEdit };
+                
+                    if (existingEvent) {
+                        // Edit existing event
+                        this.eventToEdit = { ...existingEvent, date };
+                    } else {
+                        // Create a new event
+                        this.eventToEdit = {
+                            event_date: new Date(this.year, this.month, date).toISOString().split("T")[0],
+                            event_title: "",
+                            event_notes: "",
+                            event_theme: "blue", // Default theme
+                            date,
+                        };
                     }
-                    this.isModalOpen = false;
+                
+                    this.isModalOpen = true;
                 },
+
+                // Save Event
+                saveEvent() {
+                    const eventDate = new Date(this.year, this.month, this.eventToEdit.date).toDateString();
+                    const index = this.workouts.findIndex(
+                        (e) => new Date(e.event_date).toDateString() === eventDate
+                    );
+                
+                    if (index !== -1) {
+                        // Update existing event
+                        this.workouts[index] = { ...this.eventToEdit };
+                    } else {
+                        // Add new event
+                        this.workouts.push({ ...this.eventToEdit });
+                    }
+                
+                    this.isModalOpen = false;
+                },                
             }
         },
 
