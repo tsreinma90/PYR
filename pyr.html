@@ -1,5 +1,5 @@
 <div x-data="sharedState()">
-    <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8" x-data="racePlanner()">
+    <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8">
         <div class="max-w-screen-xl mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
 
             <div class="lg:col-span-1 space-y-6">
@@ -27,7 +27,7 @@
                             class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
                             Training Block
                         </label>
-                        <select id="raceDate" x-model="selectedRaceDate"
+                        <select id="raceDate" x-model="selectedTimeframe"
                             class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
                             <option value="" disabled>Select a date</option>
                             <template x-for="option in raceDateOptions" :key="option.value">
@@ -41,7 +41,7 @@
                             class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
                             Start Date
                         </label>
-                        <input type="date" id="startDate" x-model="startDate"
+                        <input type="date" id="startDate" x-model="selectedStartDate"
                             class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none">
                     </div>
                 </div>
