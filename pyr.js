@@ -225,7 +225,43 @@ function sharedState() {
         selectedExperienceLevel: '',
 
         // master-list of all workouts
-        currentWorkouts: [],
+        currentWorkouts: [
+            // Week 1
+            { date: "2025-01-05", title: "Rest day", notes: "Take it easy.", theme: "red" },
+            { date: "2025-01-06", title: "5 miles easy run", notes: "Focus on breathing and steady pace.", theme: "blue" },
+            { date: "2025-01-07", title: "4 miles tempo run", notes: "Warm-up: 1 mile\nTempo: 2 miles @ 8:00 min/mile\nCool-down: 1 mile", theme: "blue" },
+            { date: "2025-01-08", title: "5 miles recovery run", notes: "Keep heart rate low.", theme: "green" },
+            { date: "2025-01-09", title: "Rest day", notes: "Optional yoga or light stretching.", theme: "red" },
+            { date: "2025-01-10", title: "7 miles long run", notes: "Progressive pace, finish strong.", theme: "blue" },
+            { date: "2025-01-11", title: "8 miles trail run", notes: "Practice uphill strides.", theme: "purple" },
+        
+            // Week 2
+            { date: "2025-01-12", title: "4 miles recovery run", notes: "Slow pace, enjoy the scenery.", theme: "green" },
+            { date: "2025-01-13", title: "6 miles interval run", notes: "Warm-up: 1 mile\n5x800m @ 7:30 min/mile\nCool-down: 1 mile", theme: "blue" },
+            { date: "2025-01-14", title: "4 miles easy run", notes: "Relaxed pace, focus on form.", theme: "blue" },
+            { date: "2025-01-15", title: "Cross-training", notes: "30 minutes cycling or swimming.", theme: "yellow" },
+            { date: "2025-01-16", title: "5 miles tempo run", notes: "Warm-up: 1 mile\nTempo: 3 miles @ 7:45 min/mile\nCool-down: 1 mile", theme: "blue" },
+            { date: "2025-01-17", title: "Rest day", notes: "Focus on hydration and nutrition.", theme: "red" },
+            { date: "2025-01-18", title: "10 miles long run", notes: "Easy pace, conversational effort.", theme: "blue" },
+        
+            // Week 3
+            { date: "2025-01-19", title: "4 miles recovery run", notes: "Shake out the legs, stay loose.", theme: "green" },
+            { date: "2025-01-20", title: "5 miles easy run", notes: "Steady pace, focus on cadence.", theme: "blue" },
+            { date: "2025-01-21", title: "5 miles hill repeats", notes: "5x200m uphill strides.", theme: "purple" },
+            { date: "2025-01-22", title: "Cross-training", notes: "45 minutes swimming.", theme: "yellow" },
+            { date: "2025-01-23", title: "Rest day", notes: "Stretch and foam roll.", theme: "red" },
+            { date: "2025-01-24", title: "8 miles tempo run", notes: "Warm-up: 2 miles\nTempo: 4 miles @ 7:40 min/mile\nCool-down: 2 miles", theme: "blue" },
+            { date: "2025-01-25", title: "12 miles long run", notes: "Pace evenly, finish strong.", theme: "blue" },
+        
+            // Week 4
+            { date: "2025-01-26", title: "3 miles recovery run", notes: "Very slow pace, enjoy the run.", theme: "green" },
+            { date: "2025-01-27", title: "4 miles easy run", notes: "Relax and keep it light.", theme: "blue" },
+            { date: "2025-01-28", title: "6 miles intervals", notes: "6x400m @ 7:00 min/mile pace.", theme: "blue" },
+            { date: "2025-01-29", title: "Rest day", notes: "Catch up on rest and hydrate.", theme: "red" },
+            { date: "2025-01-30", title: "Cross-training", notes: "45 minutes cycling or rowing.", theme: "yellow" },
+            { date: "2025-01-31", title: "10 miles tempo run", notes: "Warm-up: 2 miles\nTempo: 6 miles @ 7:30 min/mile\nCool-down: 2 miles", theme: "blue" },
+            { date: "2025-02-01", title: "15 miles long run", notes: "Last long run before tapering.", theme: "blue" },
+        ],    
 
         // used for controlling which knobs and defaults are displayed on the slider
         uniqueWorkoutTracker: {
@@ -287,42 +323,25 @@ function sharedState() {
         tabsComponent() {
             return {
                 // Initialize the tabs data
-                currentTab: 'Overview',
+                currentTab: 'Calendar',
                 tabs: [
-                    { name: 'Overview' },
-                    { name: 'Calendar View' },
+                    //{ name: 'Overview' },
+                    { name: 'Calendar' },
                     { name: 'Training Load Summary' }
                 ],
             }
         },
 
-        // the table displayed on the first tab. changes made to the workouts are re-applied to the parent shared state
-        editableTable() {
+        // not being used currently.
+        /* editableTable() {
+            const self = this;
             return {
                 // Days of the week
                 days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                // Weekly training plan with sample data
-                weeks: [
-                    {
-                        Monday: '5 miles easy run\nFocus on breathing and steady pace.',
-                        Tuesday: '4 miles tempo run\nWarm-up: 1 mile\nTempo: 2 miles @ 8:00 min/mile\nCool-down: 1 mile',
-                        Wednesday: '5 miles recovery run\nKeep heart rate low.',
-                        Thursday: 'Rest day\nOptional yoga or light stretching.',
-                        Friday: '7 miles long run\nProgressive pace, finish strong.',
-                        Saturday: '8 miles trail run\nPractice uphill strides.',
-                        Sunday: '3 miles recovery run\nSlow pace, enjoy the scenery.',
-                    },
-                    {
-                        Monday: '6 miles interval run\nWarm-up: 1 mile\n5x800m @ 7:30 min/mile\nCool-down: 1 mile',
-                        Tuesday: '4 miles easy run\nRelaxed pace, focus on form.',
-                        Wednesday: 'Cross-training\n30 minutes cycling or swimming.',
-                        Thursday: '5 miles tempo run\nWarm-up: 1 mile\nTempo: 3 miles @ 7:45 min/mile\nCool-down: 1 mile',
-                        Friday: 'Rest day\nFocus on hydration and nutrition.',
-                        Saturday: '10 miles long run\nEasy pace, conversational effort.',
-                        Sunday: '4 miles recovery run\nShake out the legs, stay loose.',
-                    },
-                    // Add more rows to simulate 8, 12, 16, or 20 total rows as needed
-                ],
+                weeks: [],
+                init() {
+                    this.weeks = self.mapWorkoutsToWeeks();
+                },
                 // Cell editing state
                 editingCell: { index: null, field: null },
                 // Function to edit a cell
@@ -332,36 +351,45 @@ function sharedState() {
                 // Function to save a cell
                 saveCell() {
                     this.editingCell = { index: null, field: null };
+                    self.updateWorkoutsFromWeeks(this.weeks);
                 },
                 // Function to cancel editing
                 cancelEdit() {
                     this.editingCell = { index: null, field: null };
                 },
             }
-        },
+        }, */
 
-        // the calendar displayed on the second tab. changes made to the workouts are re-applied to the parent shared state
         calendarComponent() {
+            const self = this;
             return {
                 month: new Date().getMonth(),
                 year: new Date().getFullYear(),
-                workouts: [
-                    { event_date: "2025-1-5", event_title: "Rest day", event_notes: "Take it easy.", event_theme: "red" },
-                    { event_date: "2025-1-12", event_title: "5 miles run", event_notes: "Moderate pace.", event_theme: "blue" },
-                ],
+                workouts: [], // This will be populated from `currentWorkouts`
                 blankdays: [],
                 no_of_days: [],
                 isModalOpen: false,
                 eventToEdit: null,
-
+        
                 MONTH_NAMES,
                 DAYS,
-
+        
                 // Initialize Calendar
                 init() {
+                    this.loadWorkouts();
                     this.calculateDays();
                 },
-
+        
+                // Load workouts from `currentWorkouts`
+                loadWorkouts() {
+                    this.workouts = self.currentWorkouts.map((workout) => ({
+                        event_date: workout.date,
+                        event_title: workout.title,
+                        event_notes: workout.notes,
+                        event_theme: workout.theme,
+                    }));
+                },
+        
                 // Navigate Months
                 changeMonth(step) {
                     this.month += step;
@@ -374,36 +402,37 @@ function sharedState() {
                     }
                     this.calculateDays();
                 },
-
+        
                 // Calculate Days in Month
                 calculateDays() {
-                    const firstDay = new Date(this.year, this.month, 1).getDay();
+                    // Adjust the first day to align weeks to Sunday
+                    const firstDay = new Date(this.year, this.month, 1).getDay(); // 0 = Sunday
                     const daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
-
-                    this.blankdays = Array(firstDay).fill(null);
+                
+                    this.blankdays = Array(firstDay).fill(null); // Prepend blank days for alignment
                     this.no_of_days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
                 },
-
+        
                 // Check if Today
                 isToday(date) {
                     const today = new Date();
                     const currentDay = new Date(this.year, this.month, date);
                     return today.toDateString() === currentDay.toDateString();
                 },
-
+        
                 // Show Edit Modal
                 editEvent(event, date) {
                     this.eventToEdit = { ...event, date };
                     this.isModalOpen = true;
                 },
-
+        
                 showEventModal(date) {
                     const existingEvent = this.workouts.find(
                         (e) =>
                             new Date(e.event_date).toDateString() ===
                             new Date(this.year, this.month, date).toDateString()
                     );
-                
+        
                     if (existingEvent) {
                         // Edit existing event
                         this.eventToEdit = { ...existingEvent, date };
@@ -417,28 +446,96 @@ function sharedState() {
                             date,
                         };
                     }
-                
+        
                     this.isModalOpen = true;
                 },
-
-                // Save Event
+        
+                // Save Event and Sync to `currentWorkouts`
                 saveEvent() {
                     const eventDate = new Date(this.year, this.month, this.eventToEdit.date).toDateString();
-                    const index = this.workouts.findIndex(
-                        (e) => new Date(e.event_date).toDateString() === eventDate
+                    const index = self.currentWorkouts.findIndex(
+                        (e) => new Date(e.date).toDateString() === eventDate
                     );
-                
+        
                     if (index !== -1) {
-                        // Update existing event
-                        this.workouts[index] = { ...this.eventToEdit };
+                        // Update existing event in both `workouts` and `currentWorkouts`
+                        self.currentWorkouts[index] = {
+                            date: this.eventToEdit.event_date,
+                            title: this.eventToEdit.event_title,
+                            notes: this.eventToEdit.event_notes,
+                            theme: this.eventToEdit.event_theme,
+                        };
                     } else {
-                        // Add new event
-                        this.workouts.push({ ...this.eventToEdit });
+                        // Add new event to both `workouts` and `currentWorkouts`
+                        self.currentWorkouts.push({
+                            date: this.eventToEdit.event_date,
+                            title: this.eventToEdit.event_title,
+                            notes: this.eventToEdit.event_notes,
+                            theme: this.eventToEdit.event_theme,
+                        });
                     }
-                
+        
+                    // Reload workouts for the calendar view
+                    this.loadWorkouts();
                     this.isModalOpen = false;
-                },                
+                },
+            };
+        },
+        
+        mapWorkoutsToWeeks() {
+            const weeks = [];
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        
+            // Align to the nearest Sunday for the first week
+            let currentStartDate = new Date(this.currentWorkouts[0]?.date);
+            currentStartDate.setDate(currentStartDate.getDate() - currentStartDate.getDay()); // Adjust to the nearest Sunday
+        
+            let currentWeek = {};
+        
+            this.currentWorkouts.forEach((workout) => {
+                const workoutDate = new Date(workout.date);
+                const dayName = days[workoutDate.getDay()];
+        
+                // Check if the workout falls within the current week
+                if (workoutDate - currentStartDate >= 7 * 24 * 60 * 60 * 1000) {
+                    weeks.push(currentWeek);
+                    currentWeek = {};
+                    currentStartDate.setDate(currentStartDate.getDate() + 7); // Move to the next Sunday
+                }
+        
+                // Add the workout to the current week
+                currentWeek[dayName] = `${workout.title}\n${workout.notes}`;
+            });
+        
+            // Push the last week if it has data
+            if (Object.keys(currentWeek).length) {
+                weeks.push(currentWeek);
             }
+        
+            return weeks;
+        },
+
+        updateWorkoutsFromWeeks(weeks) {
+            const flatWorkouts = [];
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        
+            weeks.forEach((week, weekIndex) => {
+                days.forEach((day, dayIndex) => {
+                    if (week[day]) {
+                        const [title, ...notes] = week[day].split('\n');
+                        const workoutDate = new Date(2025, 0, weekIndex * 7 + dayIndex + 1).toISOString().split("T")[0];
+        
+                        flatWorkouts.push({
+                            date: workoutDate,
+                            title: title.trim(),
+                            notes: notes.join('\n').trim(),
+                            theme: title.toLowerCase().includes("rest") ? "red" : "blue", // Example logic
+                        });
+                    }
+                });
+            });
+        
+            this.currentWorkouts = flatWorkouts;
         }
     };
 }

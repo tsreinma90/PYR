@@ -267,7 +267,7 @@
 
                         <!-- Tab Content -->
                         <div class="mt-6">
-                            <template x-if="currentTab === 'Overview'">
+                            <!-- <template x-if="currentTab === 'Overview'">
                                 <div x-data="editableTable()" class="bg-gray-900 min-h-screen p-6 overflow-hidden">
                                     <div class="mx-auto max-w-7xl">
                                         <p class="mt-2 text-sm text-gray-300">
@@ -277,7 +277,6 @@
                                             style="max-height: 600px; overflow-y: auto;">
 
                                             <table class="min-w-full divide-y divide-gray-700">
-                                                <!-- Table Head -->
                                                 <thead>
                                                     <tr>
                                                         <template x-for="day in days" :key="day">
@@ -287,21 +286,18 @@
                                                         </template>
                                                     </tr>
                                                 </thead>
-                                                <!-- Table Body -->
                                                 <tbody class="divide-y divide-gray-800">
                                                     <template x-for="(week, index) in weeks" :key="index">
                                                         <tr>
                                                             <template x-for="(value, day) in week" :key="day">
                                                                 <td class="px-3 py-4 text-sm text-gray-300 align-top cursor-pointer"
                                                                     x-on:click="editCell(index, day)">
-                                                                    <!-- Display Text (Truncated) -->
                                                                     <template
                                                                         x-if="!(editingCell.index === index && editingCell.field === day)">
                                                                         <div class="truncate max-h-24 overflow-hidden"
                                                                             style="white-space: pre-wrap; text-overflow: ellipsis;"
                                                                             x-text="value"></div>
                                                                     </template>
-                                                                    <!-- Editable Textarea with Save and Cancel Buttons -->
                                                                     <template
                                                                         x-if="editingCell.index === index && editingCell.field === day">
                                                                         <div>
@@ -329,28 +325,29 @@
                                                     </template>
                                                 </tbody>
                                             </table>
-
                                         </div>
                                     </div>
                                 </div>
-                            </template>
-                            <template x-if="currentTab === 'Calendar View'">
+                            </template> -->
+                            <template x-if="currentTab === 'Calendar'">
                                 <div x-data="calendarComponent()" class="p-6 bg-gray-900 text-white">
                                     <!-- Calendar Header -->
-                                    <div class="flex items-center justify-between py-4">
-                                        <div>
-                                            <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
-                                            <span x-text="year" class="ml-1 text-lg font-normal"></span>
-                                        </div>
-                                        <div class="flex items-center space-x-4">
-                                            <button @click="changeMonth(-1)"
-                                                class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
-                                                Prev
-                                            </button>
-                                            <button @click="changeMonth(1)"
-                                                class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
-                                                Next
-                                            </button>
+                                    <div class="calendar-container flex flex-col bg-gray-900 rounded-lg p-4">
+                                        <div class="flex justify-between items-center mb-4">
+                                            <div>
+                                                <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
+                                                <span x-text="year" class="ml-1 text-lg font-normal"></span>
+                                            </div>
+                                            <div class="flex items-center space-x-4">
+                                                <button @click="changeMonth(-1)"
+                                                    class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
+                                                    Prev
+                                                </button>
+                                                <button @click="changeMonth(1)"
+                                                    class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
+                                                    Next
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
 
