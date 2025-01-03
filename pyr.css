@@ -103,3 +103,15 @@
     font-weight: bold;
     color: #333;
 }
+
+.daily-workouts-container {
+    gap: 16px; /* Spacing between days */
+    overflow-x: auto;
+}
+
+.legend-item .square {
+    width: 20px;
+    height: 20px;
+    margin: 0 auto;
+    border-radius: 4px;
+}
