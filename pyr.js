@@ -221,7 +221,7 @@ function sharedState() {
         // selections made by the user
         selectedRaceDistance: '',
         selectedTimeframe: '',
-        selectedStartDate: '',
+        raceDate: '',
         selectedExperienceLevel: '',
 
         // master-list of all workouts
