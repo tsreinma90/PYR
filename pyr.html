@@ -25,52 +25,112 @@
                     <div>
                         <label for="raceDate"
                             class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
-                            Training Block
-                        </label>
-                        <select id="raceDate" x-model="selectedTimeframe"
-                            class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
-                            <option value="" disabled>Select a date</option>
-                            <template x-for="option in raceDateOptions" :key="option.value">
-                                <option :value="option.value" x-text="option.label"></option>
-                            </template>
-                        </select>
-                    </div>
-                    <br />
-                    <div>
-                        <label for="raceDate"
-                            class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
                             Race Date
                         </label>
                         <input type="date" id="raceDate" x-model="raceDate"
                             class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none">
                     </div>
-                </div>
-
-                <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
-                    <h3 class="text-lg font-semibold text-white">Experience Level</h3>
-                    <p class="text-sm text-gray-400">Choose the level that best aligns with your running experience and
-                        goals.</p>
                     <br />
-                    <div class="plan-selection mb-4">
-                        <label class="inline-flex items-center mr-4">
-                            <input type="radio" name="planType" value="beginner" class="form-radio text-blue-600"
-                                @change="selectPlan('beginner')" />
-                            <span class="ml-2 text-white">Beginner</span>
+                    <div>
+                        <label for="raceDate"
+                            class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
+                            Training Block
                         </label>
-                        <br />
-                        <label class="inline-flex items-center mr-4">
-                            <input type="radio" name="planType" value="intermediate" class="form-radio text-blue-600"
-                                @change="selectPlan('intermediate')" />
-                            <span class="ml-2 text-white">Intermediate</span>
-                        </label>
-                        <br />
-                        <label class="inline-flex items-center mr-4">
-                            <input type="radio" name="planType" value="advanced" class="form-radio text-blue-600"
-                                @change="selectPlan('advanced')" />
-                            <span class="ml-2 text-white">Advanced</span>
-                        </label>
+                        <select id="raceDate" x-model="selectedTimeframe"
+                            class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
+                            <option value="" disabled>Select a time block</option>
+                            <template x-for="option in raceDateOptions" :key="option.value">
+                                <option :value="option.value" x-text="option.label"></option>
+                            </template>
+                        </select>
                     </div>
                 </div>
+
+                <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15 mt-6">
+                    <h3 class="text-lg font-semibold text-white">Training Block Goal</h3>
+                    <p class="text-sm text-gray-400">Select the primary goal you want to focus on during this training block.</p>
+                    <br />
+                    <div class="goal-selection mb-4">
+                        <label class="inline-flex items-center mr-4">
+                            <input type="radio" name="trainingGoal" value="just_finish" class="form-radio text-blue-600"
+                                @change="handleGoalChange($event)" />
+                            <span class="ml-2 text-white">Just Finish</span>
+                        </label>
+                        <br />
+                        <label class="inline-flex items-center mr-4">
+                            <input type="radio" name="trainingGoal" value="build_endurance" class="form-radio text-blue-600"
+                                @change="handleGoalChange($event)" />
+                            <span class="ml-2 text-white">Build Endurance</span>
+                        </label>
+                        <br />
+                        <label class="inline-flex items-center mr-4">
+                            <input type="radio" name="trainingGoal" value="specific_time_goal" class="form-radio text-blue-600"
+                                @change="handleGoalChange($event)" />
+                            <span class="ml-2 text-white">Hit a Specific Time Goal</span>
+                        </label>
+                    </div>
+                
+                    <div id="input-build_endurance" class="conditional-input hidden">
+                        <label class="block text-sm font-medium text-gray-400 mb-1">
+                            Enter your target weekly mileage:
+                            <span class="text-gray-500 text-sm">(Range: 10–130 miles)</span>
+                        </label>
+                        <div class="input-container" style="display: flex; align-items: center; gap: 8px; height: 40px;">
+                            <input 
+                                type="number" 
+                                class="flex-1 block w-full rounded-md bg-gray-700 text-white border-gray-600 px-3 py-2"
+                                placeholder="e.g., 30" 
+                                x-model="formData.weeklyMileage" 
+                                style="height: 100%;" 
+                            />
+                            <button 
+                                class="icon-button" 
+                                style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: #2563eb; border-radius: 50%; color: white; transition: background-color 0.2s ease;"
+                                @click="validateField('weeklyMileage')"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- Error Message -->
+                        <p class="text-red-500 text-sm mt-1" x-show="errors.weeklyMileage" x-text="errors.weeklyMileage"></p>
+                        <!-- Success Confirmation -->
+                        <p class="text-green-500 text-sm mt-1" x-show="confirmation.weeklyMileage" x-text="confirmation.weeklyMileage"></p>
+                    </div>
+                    
+                    <div id="input-specific_time_goal" class="conditional-input hidden">
+                        <label class="block text-sm font-medium text-gray-400 mb-1">
+                            Enter your target race time:
+                            <span class="text-gray-500 text-sm" x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A'} - ${timeLimits[selectedRaceDistance]?.max || 'N/A'})`"></span>
+                        </label>
+                        <div class="input-container" style="display: flex; align-items: center; gap: 8px; height: 40px;">
+                            <input 
+                                type="text" 
+                                class="flex-1 block w-full rounded-md bg-gray-700 text-white border-gray-600 px-3 py-2"
+                                placeholder="e.g., 1:30:00" 
+                                x-model="formData.raceTime" 
+                                style="height: 100%;" 
+                            />
+                            <button 
+                                class="icon-button" 
+                                style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: #2563eb; border-radius: 50%; color: white; transition: background-color 0.2s ease;"
+                                @click="validateField('raceTime')"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px;">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
+                            </button>
+                        </div>
+                        <!-- Error Message -->
+                        <p class="text-red-500 text-sm mt-1" x-show="errors.raceTime" x-text="errors.raceTime"></p>
+                        <!-- Success Confirmation -->
+                        <p class="text-green-500 text-sm mt-1" x-show="confirmation.raceTime" x-text="confirmation.raceTime"></p>
+                    </div>
+                    
+                    
+                </div>
+                              
 
                 <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
                     <div x-data="trainingPlanTabs()" x-init="filterPlans()">
@@ -221,11 +281,13 @@
                             </div>
                         </div>-->
 
-                        <div x-show="openModal" class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
-                            <div class="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-5xl overflow-y-auto max-h-screen">
+                        <div x-show="openModal"
+                            class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
+                            <div
+                                class="bg-gray-800 rounded-lg shadow-lg p-6 w-full max-w-5xl overflow-y-auto max-h-screen">
                                 <!-- Title -->
                                 <h2 class="text-lg font-semibold text-white text-center mb-4">Daily Workouts</h2>
-                        
+
                                 <!-- Daily Workouts Section -->
                                 <div class="daily-workouts-container flex justify-between overflow-x-auto mb-6 px-4">
                                     <template x-for="(day, index) in daysOfWeek" :key="index">
@@ -239,7 +301,8 @@
                                                                  handleWorkoutSelection(true, day.options[day.activeOption]);">
                                                     <i class="fas fa-chevron-left text-sm"></i>
                                                 </button>
-                                                <span class="text-sm text-white workout" x-text="day.options[day.activeOption]"></span>
+                                                <span class="text-sm text-white workout"
+                                                    x-text="day.options[day.activeOption]"></span>
                                                 <!-- Right Chevron -->
                                                 <button class="text-white hover:text-gray-300 focus:outline-none"
                                                     x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); 
@@ -251,21 +314,22 @@
                                         </div>
                                     </template>
                                 </div>
-                        
+
                                 <!-- Weekly Mileage Goal Section -->
                                 <h2 class="text-lg font-semibold text-white text-center">Weekly Mileage Goal (Peak)</h2>
-                                <p class="text-sm text-gray-300 text-center mb-6">This represents the peak of your training block.</p>
-                                <br/>
+                                <p class="text-sm text-gray-300 text-center mb-6">This represents the peak of your
+                                    training block.</p>
+                                <br />
                                 <div class="px-4 mb-6">
                                     <div id="weeklyMileageSlider"></div>
                                 </div>
-                        
+
                                 <!-- Focus Areas Section -->
                                 <div>
                                     <h2 class="text-lg font-semibold text-white text-center">Focus Areas</h2>
                                     <p class="text-sm text-white text-center">Specify what % of your mileage will go to
                                         each workout below:</p>
-                                    <br/>
+                                    <br />
                                     <div class="flex justify-center">
                                         <div class="legend flex space-x-8">
                                             <div class="legend-item text-center">
@@ -290,26 +354,28 @@
                                             </div>
                                         </div>
                                     </div>
-                                    
+
                                 </div>
-                                <br/>                                
+                                <br />
                                 <div class="px-4">
                                     <div id="workoutPercentSlider"></div>
                                 </div>
-                        
+
                                 <!-- Modal Actions -->
                                 <div class="mt-6 flex justify-end space-x-4">
-                                    <button @click="openModal = false" class="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-500">
+                                    <button @click="openModal = false"
+                                        class="rounded-md bg-gray-600 px-4 py-2 text-sm font-semibold text-white hover:bg-gray-500">
                                         Cancel
                                     </button>
-                                    <button @click="saveSettings" class="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400">
+                                    <button @click="saveSettings"
+                                        class="rounded-md bg-indigo-500 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-400">
                                         Save
                                     </button>
                                 </div>
                             </div>
                         </div>
-                        
-                        
+
+
                     </div>
                 </div>
             </div>

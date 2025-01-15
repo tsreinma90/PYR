@@ -22,11 +22,12 @@ const DISTANCE_OPTIONS = [
 ];
 
 const PLAN_LENGTH_OPTIONS = [
-    { label: '4 Week Training Plan', value: '4-weeks' },
-    { label: '8 Week Training Plan', value: '8-weeks' },
-    { label: '12 Week Training Plan', value: '12-weeks' },
-    { label: '16 Week Training Plan', value: '16-weeks' },
-    { label: '20 Week Training Plan', value: '20-weeks' },
+    { label: '8 Week Training Plan', value: 8 },
+    { label: '10 Week Training Plan', value: 10},
+    { label: '12 Week Training Plan', value: 12 },
+    { label: '14 Week Training Plan', value: 14 },
+    { label: '16 Week Training Plan', value: 16 },
+    { label: '20 Week Training Plan', value: 20 },
 ];
 
 const TRAINING_PLANS = [
@@ -223,6 +224,13 @@ function sharedState() {
         selectedTimeframe: '',
         raceDate: '',
         selectedExperienceLevel: '',
+        selectedGoal: '',
+        errors: {}, 
+        formData: {
+            weeklyMileage: '',
+            raceTime: '',
+        },
+        confirmation: {},
 
         // master-list of all workouts
         currentWorkouts: [
@@ -329,6 +337,78 @@ function sharedState() {
                     { name: 'Calendar' },
                     { name: 'Training Load Summary' }
                 ],
+            }
+        },
+
+        handleGoalChange(event) {
+            this.selectedGoal = event.target.value;
+
+            // Hide all inputs initially
+            document.querySelectorAll('.conditional-input').forEach((input) => {
+                input.classList.add('hidden');
+            });
+
+            // Show the relevant input for the selected goal
+            const targetInput = document.querySelector(`#input-${this.selectedGoal}`);
+            if (targetInput) {
+                targetInput.classList.remove('hidden');
+            }
+
+            // Clear errors when switching goals
+            this.errors = {};
+        },
+
+        validateField(fieldName) {
+            this.errors[fieldName] = ''; // Clear existing errors
+            this.confirmation[fieldName] = ''; // Clear existing confirmations
+
+            if (fieldName === 'raceTime') {
+                const time = this.formData.raceTime;
+
+                // Define min/max times based on the selected race distance
+                const timeLimits = {
+                    '5k': { min: '00:12:00', max: '01:30:00' },
+                    '10k': { min: '00:25:00', max: '02:30:00' },
+                    'Half Marathon': { min: '01:00:00', max: '04:00:00' },
+                    'Marathon': { min: '02:00:00', max: '06:00:00' },
+                };
+
+                const { min, max } = timeLimits[this.selectedRaceDistance] || {};
+
+                // Validate time format (hh:mm:ss or mm:ss)
+                const timeRegex = /^(\d{1,2}:\d{2}(:\d{2})?)$/;
+                if (!time || !timeRegex.test(time)) {
+                    this.errors.raceTime = 'Please enter a valid race time (e.g., 12:00 or 1:30:00).';
+                    return;
+                }
+
+                // Convert time strings to seconds for comparison
+                const toSeconds = (timeString) => {
+                    const parts = timeString.split(':').map(Number);
+                    if (parts.length === 2) {
+                        // mm:ss format
+                        const [minutes, seconds] = parts;
+                        return (minutes || 0) * 60 + (seconds || 0);
+                    } else if (parts.length === 3) {
+                        // hh:mm:ss format
+                        const [hours, minutes, seconds] = parts;
+                        return (hours || 0) * 3600 + (minutes || 0) * 60 + (seconds || 0);
+                    }
+                    return 0;
+                };
+
+                const inputSeconds = toSeconds(time);
+                const minSeconds = min ? toSeconds(min) : null;
+                const maxSeconds = max ? toSeconds(max) : null;
+
+                // Validate range
+                if (minSeconds !== null && inputSeconds < minSeconds) {
+                    this.errors.raceTime = `Time must be at least ${min.replace(/^00:/, '')}.`;
+                } else if (maxSeconds !== null && inputSeconds > maxSeconds) {
+                    this.errors.raceTime = `Time cannot exceed ${max.replace(/^00:/, '')}.`;
+                } else {
+                    this.confirmation.raceTime = 'Race time saved successfully!';
+                }
             }
         },
 

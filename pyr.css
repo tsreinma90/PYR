@@ -115,3 +115,34 @@
     margin: 0 auto;
     border-radius: 4px;
 }
+
+.hidden {
+    display: none;
+}
+
+.icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: #2563eb; /* Tailwind's blue-600 */
+    border-radius: 50%;
+    color: white;
+    transition: background-color 0.2s ease;
+}
+
+.icon-button:hover {
+    background-color: #1d4ed8; /* Tailwind's blue-700 */
+}
+
+.icon-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Add spacing between input and button */
+}
