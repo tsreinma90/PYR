@@ -52,20 +52,35 @@
                     <br />
                     <div class="goal-selection mb-4">
                         <label class="inline-flex items-center mr-4">
-                            <input type="radio" name="trainingGoal" value="just_finish" class="form-radio text-blue-600"
-                                @change="handleGoalChange($event)" />
+                            <input 
+                                type="radio" 
+                                name="trainingGoal"
+                                value="just_finish" 
+                                class="form-radio text-blue-600"
+                                @change="handleGoalChange($event)" 
+                                :disabled="!selectedRaceDistance"/>
                             <span class="ml-2 text-white">Just Finish</span>
                         </label>
                         <br />
                         <label class="inline-flex items-center mr-4">
-                            <input type="radio" name="trainingGoal" value="build_endurance" class="form-radio text-blue-600"
-                                @change="handleGoalChange($event)" />
+                            <input 
+                                type="radio"
+                                name="trainingGoal"
+                                value="build_endurance" 
+                                class="form-radio text-blue-600"
+                                @change="handleGoalChange($event)"
+                                :disabled="!selectedRaceDistance"/>
                             <span class="ml-2 text-white">Build Endurance</span>
                         </label>
                         <br />
                         <label class="inline-flex items-center mr-4">
-                            <input type="radio" name="trainingGoal" value="specific_time_goal" class="form-radio text-blue-600"
-                                @change="handleGoalChange($event)" />
+                            <input 
+                                type="radio" 
+                                name="trainingGoal" 
+                                value="specific_time_goal" 
+                                class="form-radio text-blue-600"
+                                @change="handleGoalChange($event)"
+                                :disabled="!selectedRaceDistance"/>
                             <span class="ml-2 text-white">Hit a Specific Time Goal</span>
                         </label>
                     </div>

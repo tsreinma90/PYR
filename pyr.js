@@ -369,8 +369,8 @@ function sharedState() {
                 const timeLimits = {
                     '5k': { min: '00:12:00', max: '01:30:00' },
                     '10k': { min: '00:25:00', max: '02:30:00' },
-                    'Half Marathon': { min: '01:00:00', max: '04:00:00' },
-                    'Marathon': { min: '02:00:00', max: '06:00:00' },
+                    'half-marathon': { min: '01:00:00', max: '04:00:00' },
+                    'marathon': { min: '02:00:00', max: '06:00:00' },
                 };
 
                 const { min, max } = timeLimits[this.selectedRaceDistance] || {};
