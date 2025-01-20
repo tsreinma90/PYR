@@ -223,12 +223,12 @@ function sharedState() {
         selectedRaceDistance: '',
         selectedTimeframe: '',
         raceDate: '',
-        selectedExperienceLevel: '',
         selectedGoal: '',
+        selectedExperienceLevel: '',
         errors: {}, 
         formData: {
             weeklyMileage: '',
-            raceTime: '',
+            raceTime: ''
         },
         confirmation: {},
 
@@ -361,10 +361,10 @@ function sharedState() {
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
             this.confirmation[fieldName] = ''; // Clear existing confirmations
-
+        
             if (fieldName === 'raceTime') {
                 const time = this.formData.raceTime;
-
+        
                 // Define min/max times based on the selected race distance
                 const timeLimits = {
                     '5k': { min: '00:12:00', max: '01:30:00' },
@@ -372,16 +372,16 @@ function sharedState() {
                     'half-marathon': { min: '01:00:00', max: '04:00:00' },
                     'marathon': { min: '02:00:00', max: '06:00:00' },
                 };
-
+        
                 const { min, max } = timeLimits[this.selectedRaceDistance] || {};
-
+        
                 // Validate time format (hh:mm:ss or mm:ss)
                 const timeRegex = /^(\d{1,2}:\d{2}(:\d{2})?)$/;
                 if (!time || !timeRegex.test(time)) {
                     this.errors.raceTime = 'Please enter a valid race time (e.g., 12:00 or 1:30:00).';
                     return;
                 }
-
+        
                 // Convert time strings to seconds for comparison
                 const toSeconds = (timeString) => {
                     const parts = timeString.split(':').map(Number);
@@ -396,11 +396,11 @@ function sharedState() {
                     }
                     return 0;
                 };
-
+        
                 const inputSeconds = toSeconds(time);
                 const minSeconds = min ? toSeconds(min) : null;
                 const maxSeconds = max ? toSeconds(max) : null;
-
+        
                 // Validate range
                 if (minSeconds !== null && inputSeconds < minSeconds) {
                     this.errors.raceTime = `Time must be at least ${min.replace(/^00:/, '')}.`;
@@ -410,8 +410,23 @@ function sharedState() {
                     this.confirmation.raceTime = 'Race time saved successfully!';
                 }
             }
+        
+            if (fieldName === 'weeklyMileage') {
+                const mileage = parseInt(this.formData.weeklyMileage, 10);
+        
+                // Validate mileage input
+                if (!mileage || isNaN(mileage) || mileage <= 0) {
+                    this.errors.weeklyMileage = 'Please enter a valid number greater than 0.';
+                } else if (mileage < 10) {
+                    this.errors.weeklyMileage = 'Mileage must be at least 10 miles per week.';
+                } else if (mileage > 130) {
+                    this.errors.weeklyMileage = 'Mileage cannot exceed 130 miles per week.';
+                } else {
+                    this.confirmation.weeklyMileage = 'Mileage saved successfully!';
+                }
+            }
         },
-
+        
         // not being used currently.
         /* editableTable() {
             const self = this;
