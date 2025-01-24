@@ -15,8 +15,9 @@
                         <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
                             Race Distance
                         </label>
-                        <select id="raceDistance" x-model="selectedRaceDistance"
-                            class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
+                        <select id="raceDistance" 
+                                x-model="selectedRaceDistance"
+                                class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
                             <option value="" disabled>Select a distance</option>
                             <template x-for="option in raceDistanceOptions" :key="option.value">
                                 <option :value="option.value" x-text="option.label"></option>
@@ -29,16 +30,19 @@
                             class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
                             Race Date
                         </label>
-                        <input type="date" id="raceDate" x-model="raceDate"
-                            class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none">
+                        <input type="date" 
+                               id="raceDate" 
+                               x-model="raceDate"
+                               class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none">
+                        </input>
                     </div>
                     <br />
                     <div>
-                        <label for="raceDate"
+                        <label for="timeframe"
                             class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
                             Training Block
                         </label>
-                        <select id="raceDate" x-model="selectedTimeframe"
+                        <select id="timeframe" x-model="selectedTimeframe"
                             class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
                             <option value="" disabled>Select a time block</option>
                             <template x-for="option in raceDateOptions" :key="option.value">
@@ -62,9 +66,9 @@
                         <input 
                             type="radio" 
                             name="planType" 
-                            value="beginner" 
+                            value="low" 
                             class="form-radio text-blue-600" 
-                            @change="selectPlan('beginner')"
+                            x-model="selectedWeeklyMileage"
                         />
                         <span class="block text-sm font-medium text-white">Low</span>
                         <span class="text-xs text-gray-400 mt-1">(10–30 mi/wk)</span>
@@ -75,9 +79,9 @@
                         <input 
                             type="radio" 
                             name="planType" 
-                            value="intermediate" 
+                            value="medium" 
                             class="form-radio text-blue-600" 
-                            @change="selectPlan('intermediate')"
+                            x-model="selectedWeeklyMileage"
                         />
                         <span class="block text-sm font-medium text-white">Medium</span>
                         <span class="text-xs text-gray-400 mt-1">(30–60 mi/wk)</span>
@@ -88,9 +92,9 @@
                         <input 
                             type="radio" 
                             name="planType" 
-                            value="advanced" 
+                            value="high" 
                             class="form-radio text-blue-600" 
-                            @change="selectPlan('advanced')"
+                            x-model="selectedWeeklyMileage"
                         />
                         <span class="block text-sm font-medium text-white">High</span>
                         <span class="text-xs text-gray-400 mt-1">(60–90+ mi/wk)</span>

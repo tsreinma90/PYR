@@ -224,7 +224,7 @@ function sharedState() {
         selectedTimeframe: '',
         raceDate: '',
         selectedGoal: '',
-        selectedExperienceLevel: '',
+        selectedWeeklyMileage: '',
         errors: {}, 
         formData: {
             weeklyMileage: '',
@@ -323,7 +323,7 @@ function sharedState() {
         // plans are filtered based on the selections made by user
         filterPlans() {
             this.filteredPlans = this.plans.filter(
-                (plan) => plan.race === this.selectedRaceDistance && plan.level === this.selectedExperienceLevel
+                (plan) => plan.race === this.selectedRaceDistance && plan.level === this.selectedWeeklyMileage
             );
         },
         
@@ -379,6 +379,7 @@ function sharedState() {
                 const timeRegex = /^(\d{1,2}:\d{2}(:\d{2})?)$/;
                 if (!time || !timeRegex.test(time)) {
                     this.errors.raceTime = 'Please enter a valid race time (e.g., 12:00 or 1:30:00).';
+                    this.selectedGoal = null;
                     return;
                 }
         
@@ -404,8 +405,10 @@ function sharedState() {
                 // Validate range
                 if (minSeconds !== null && inputSeconds < minSeconds) {
                     this.errors.raceTime = `Time must be at least ${min.replace(/^00:/, '')}.`;
+                    this.selectedGoal = null;
                 } else if (maxSeconds !== null && inputSeconds > maxSeconds) {
                     this.errors.raceTime = `Time cannot exceed ${max.replace(/^00:/, '')}.`;
+                    this.selectedGoal = null;
                 } else {
                     this.confirmation.raceTime = 'Race time saved successfully!';
                 }
@@ -417,10 +420,13 @@ function sharedState() {
                 // Validate mileage input
                 if (!mileage || isNaN(mileage) || mileage <= 0) {
                     this.errors.weeklyMileage = 'Please enter a valid number greater than 0.';
+                    this.selectedWeeklyMileage = null;
                 } else if (mileage < 10) {
                     this.errors.weeklyMileage = 'Mileage must be at least 10 miles per week.';
+                    this.selectedWeeklyMileage = null;
                 } else if (mileage > 130) {
                     this.errors.weeklyMileage = 'Mileage cannot exceed 130 miles per week.';
+                    this.selectedWeeklyMileage = null;
                 } else {
                     this.confirmation.weeklyMileage = 'Mileage saved successfully!';
                 }
