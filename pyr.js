@@ -30,39 +30,39 @@ const PLAN_LENGTH_OPTIONS = [
     { label: '20 Week Training Plan', value: 20 },
 ];
 
-const TRAINING_PLANS = [
+/* const TRAINING_PLANS = [
     { id: 1, name: '5K Beginner Plan', description: 'Perfect for new runners aiming to complete their first 5K.', race: '5K', level: 'Beginner' },
     { id: 2, name: '5K Intermediate Plan', description: 'For experienced runners improving their 5K time.', race: '5K', level: 'Intermediate' },
     { id: 3, name: '10K Beginner Plan', description: 'Great for runners tackling their first 10K.', race: '10K', level: 'Beginner' },
     { id: 4, name: '10K Advanced Plan', description: 'Push your limits and achieve a PR.', race: '10K', level: 'Advanced' },
-];
+]; */
 
 // 0 = rest, 1 = easy, 2 = tempo, 3 = speed, 4 = long
-const PLANS = new Map([
+/* const PLANS = new Map([
     ['beginner', [1, 1, 0, 1, 0, 4, 1]],
     ['intermediate', [1, 2, 1, 3, 0, 4, 1]],
     ['advanced', [1, 2, 1, 3, 1, 4, 1]]
-]);
+]); */
 
-const WORKOUT_INDEX_MAP = new Map([
+/* const WORKOUT_INDEX_MAP = new Map([
     [0, 'Rest'],
     [1, 'Easy'],
     [2, 'Tempo'],
     [3, 'Speed'],
     [4, 'Long']
-]);
+]); */
 
 window.addEventListener("load", function () {
     setTimeout(function () {
-        configureSlider(null);
+        // configureSlider(null);
         // preventRightClickOnPage();
     }, 0);
 });
 
-let init = false;
-let activeSliderListeners = [];
+// let init = false;
+// let activeSliderListeners = [];
 
-function configureSlider(details) {
+/* function configureSlider(details) {
     var weeklyMileageSlider = document.getElementById("weeklyMileageSlider");
     var workoutPercentSlider = document.getElementById("workoutPercentSlider");
 
@@ -122,9 +122,9 @@ function configureSlider(details) {
 
         activeSliderListeners.push(sliderUpdate);
     }
-}
+} */
 
-function updateSliderLegend(details, values, handle) {
+/* function updateSliderLegend(details, values, handle) {
     const selectedWorkouts = details["classes"];
     const numSelections = values.length;
     const oneHundred =
@@ -187,7 +187,7 @@ function updateSliderLegend(details, values, handle) {
                 return null;
         }
     }
-}
+} */
 
 function calculateDefaults(selectedWorkouts) {
     const conditions = {
@@ -217,7 +217,7 @@ function sharedState() {
         daysOfWeek: DAYS_OF_WEEK,
         raceDistanceOptions: DISTANCE_OPTIONS,
         raceDateOptions: PLAN_LENGTH_OPTIONS,
-        plans: TRAINING_PLANS,
+        // plans: TRAINING_PLANS,
 
         // selections made by the user
         selectedRaceDistance: '',
@@ -231,6 +231,12 @@ function sharedState() {
             raceTime: ''
         },
         confirmation: {},
+        currentTab: 'Calendar',
+        tabs: [
+            //{ name: 'Overview' },
+            { name: 'Calendar' },
+            { name: 'Training Load Summary' }
+        ],
 
         // master-list of all workouts
         currentWorkouts: [
@@ -272,15 +278,15 @@ function sharedState() {
         ],    
 
         // used for controlling which knobs and defaults are displayed on the slider
-        uniqueWorkoutTracker: {
+        /* uniqueWorkoutTracker: {
             Rest: 0,
             Easy: 0,
             Tempo: 0,
             Speed: 0,
             Long: 0
-        },
+        }, */
 
-        handleWorkoutSelection(addSelection, selection) {
+        /* handleWorkoutSelection(addSelection, selection) {
             if (addSelection) {
                 this.uniqueWorkoutTracker[selection] += 1;
                 const sliderPresets = calculateDefaults(this.uniqueWorkoutTracker);
@@ -289,9 +295,9 @@ function sharedState() {
                 if (this.uniqueWorkoutTracker[selection] > 0)
                     this.uniqueWorkoutTracker[selection] -= 1;
             }
-        },
+        }, */
 
-        trainingPlanTabs() {
+        /*  trainingPlanTabs() {
             return {
                 selectedTab: 'Pre-Made',
                 openModal: false,
@@ -318,29 +324,17 @@ function sharedState() {
                     alert(`You selected: ${plan.name}`);
                 },
             };
-        },
+        }, */
 
         // plans are filtered based on the selections made by user
-        filterPlans() {
+        /* filterPlans() {
             this.filteredPlans = this.plans.filter(
                 (plan) => plan.race === this.selectedRaceDistance && plan.level === this.selectedWeeklyMileage
             );
-        },
+        }, */
         
-        // the available tabs user has access to
-        tabsComponent() {
-            return {
-                // Initialize the tabs data
-                currentTab: 'Calendar',
-                tabs: [
-                    //{ name: 'Overview' },
-                    { name: 'Calendar' },
-                    { name: 'Training Load Summary' }
-                ],
-            }
-        },
-
-        handleGoalChange(event) {
+    
+        /* handleGoalChange(event) {
             this.selectedGoal = event.target.value;
 
             // Hide all inputs initially
@@ -356,7 +350,7 @@ function sharedState() {
 
             // Clear errors when switching goals
             this.errors = {};
-        },
+        }, */
 
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
@@ -583,7 +577,7 @@ function sharedState() {
             };
         },
         
-        mapWorkoutsToWeeks() {
+        /* mapWorkoutsToWeeks() {
             const weeks = [];
             const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         
@@ -614,9 +608,9 @@ function sharedState() {
             }
         
             return weeks;
-        },
+        }, */
 
-        updateWorkoutsFromWeeks(weeks) {
+        /* updateWorkoutsFromWeeks(weeks) {
             const flatWorkouts = [];
             const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
         
@@ -637,6 +631,6 @@ function sharedState() {
             });
         
             this.currentWorkouts = flatWorkouts;
-        }
+        } */
     };
 }
