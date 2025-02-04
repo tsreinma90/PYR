@@ -240,43 +240,15 @@ function sharedState() {
 
         // master-list of all workouts
         currentWorkouts: [
-            // Week 1
-            { date: "2025-01-05", title: "Rest day", notes: "Take it easy.", theme: "red" },
-            { date: "2025-01-06", title: "5 miles easy run", notes: "Focus on breathing and steady pace.", theme: "blue" },
-            { date: "2025-01-07", title: "4 miles tempo run", notes: "Warm-up: 1 mile\nTempo: 2 miles @ 8:00 min/mile\nCool-down: 1 mile", theme: "blue" },
-            { date: "2025-01-08", title: "5 miles recovery run", notes: "Keep heart rate low.", theme: "green" },
-            { date: "2025-01-09", title: "Rest day", notes: "Optional yoga or light stretching.", theme: "red" },
-            { date: "2025-01-10", title: "7 miles long run", notes: "Progressive pace, finish strong.", theme: "blue" },
-            { date: "2025-01-11", title: "8 miles trail run", notes: "Practice uphill strides.", theme: "purple" },
-        
-            // Week 2
-            { date: "2025-01-12", title: "4 miles recovery run", notes: "Slow pace, enjoy the scenery.", theme: "green" },
-            { date: "2025-01-13", title: "6 miles interval run", notes: "Warm-up: 1 mile\n5x800m @ 7:30 min/mile\nCool-down: 1 mile", theme: "blue" },
-            { date: "2025-01-14", title: "4 miles easy run", notes: "Relaxed pace, focus on form.", theme: "blue" },
-            { date: "2025-01-15", title: "Cross-training", notes: "30 minutes cycling or swimming.", theme: "yellow" },
-            { date: "2025-01-16", title: "5 miles tempo run", notes: "Warm-up: 1 mile\nTempo: 3 miles @ 7:45 min/mile\nCool-down: 1 mile", theme: "blue" },
-            { date: "2025-01-17", title: "Rest day", notes: "Focus on hydration and nutrition.", theme: "red" },
-            { date: "2025-01-18", title: "10 miles long run", notes: "Easy pace, conversational effort.", theme: "blue" },
-        
-            // Week 3
-            { date: "2025-01-19", title: "4 miles recovery run", notes: "Shake out the legs, stay loose.", theme: "green" },
-            { date: "2025-01-20", title: "5 miles easy run", notes: "Steady pace, focus on cadence.", theme: "blue" },
-            { date: "2025-01-21", title: "5 miles hill repeats", notes: "5x200m uphill strides.", theme: "purple" },
-            { date: "2025-01-22", title: "Cross-training", notes: "45 minutes swimming.", theme: "yellow" },
-            { date: "2025-01-23", title: "Rest day", notes: "Stretch and foam roll.", theme: "red" },
-            { date: "2025-01-24", title: "8 miles tempo run", notes: "Warm-up: 2 miles\nTempo: 4 miles @ 7:40 min/mile\nCool-down: 2 miles", theme: "blue" },
-            { date: "2025-01-25", title: "12 miles long run", notes: "Pace evenly, finish strong.", theme: "blue" },
-        
-            // Week 4
-            { date: "2025-01-26", title: "3 miles recovery run", notes: "Very slow pace, enjoy the run.", theme: "green" },
-            { date: "2025-01-27", title: "4 miles easy run", notes: "Relax and keep it light.", theme: "blue" },
-            { date: "2025-01-28", title: "6 miles intervals", notes: "6x400m @ 7:00 min/mile pace.", theme: "blue" },
-            { date: "2025-01-29", title: "Rest day", notes: "Catch up on rest and hydrate.", theme: "red" },
-            { date: "2025-01-30", title: "Cross-training", notes: "45 minutes cycling or rowing.", theme: "yellow" },
-            { date: "2025-01-31", title: "10 miles tempo run", notes: "Warm-up: 2 miles\nTempo: 6 miles @ 7:30 min/mile\nCool-down: 2 miles", theme: "blue" },
-            { date: "2025-02-01", title: "15 miles long run", notes: "Last long run before tapering.", theme: "blue" },
-        ],    
-
+            { date: "2025-01-05", title: "Rest day", notes: "Take it easy.", theme: "red", event_type: "" },
+            { date: "2025-01-06", title: "5 miles easy run", notes: "Focus on breathing and steady pace.", theme: "blue", event_type: "" },
+            { date: "2025-01-07", title: "4 miles tempo run", notes: "Warm-up: 1 mile\nTempo: 2 miles @ 8:00 min/mile\nCool-down: 1 mile", theme: "blue", event_type: "" },
+            { date: "2025-01-08", title: "5 miles recovery run", notes: "Keep heart rate low.", theme: "green", event_type: "" },
+            { date: "2025-01-09", title: "Rest day", notes: "Optional yoga or light stretching.", theme: "red", event_type: "" },
+            { date: "2025-01-10", title: "7 miles long run", notes: "Progressive pace, finish strong.", theme: "blue", event_type: "" },
+            { date: "2025-01-11", title: "8 miles trail run", notes: "Practice uphill strides.", theme: "purple", event_type: "" }
+        ],
+            
         // used for controlling which knobs and defaults are displayed on the slider
         /* uniqueWorkoutTracker: {
             Rest: 0,
@@ -482,6 +454,7 @@ function sharedState() {
                         event_title: workout.title,
                         event_notes: workout.notes,
                         event_theme: workout.theme,
+                        event_type: workout.event_type
                     }));
                 },
         
@@ -551,25 +524,27 @@ function sharedState() {
                     const index = self.currentWorkouts.findIndex(
                         (e) => new Date(e.date).toDateString() === eventDate
                     );
-        
+                
                     if (index !== -1) {
-                        // Update existing event in both `workouts` and `currentWorkouts`
+                        // Update existing event
                         self.currentWorkouts[index] = {
                             date: this.eventToEdit.event_date,
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
                             theme: this.eventToEdit.event_theme,
+                            event_type: this.eventToEdit.event_type, // Include event type
                         };
                     } else {
-                        // Add new event to both `workouts` and `currentWorkouts`
+                        // Add new event
                         self.currentWorkouts.push({
                             date: this.eventToEdit.event_date,
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
                             theme: this.eventToEdit.event_theme,
+                            event_type: this.eventToEdit.event_type, // Include event type
                         });
                     }
-        
+                
                     // Reload workouts for the calendar view
                     this.loadWorkouts();
                     this.isModalOpen = false;

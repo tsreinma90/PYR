@@ -30,11 +30,15 @@
                             class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
                             Race Date
                         </label>
-                        <input type="date" 
-                               id="raceDate" 
-                               x-model="raceDate"
-                               class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none">
-                        </input>
+                        <div class="input-container" style="display: flex; align-items: center; gap: 8px; height: 40px;">
+                            <input type="date" 
+                                   id="raceDate" 
+                                   x-model="raceDate"
+                                   x-effect="if(raceDate) { validateField('raceDate') }"
+                                   class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none">
+                            </input>
+                        </div>
+                        <p class="text-red-500 text-sm mt-1" x-show="errors.raceTime" x-text="errors.raceTime"></p>
                     </div>
                     <br />
                     <div>
@@ -113,20 +117,12 @@
                                 class="flex-1 block w-full rounded-md bg-gray-700 text-white border-gray-600 px-3 py-2"
                                 placeholder="e.g., 1:30:00" 
                                 x-model="formData.raceTime" 
+                                x-effect="if(formData.raceTime) { validateField('raceTime') }"
+                                :disabled="!selectedRaceDistance"
                                 style="height: 100%;" 
                             />
-                            <button 
-                                class="icon-button" 
-                                style="display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; background-color: #2563eb; border-radius: 50%; color: white; transition: background-color 0.2s ease;"
-                                @click="validateField('raceTime')"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" style="width: 16px; height: 16px;">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                                </svg>
-                            </button>
                         </div>
                         <p class="text-red-500 text-sm mt-1" x-show="errors.raceTime" x-text="errors.raceTime"></p>
-                        <p class="text-green-500 text-sm mt-1" x-show="confirmation.raceTime" x-text="confirmation.raceTime"></p>
                     </div>
                 </div>  
 
@@ -571,12 +567,26 @@
                                     <div x-show="isModalOpen"
                                         class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
                                         <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-                                            <h3 class="text-lg font-semibold text-white">Edit Event</h3>
+                                            <h3 class="text-lg font-semibold text-white">
+                                                Edit - <span x-text="new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(eventToEdit.event_date))"></span>
+                                            </h3>
+                                            
                                             <div class="mt-4">
                                                 <label class="block text-sm font-medium text-gray-300">Event
                                                     Title</label>
                                                 <input x-model="eventToEdit.event_title" type="text"
                                                     class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2" />
+                                            </div>
+                                            <div class="mt-4">
+                                                <label class="block text-sm font-medium text-gray-300">Event Type</label>
+                                                <select x-model="eventToEdit.event_type"
+                                                    class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2">
+                                                    <option value="">Select Event Type</option>
+                                                    <option value="easy_run">Easy Run</option>
+                                                    <option value="speed_workout">Speed Workout</option>
+                                                    <option value="long_run">Long Run</option>
+                                                    <option value="race">Race</option>
+                                                </select>
                                             </div>
                                             <div class="mt-4">
                                                 <label class="block text-sm font-medium text-gray-300">Notes</label>
