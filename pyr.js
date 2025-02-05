@@ -226,10 +226,8 @@ function sharedState() {
         selectedGoal: '',
         selectedWeeklyMileage: '',
         errors: {}, 
-        formData: {
-            weeklyMileage: '',
-            raceTime: ''
-        },
+        weeklyMileage: '',
+        raceTime: '',
         confirmation: {},
         currentTab: 'Calendar',
         tabs: [
@@ -327,9 +325,36 @@ function sharedState() {
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
             this.confirmation[fieldName] = ''; // Clear existing confirmations
+            
+            if (fieldName === 'raceDate') {
+                const raceDate = new Date(this.raceDate);
+                const today = new Date();
+                
+                // Ensure time is set to midnight for proper comparison
+                today.setHours(0, 0, 0, 0);
+                raceDate.setHours(0, 0, 0, 0);
         
-            if (fieldName === 'raceTime') {
-                const time = this.formData.raceTime;
+                // Calculate the min and max allowed race dates
+                const minRaceDate = new Date(today);
+                minRaceDate.setDate(today.getDate() + 56); // 8 weeks
+        
+                const maxRaceDate = new Date(today);
+                maxRaceDate.setDate(today.getDate() + 140); // 20 weeks
+                
+                // Validate race date
+                if (isNaN(raceDate.getTime())) {
+                    this.errors.raceDate = 'Please enter a valid race date.';
+                } else if (raceDate < minRaceDate) {
+                    this.errors.raceDate = `Race date must be at least 8 weeks from today (${minRaceDate.toLocaleDateString()}).`;
+                    console.log('too short');
+                } else if (raceDate > maxRaceDate) {
+                    this.errors.raceDate = `Race date cannot be more than 20 weeks from today (${maxRaceDate.toLocaleDateString()}).`;
+                    console.log('too long');
+                } else {
+                    this.confirmation.raceDate = 'Race date saved successfully!';
+                }
+            } else if (fieldName === 'raceTime') {
+                const time = this.raceTime;
         
                 // Define min/max times based on the selected race distance
                 const timeLimits = {
@@ -378,10 +403,8 @@ function sharedState() {
                 } else {
                     this.confirmation.raceTime = 'Race time saved successfully!';
                 }
-            }
-        
-            if (fieldName === 'weeklyMileage') {
-                const mileage = parseInt(this.formData.weeklyMileage, 10);
+            } else if (fieldName === 'weeklyMileage') {
+                const mileage = parseInt(this.weeklyMileage, 10);
         
                 // Validate mileage input
                 if (!mileage || isNaN(mileage) || mileage <= 0) {
