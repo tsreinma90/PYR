@@ -30,28 +30,6 @@ const PLAN_LENGTH_OPTIONS = [
     { label: '20 Week Training Plan', value: 20 },
 ];
 
-/* const TRAINING_PLANS = [
-    { id: 1, name: '5K Beginner Plan', description: 'Perfect for new runners aiming to complete their first 5K.', race: '5K', level: 'Beginner' },
-    { id: 2, name: '5K Intermediate Plan', description: 'For experienced runners improving their 5K time.', race: '5K', level: 'Intermediate' },
-    { id: 3, name: '10K Beginner Plan', description: 'Great for runners tackling their first 10K.', race: '10K', level: 'Beginner' },
-    { id: 4, name: '10K Advanced Plan', description: 'Push your limits and achieve a PR.', race: '10K', level: 'Advanced' },
-]; */
-
-// 0 = rest, 1 = easy, 2 = tempo, 3 = speed, 4 = long
-/* const PLANS = new Map([
-    ['beginner', [1, 1, 0, 1, 0, 4, 1]],
-    ['intermediate', [1, 2, 1, 3, 0, 4, 1]],
-    ['advanced', [1, 2, 1, 3, 1, 4, 1]]
-]); */
-
-/* const WORKOUT_INDEX_MAP = new Map([
-    [0, 'Rest'],
-    [1, 'Easy'],
-    [2, 'Tempo'],
-    [3, 'Speed'],
-    [4, 'Long']
-]); */
-
 window.addEventListener("load", function () {
     setTimeout(function () {
         // configureSlider(null);
@@ -124,70 +102,6 @@ window.addEventListener("load", function () {
     }
 } */
 
-/* function updateSliderLegend(details, values, handle) {
-    const selectedWorkouts = details["classes"];
-    const numSelections = values.length;
-    const oneHundred =
-        details["start"].length === 1 && details["start"][0] === 100 && selectedWorkouts.length > 0;
-
-    let legendMap = new Map();
-    legendMap.set('c-1-color', document.getElementById('easy'));
-    legendMap.set('c-2-color', document.getElementById('tempo'));
-    legendMap.set('c-3-color', document.getElementById('speed'));
-    legendMap.set('c-4-color', document.getElementById('long'));
-
-    let first = legendMap.get(selectedWorkouts[0]);
-    let second = legendMap.get(selectedWorkouts[1]);
-    let third = legendMap.get(selectedWorkouts[2]);
-    let fourth = legendMap.get(selectedWorkouts[3]);
-
-    for (const [key] of legendMap) {
-        if (!selectedWorkouts.includes(key)) {
-            legendMap.get(key).innerHTML = 0 + '%';
-        }
-    }
-
-    if (oneHundred) {
-        legendMap.get(selectedWorkouts[0]).innerHTML = 100 + '%';
-    } else if (selectedWorkouts.length) {
-        switch (numSelections) {
-            case 1:
-                first.innerHTML = Math.round(values[handle]) + '%';
-                second.innerHTML = Math.round(100 - values[handle]) + '%';
-                return null;
-
-            case 2:
-                if (handle === 0) {
-                    first.innerHTML = Math.round(values[handle]) + '%';
-                    second.innerHTML = Math.round(values[handle + 1] - values[handle]) + '%';
-                    return null;
-                } else if (handle === 1) {
-                    third.innerHTML = Math.round(100 - values[handle]) + '%';
-                    second.innerHTML = Math.round(100 - (Math.round(values[0]) + Math.round(100 - values[handle]))) + '%';
-                    return null;
-                }
-
-            case 3:
-                if (handle === 0) {
-                    first.innerHTML = Math.round(values[handle]) + '%';
-                    second.innerHTML = Math.round(values[handle + 1] - values[handle]) + '%';
-                    return null;
-
-                } else if (handle === 1) {
-                    second.innerHTML = Math.round(values[1] - values[0]) + '%';
-                    third.innerHTML = Math.round(values[2] - values[1]) + '%';
-                    return null;
-
-                } else if (handle === 2) {
-                    third.innerHTML = Math.round(values[2] - values[1]) + '%';
-                    fourth.innerHTML = Math.round(100 - (Math.round(values[0]) + Math.round(values[1] - values[0]) + Math.round(values[2] - values[1]))) + '%';
-                }
-
-            default:
-                return null;
-        }
-    }
-} */
 
 function calculateDefaults(selectedWorkouts) {
     const conditions = {
@@ -216,7 +130,6 @@ function sharedState() {
         // Constants
         daysOfWeek: DAYS_OF_WEEK,
         raceDistanceOptions: DISTANCE_OPTIONS,
-        //raceDateOptions: planLengthOptions(this.raceDate),//PLAN_LENGTH_OPTIONS,
 
         get raceDateOptions() {
             if (!this.raceDate) {
@@ -242,7 +155,6 @@ function sharedState() {
                 }
             }
         },
-        // plans: TRAINING_PLANS,
 
         // selections made by the user
         selectedRaceDistance: '',
@@ -271,81 +183,6 @@ function sharedState() {
             { date: "2025-01-10", title: "7 miles long run", notes: "Progressive pace, finish strong.", theme: "blue", event_type: "" },
             { date: "2025-01-11", title: "8 miles trail run", notes: "Practice uphill strides.", theme: "purple", event_type: "" }
         ],
-            
-        // used for controlling which knobs and defaults are displayed on the slider
-        /* uniqueWorkoutTracker: {
-            Rest: 0,
-            Easy: 0,
-            Tempo: 0,
-            Speed: 0,
-            Long: 0
-        }, */
-
-        /* handleWorkoutSelection(addSelection, selection) {
-            if (addSelection) {
-                this.uniqueWorkoutTracker[selection] += 1;
-                const sliderPresets = calculateDefaults(this.uniqueWorkoutTracker);
-                configureSlider(sliderPresets);
-            } else {
-                if (this.uniqueWorkoutTracker[selection] > 0)
-                    this.uniqueWorkoutTracker[selection] -= 1;
-            }
-        }, */
-
-        /*  trainingPlanTabs() {
-            return {
-                selectedTab: 'Pre-Made',
-                openModal: false,
-                raceType: '5K', // Example: dynamically set based on user input
-                skillLevel: 'Beginner', // Example: dynamically set based on user input
-                plans: [
-                    { id: 1, name: '5K Beginner Plan', description: 'Perfect for new runners aiming to complete their first 5K.', race: '5K', level: 'Beginner' },
-                    { id: 2, name: '5K Intermediate Plan', description: 'For experienced runners improving their 5K time.', race: '5K', level: 'Intermediate' },
-                    { id: 3, name: '10K Beginner Plan', description: 'Great for runners tackling their first 10K.', race: '10K', level: 'Beginner' },
-                    { id: 4, name: '10K Advanced Plan', description: 'Push your limits and achieve a PR.', race: '10K', level: 'Advanced' },
-                    // Add more plans here...
-                ],
-                filteredPlans: [],
-
-                // Methods
-                selectTab(tab) {
-                    this.selectedTab = tab;
-                    this.filterPlans();
-                },
-                filterPlans() {
-                    this.filteredPlans = this.plans.filter(plan => plan.race === this.raceType && plan.level === this.skillLevel);
-                },
-                selectPlan(plan) {
-                    alert(`You selected: ${plan.name}`);
-                },
-            };
-        }, */
-
-        // plans are filtered based on the selections made by user
-        /* filterPlans() {
-            this.filteredPlans = this.plans.filter(
-                (plan) => plan.race === this.selectedRaceDistance && plan.level === this.selectedWeeklyMileage
-            );
-        }, */
-        
-    
-        /* handleGoalChange(event) {
-            this.selectedGoal = event.target.value;
-
-            // Hide all inputs initially
-            document.querySelectorAll('.conditional-input').forEach((input) => {
-                input.classList.add('hidden');
-            });
-
-            // Show the relevant input for the selected goal
-            const targetInput = document.querySelector(`#input-${this.selectedGoal}`);
-            if (targetInput) {
-                targetInput.classList.remove('hidden');
-            }
-
-            // Clear errors when switching goals
-            this.errors = {};
-        }, */
 
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
@@ -599,61 +436,5 @@ function sharedState() {
                 },
             };
         },
-        
-        /* mapWorkoutsToWeeks() {
-            const weeks = [];
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        
-            // Align to the nearest Sunday for the first week
-            let currentStartDate = new Date(this.currentWorkouts[0]?.date);
-            currentStartDate.setDate(currentStartDate.getDate() - currentStartDate.getDay()); // Adjust to the nearest Sunday
-        
-            let currentWeek = {};
-        
-            this.currentWorkouts.forEach((workout) => {
-                const workoutDate = new Date(workout.date);
-                const dayName = days[workoutDate.getDay()];
-        
-                // Check if the workout falls within the current week
-                if (workoutDate - currentStartDate >= 7 * 24 * 60 * 60 * 1000) {
-                    weeks.push(currentWeek);
-                    currentWeek = {};
-                    currentStartDate.setDate(currentStartDate.getDate() + 7); // Move to the next Sunday
-                }
-        
-                // Add the workout to the current week
-                currentWeek[dayName] = `${workout.title}\n${workout.notes}`;
-            });
-        
-            // Push the last week if it has data
-            if (Object.keys(currentWeek).length) {
-                weeks.push(currentWeek);
-            }
-        
-            return weeks;
-        }, */
-
-        /* updateWorkoutsFromWeeks(weeks) {
-            const flatWorkouts = [];
-            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-        
-            weeks.forEach((week, weekIndex) => {
-                days.forEach((day, dayIndex) => {
-                    if (week[day]) {
-                        const [title, ...notes] = week[day].split('\n');
-                        const workoutDate = new Date(2025, 0, weekIndex * 7 + dayIndex + 1).toISOString().split("T")[0];
-        
-                        flatWorkouts.push({
-                            date: workoutDate,
-                            title: title.trim(),
-                            notes: notes.join('\n').trim(),
-                            theme: title.toLowerCase().includes("rest") ? "red" : "blue", // Example logic
-                        });
-                    }
-                });
-            });
-        
-            this.currentWorkouts = flatWorkouts;
-        } */
     };
 }
