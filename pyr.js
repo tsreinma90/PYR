@@ -216,7 +216,32 @@ function sharedState() {
         // Constants
         daysOfWeek: DAYS_OF_WEEK,
         raceDistanceOptions: DISTANCE_OPTIONS,
-        raceDateOptions: PLAN_LENGTH_OPTIONS,
+        //raceDateOptions: planLengthOptions(this.raceDate),//PLAN_LENGTH_OPTIONS,
+
+        get raceDateOptions() {
+            if (!this.raceDate) {
+                return PLAN_LENGTH_OPTIONS; // Show all options when no race date is selected
+            } else {
+                const today = new Date();
+                const raceDay = new Date(this.raceDate);
+                const weeksUntilRace = Math.floor((raceDay - today) / (1000 * 60 * 60 * 24 * 7)); // Convert ms to weeks
+        
+                // Define the cutoffs for each training plan
+                if (weeksUntilRace < 10) {
+                    return PLAN_LENGTH_OPTIONS.filter(option => option.value === 8);
+                } else if (weeksUntilRace < 12) {
+                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 10);
+                } else if (weeksUntilRace < 14) {
+                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 12);
+                } else if (weeksUntilRace < 16) {
+                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 14);
+                } else if (weeksUntilRace <= 20) {
+                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 16);
+                } else {
+                    return PLAN_LENGTH_OPTIONS; // Show all options if race is 20+ weeks away
+                }
+            }
+        },
         // plans: TRAINING_PLANS,
 
         // selections made by the user
