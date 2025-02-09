@@ -35,6 +35,16 @@
     cursor: pointer;
 }
 
+/* Change the filled part of the slider */
+/* Change the slider track color */
+#weeklyMileageSlider .noUi-base {
+    background: #ccc; /* Change this to any color you want */
+}
+
+#weeklyMileageSlider .noUi-connect {
+    background: #2e5bc4 !important; /* Green color, change as needed */
+}
+
 .c-1-color {
     background: linear-gradient(to right, rgb(169, 169, 240), rgb(159, 228, 159)) !important;
 }

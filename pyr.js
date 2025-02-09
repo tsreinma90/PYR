@@ -32,76 +32,55 @@ const PLAN_LENGTH_OPTIONS = [
 
 window.addEventListener("load", function () {
     setTimeout(function () {
-        // configureSlider(null);
+        configureSlider();
         // preventRightClickOnPage();
     }, 0);
 });
 
-// let init = false;
-// let activeSliderListeners = [];
+let init = false;
 
-/* function configureSlider(details) {
-    var weeklyMileageSlider = document.getElementById("weeklyMileageSlider");
-    var workoutPercentSlider = document.getElementById("workoutPercentSlider");
-
-    if (!details && !init) {
-        init = true;
-        let valuesForSlider = [];
-        const format = {
-            to: function (value) {
-                return valuesForSlider[Math.round(value)];
-            },
-            from: function (value) {
-                return valuesForSlider.indexOf(Number(value));
-            }
-        };
-
-        for (let i = 0; i < 100; i++) {
-            valuesForSlider.push(i);
-        }
-
-        noUiSlider.create(weeklyMileageSlider, {
-            start: [20],
-            connect: [true, true],
-            tooltips: true,
-            format: format,
-            range: {
-                min: [1],
-                max: [100]
-            }
-        });
-
-        noUiSlider.create(workoutPercentSlider, {
-            start: [100],
-            connect: [true, true],
-            range: { min: [0], max: [100] },
-            disabled: true
-        });
-
-        let connect = workoutPercentSlider.querySelectorAll(".noUi-connect");
-        connect[0].classList.add("c-1-color");
-    } else if (details) {
-        workoutPercentSlider.noUiSlider.off('update', activeSliderListeners[0]);
-        workoutPercentSlider.noUiSlider.destroy();
-
-        noUiSlider.create(workoutPercentSlider, details);
-        details.disabled === true
-            ? workoutPercentSlider.noUiSlider.disable()
-            : workoutPercentSlider.noUiSlider.enable();
-
-        let connect = workoutPercentSlider.querySelectorAll(".noUi-connect");
-        details.classes.forEach((className, i) => {
-            connect[i].classList.add(className);
-        });
-
-        const sliderUpdate = workoutPercentSlider.noUiSlider.on('update', function (values, handle) {
-            updateSliderLegend(details, values, handle);
-        });
-
-        activeSliderListeners.push(sliderUpdate);
+function configureSlider() {
+    const weeklyMileageSlider = document.getElementById("weeklyMileageSlider");
+    if (!weeklyMileageSlider) {
+        console.error("Slider element not found!");
+        return;
     }
-} */
 
+    // Destroy existing slider instance if it exists
+    if (weeklyMileageSlider.noUiSlider) {
+        weeklyMileageSlider.noUiSlider.destroy();
+    }
+
+    // Generate pace values from 4:00 to 13:00 (5-second increments)
+    const paceValues = Array.from({ length: ((13 - 4) * 60) / 5 + 1 }, (_, i) => {
+        const totalSeconds = (4 * 60) + (i * 5);
+        const minutes = Math.floor(totalSeconds / 60);
+        const seconds = (totalSeconds % 60).toString().padStart(2, "0");
+        return `${minutes}:${seconds}`;
+    });
+
+    const paceFormat = {
+        to: value => paceValues[Math.round(value)],
+        from: value => paceValues.indexOf(value)
+    };
+
+    noUiSlider.create(weeklyMileageSlider, {
+        start: [paceValues.indexOf("9:00")], // Default to 9:00 min/mile
+        connect: [true, true],
+        tooltips: [{ to: paceFormat.to, from: paceFormat.from }],
+        format: paceFormat,
+        range: { min: 0, max: paceValues.length - 1 },
+        step: 1
+    });
+
+    // Ensure it sets correctly to 9:00
+    weeklyMileageSlider.noUiSlider.set(paceValues.indexOf("9:00"));
+
+    // Move tooltip below slider
+    document.querySelectorAll(".noUi-tooltip").forEach(tooltip => {
+        tooltip.style.bottom = "-40px"; // Adjust this value as needed
+    });
+}
 
 function calculateDefaults(selectedWorkouts) {
     const conditions = {
