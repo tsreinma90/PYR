@@ -60,10 +60,17 @@ function configureSlider() {
     });
 
     const paceFormat = {
-        to: value => paceValues[Math.round(value)],
-        from: value => paceValues.indexOf(value)
+        to: value => {
+            const roundedIndex = Math.round(value);
+            return paceValues[roundedIndex] || paceValues[0]; // Ensure it's in range
+        },
+        from: value => {
+            const index = paceValues.indexOf(value);
+            return index >= 0 ? index : 0;
+        }
     };
-
+    console.log('***', paceValues);
+    console.log('***', "Index of 9:00:", paceValues.indexOf("9:00"));
     noUiSlider.create(weeklyMileageSlider, {
         start: [paceValues.indexOf("9:00")], // Default to 9:00 min/mile
         connect: [true, true],
@@ -74,11 +81,13 @@ function configureSlider() {
     });
 
     // Ensure it sets correctly to 9:00
-    weeklyMileageSlider.noUiSlider.set(paceValues.indexOf("9:00"));
+    const defaultPaceIndex = paceValues.indexOf("9:00");
+    weeklyMileageSlider.noUiSlider.set(defaultPaceIndex);
+    console.log('***', "Slider set to:", weeklyMileageSlider.noUiSlider.get());
 
     // Move tooltip below slider
     document.querySelectorAll(".noUi-tooltip").forEach(tooltip => {
-        tooltip.style.bottom = "-40px"; // Adjust this value as needed
+        tooltip.style.bottom = "-45px"; // Adjust this value as needed
     });
 }
 

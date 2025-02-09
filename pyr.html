@@ -108,10 +108,12 @@
 
                     <div id="input-specific_time_goal" class="conditional-input">
                         <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
-                            Speed Goal (race)
+                            Speed Goal (min per mile)
                             <span class="text-gray-500 text-sm" x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A'} - ${timeLimits[selectedRaceDistance]?.max || 'N/A'})`"></span>
                         </label>
-                        <div id="weeklyMileageSlider"></div>
+                        <div class="py-2">
+                            <div id="weeklyMileageSlider"></div>
+                        </div>
                         <!--<div class="input-container" style="display: flex; align-items: center; gap: 8px; height: 40px;">
                             <input 
                                 type="text" 
