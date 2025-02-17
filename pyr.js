@@ -33,8 +33,14 @@ const PLAN_LENGTH_OPTIONS = [
 window.addEventListener("load", function () {
     setTimeout(function () {
         configureSlider();
-        // preventRightClickOnPage();
-    }, 0);
+        const slider = document.getElementById("weeklyMileageSlider");
+
+        setTimeout(() => {
+            slider.noUiSlider.set(60);
+            slider.noUiSlider.fireEvent("change");
+            console.log("*** Manually triggered change, new value:", slider.noUiSlider.get());
+        }, 500);
+    });
 });
 
 let init = false;
@@ -56,7 +62,7 @@ function configureSlider() {
         const totalSeconds = (4 * 60) + (i * 5);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = (totalSeconds % 60).toString().padStart(2, "0");
-        return `${minutes}:${seconds}`;
+        return `${minutes}:${seconds} min/mi`;
     });
 
     const paceFormat = {
@@ -69,10 +75,9 @@ function configureSlider() {
             return index >= 0 ? index : 0;
         }
     };
-    console.log('***', paceValues);
-    console.log('***', "Index of 9:00:", paceValues.indexOf("9:00"));
+    
     noUiSlider.create(weeklyMileageSlider, {
-        start: [paceValues.indexOf("9:00")], // Default to 9:00 min/mile
+        start: [60],
         connect: [true, true],
         tooltips: [{ to: paceFormat.to, from: paceFormat.from }],
         format: paceFormat,
@@ -81,13 +86,24 @@ function configureSlider() {
     });
 
     // Ensure it sets correctly to 9:00
-    const defaultPaceIndex = paceValues.indexOf("9:00");
-    weeklyMileageSlider.noUiSlider.set(defaultPaceIndex);
-    console.log('***', "Slider set to:", weeklyMileageSlider.noUiSlider.get());
+    const defaultPaceIndex = paceValues.indexOf("9:00 min/mi");
+
 
     // Move tooltip below slider
     document.querySelectorAll(".noUi-tooltip").forEach(tooltip => {
         tooltip.style.bottom = "-45px"; // Adjust this value as needed
+    });
+
+    setTimeout(() => {
+        console.log("*** Trying to set slider to numeric index:", Number(defaultPaceIndex));
+        weeklyMileageSlider.noUiSlider.set(60);
+        console.log(weeklyMileageSlider.noUiSlider.get());
+    
+        setTimeout(() => {
+            weeklyMileageSlider.noUiSlider.set(60);
+            weeklyMileageSlider.dispatchEvent(new Event("change")); // Force UI update
+            console.log("*** After UI update, slider value is:", weeklyMileageSlider.noUiSlider.get());
+        }, 300);
     });
 }
 
