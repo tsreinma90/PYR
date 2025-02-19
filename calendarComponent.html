@@ -61,6 +61,15 @@
                                 <span class="flex items-center justify-between py-1 px-1">Training Summary</span>
                             </button>
 
+                            <button @click="toggleAIChatModal()" type="button"
+                                x-bind:disabled="workouts.length === 0"
+                                :class="{ 'opacity-50 cursor-not-allowed': workouts.length === 0 }"
+                                class="border rounded-lg py-2 px-3 min-w-[120px] text-center transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 items-center justify-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
+    class="w-6 h-6">
+                                <span class="whitespace-nowrap">Ask AI</span>
+                            </button>
+
                             <button type="button" style="min-height: 35px; min-width: 90px; margin-right: 10px;"
                                 class="border rounded-lg py-1 px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
                                 @click="deleteAllEvents()" x-bind:disabled="workouts.length === 0"
