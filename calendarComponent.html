@@ -44,8 +44,27 @@
                                     class="w-6 h-6 flex items-center justify-between">
                                     <path stroke-linecap="round" stroke-linejoin="round"
                                         d="M9.75 3.104v5.714a-->
-                                        <svg class="h-6 w-6 text-blue-700"  viewBox="0 0 24 24"  fill="none"  stroke="currentColor"  stroke-width="2"  stroke-linecap="round"  stroke-linejoin="round">  <polygon points="12 2 2 7 12 12 22 7 12 2" />  <polyline points="2 17 12 22 22 17" />  <polyline points="2 12 12 17 22 12" /></svg>
-                                &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Configure</span>
+                                <svg class="h-6 w-6 text-blue-700" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                    <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                                    <polyline points="2 17 12 22 22 17" />
+                                    <polyline points="2 12 12 17 22 12" />
+                                </svg>
+                                &nbsp;&nbsp; <span class="flex items-center justify-between py-1 px-1">Define
+                                    Schedule</span>
+                            </button>
+
+                            <button @click="toggleAIChatModal()" type="button" style="margin-right: 10px;"
+                                x-bind:disabled="workouts.length === 0"
+                                :class="{ 'opacity-50 cursor-not-allowed': workouts.length === 0 }"
+                                class="border rounded-lg py-1onclick px-1 leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                                    stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15.59 14.37a6 6 0 0 1-5.84 7.38v-4.8m5.84-2.58a14.98 14.98 0 0 0 6.16-12.12A14.98 14.98 0 0 0 9.631 8.41m5.96 5.96a14.926 14.926 0 0 1-5.841 2.58m-.119-8.54a6 6 0 0 0-7.381 5.84h4.8m2.581-5.84a14.927 14.927 0 0 0-2.58 5.84m2.699 2.7c-.103.021-.207.041-.311.06a15.09 15.09 0 0 1-2.448-2.448 14.9 14.9 0 0 1 .06-.312m-2.24 2.39a4.493 4.493 0 0 0-1.757 4.306 4.493 4.493 0 0 0 4.306-1.758M16.5 9a1.5 1.5 0 1 1-3 0 1.5 1.5 0 0 1 3 0Z" />
+                                </svg>
+
+                                <span class="flex items-center justify-between py-1 px-1">Ask AI</span>
                             </button>
 
                             <button @click="toggleWeeklySummaryModal()" type="button" style="margin-right: 10px;"
@@ -59,15 +78,6 @@
                                 </svg>
 
                                 <span class="flex items-center justify-between py-1 px-1">Training Summary</span>
-                            </button>
-
-                            <button @click="toggleAIChatModal()" type="button"
-                                x-bind:disabled="workouts.length === 0"
-                                :class="{ 'opacity-50 cursor-not-allowed': workouts.length === 0 }"
-                                class="border rounded-lg py-2 px-3 min-w-[120px] text-center transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 items-center justify-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" 
-    class="w-6 h-6">
-                                <span class="whitespace-nowrap">Ask AI</span>
                             </button>
 
                             <button type="button" style="min-height: 35px; min-width: 90px; margin-right: 10px;"
@@ -110,7 +120,8 @@
                             <div class="border rounded-lg px-1" style="padding-top: 2px;">
                                 <button type="button"
                                     class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex cursor-pointer hover:bg-gray-200 p-1 items-center"
-                                    @click="getNoOfDays(-1)"> <!--:class="{'cursor-not-allowed opacity-25': month == 0 }" :disabled="month == 0 ? true : false"-->
+                                    @click="getNoOfDays(-1)">
+                                    <!--:class="{'cursor-not-allowed opacity-25': month == 0 }" :disabled="month == 0 ? true : false"-->
                                     <svg class="h-6 w-6 text-gray-500 inline-flex leading-none" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -120,7 +131,8 @@
                                 <div class="border-r inline-flex h-6"></div>
                                 <button type="button"
                                     class="leading-none rounded-lg transition ease-in-out duration-100 inline-flex items-center cursor-pointer hover:bg-gray-200 p-1"
-                                    @click="getNoOfDays(1)"> <!--:class="{'cursor-not-allowed opacity-25': month == 11 }" :disabled="month == 11 ? true : false"-->
+                                    @click="getNoOfDays(1)">
+                                    <!--:class="{'cursor-not-allowed opacity-25': month == 11 }" :disabled="month == 11 ? true : false"-->
                                     <svg class="h-6 w-6 text-gray-500 inline-flex leading-none" fill="none"
                                         viewBox="0 0 24 24" stroke="currentColor">
                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -169,7 +181,8 @@
                                                                         }">
                                                     <p x-text="event.event_title"
                                                         class="text-sm truncate leading-tight">
-                                                        <p x-text="event.event_notes" class="text-sm" style="zoom: 85%;"/>
+                                                        <p x-text="event.event_notes" class="text-sm"
+                                                            style="zoom: 85%;" />
                                                     </p>
                                                 </div>
                                             </template>
@@ -185,7 +198,8 @@
                                 <br /><br />
                                 <div id="error-toast"
                                     class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
-                                    <div class="bg-red-500 border border-red-700 text-white font-bold rounded px-4 py-2">
+                                    <div
+                                        class="bg-red-500 border border-red-700 text-white font-bold rounded px-4 py-2">
                                         Error!
                                     </div>
                                 </div>
@@ -201,7 +215,7 @@
 
                             <br /><br />-->
 
-                            <!--<div class="mb-4">
+                                <!--<div class="mb-4">
                                 <label for="aiRunningExperience" class="block text-gray-700 text-sm font-bold mb-2">
                                     Describe Your Running Experience:
                                 </label>
@@ -210,23 +224,28 @@
                                     Generate Plan
                                 </button>
                             </div>-->
-                                
+
                                 <div class="plan-selection mb-4">
-                                    <span class="block text-gray-700 text-sm font-bold mb-2">Select Your Running Plan:</span>
+                                    <span class="block text-gray-700 text-sm font-bold mb-2">Select Your Running
+                                        Plan:</span>
                                     <label class="inline-flex items-center mr-4">
-                                        <input type="radio" name="planType" value="beginner" class="form-radio text-blue-600" @change="selectPlan('beginner')"/>
+                                        <input type="radio" name="planType" value="beginner"
+                                            class="form-radio text-blue-600" @change="selectPlan('beginner')" />
                                         <span class="ml-2">Beginner</span>
                                     </label>
                                     <label class="inline-flex items-center mr-4">
-                                        <input type="radio" name="planType" value="intermediate" class="form-radio text-blue-600" @change="selectPlan('intermediate')"/>
+                                        <input type="radio" name="planType" value="intermediate"
+                                            class="form-radio text-blue-600" @change="selectPlan('intermediate')" />
                                         <span class="ml-2">Intermediate</span>
                                     </label>
                                     <label class="inline-flex items-center mr-4">
-                                        <input type="radio" name="planType" value="advanced" class="form-radio text-blue-600" @change="selectPlan('advanced')"/>
+                                        <input type="radio" name="planType" value="advanced"
+                                            class="form-radio text-blue-600" @change="selectPlan('advanced')" />
                                         <span class="ml-2">Advanced</span>
                                     </label>
                                     <label class="inline-flex items-center">
-                                        <input type="radio" name="planType" value="custom" class="form-radio text-blue-600" checked @change="selectPlan('custom')" />
+                                        <input type="radio" name="planType" value="custom"
+                                            class="form-radio text-blue-600" checked @change="selectPlan('custom')" />
                                         <span class="ml-2">Custom</span>
                                     </label>
                                 </div>
@@ -260,8 +279,7 @@
                                                             style="text-align: center;" x-ref="day.name">
                                                         </h3>
                                                         <div class="flex justify-between">
-                                                            <button
-                                                                id="workout-button-left"
+                                                            <button id="workout-button-left"
                                                                 class="text-gray-600 focus:outline-none hover:text-gray-800"
                                                                 x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption - 1 + day.options.length) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
                                                                 <i class="fas fa-chevron-left text-sm"></i>
@@ -269,8 +287,7 @@
                                                             <span class="text-sm workout"
                                                                 x-text="day.options[day.activeOption]">
                                                             </span>
-                                                            <button
-                                                                id="workout-button-right"
+                                                            <button id="workout-button-right"
                                                                 class="text-gray-600 focus:outline-none hover:text-gray-800"
                                                                 x-on:click="handleWorkoutSelection(false, day.options[day.activeOption]); day.activeOption = (day.activeOption + 1) % day.options.length; handleWorkoutSelection(true, day.options[day.activeOption]);">
                                                                 <i class="fas fa-chevron-right text-sm"></i>
@@ -391,16 +408,20 @@
                             <h3 class="text-base font-semibold leading-6 text-gray-900">Volume Details</h3>
                             <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
                                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
-                                    <dt class="truncate text-sm font-medium text-gray-500">Number of Weeks in Training</dt>
-                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900" x-text="numOfWeeksInTraining"></dd>
+                                    <dt class="truncate text-sm font-medium text-gray-500">Number of Weeks in Training
+                                    </dt>
+                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"
+                                        x-text="numOfWeeksInTraining"></dd>
                                 </div>
                                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
                                     <dt class="truncate text-sm font-medium text-gray-500">Avg. Weekly Mileage</dt>
-                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900" x-text="average_mileage_weekly"></dd>
+                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"
+                                        x-text="average_mileage_weekly"></dd>
                                 </div>
                                 <div class="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
                                     <dt class="truncate text-sm font-medium text-gray-500">Average Daily Mileage</dt>
-                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900" x-text="average_mileage_daily"></dd>
+                                    <dd class="mt-1 text-3xl font-semibold tracking-tight text-gray-900"
+                                        x-text="average_mileage_daily"></dd>
                                 </div>
                             </dl>
                         </div>
@@ -521,6 +542,74 @@
                 </div>
             </div>
             <!-- / Event Modal -->
+
+            <!-- Modal for AI Submission -->
+            <div style="background-color: rgba(0, 0, 0, 0.8); z-index: 2;"
+                class="fixed z-40 top-0 right-0 left-0 bottom-0 h-full w-full"
+                x-show.transition.opacity="showAIChatModal">
+
+                <div class="p-4 h-6/6 w-9/10 relative left-0 right-0 overflow-y-auto">
+                    <!-- Close Button -->
+                    <div class="shadow absolute right-0 top-0 w-10 h-10 rounded-full bg-white text-gray-500 hover:text-gray-800 inline-flex items-center justify-center cursor-pointer"
+                        x-on:click="showAIChatModal = !showAIChatModal">
+                        <svg class="fill-current w-6 h-6" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+                            <path
+                                d="M16.192 6.344L11.949 10.586 7.707 6.344 6.293 7.758 10.535 12 6.293 16.242 7.707 17.656 11.949 13.414 16.192 17.656 17.606 16.242 13.364 12 17.606 7.758z" />
+                        </svg>
+                    </div>
+
+                    <!-- Modal Content -->
+                    <div class="shadow w-full rounded-lg bg-white overflow-hidden w-full block p-8 max-w-lg mx-auto">
+                        <h2 class="text-xl font-semibold mb-4">Enter Your Race Goals</h2>
+
+                        <!-- Read-Only Fields -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-1">Race Distance</label>
+                            <input type="text" x-model="raceDistance"
+                                class="w-full border rounded p-2 bg-gray-100 text-gray-700" readonly>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-1">Training Plan</label>
+                            <input type="text" x-model="trainingWeeks"
+                                class="w-full border rounded p-2 bg-gray-100 text-gray-700" readonly>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-1">Weekly Mileage Goal</label>
+                            <input type="text" x-model="weeklyMileage"
+                                class="w-full border rounded p-2 bg-gray-100 text-gray-700" readonly>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-1">Target Time</label>
+                            <input type="text" x-model="targetTime"
+                                class="w-full border rounded p-2 bg-gray-100 text-gray-700" readonly>
+                        </div>
+
+                        <!-- Race Goal Input -->
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-semibold mb-1">Describe Your Race
+                                Goals</label>
+                            <textarea x-model="raceGoal" class="w-full border rounded p-2 h-24"></textarea>
+                        </div>
+
+                        <!-- Buttons -->
+                        <div class="mt-8 text-right">
+                            <button type="button"
+                                class="bg-white hover:bg-gray-100 text-gray-700 font-semibold py-2 px-4 border border-gray-300 rounded-lg shadow-sm mr-2"
+                                @click="showAIChatModal = !showAIChatModal">
+                                Close
+                            </button>
+                            <button type="button"
+                                class="bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg shadow-sm"
+                                @click="submitGoal(raceGoal, raceDistance, trainingWeeks, weeklyMileage, targetTime)">
+                                Submit
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </body>

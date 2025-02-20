@@ -304,6 +304,9 @@ function app() {
     /* Weekly Summary Modal */
     showWeeklySummaryModal: false,
 
+    /* AI Chat Modal */
+    showAIChatModal: false,
+
     /* Properties used to calculate a training plan based on user input */
     weekly_mileage_goal: 50,
     start_day: "",
@@ -641,6 +644,10 @@ function app() {
       setTimeout(() => {
         this.showWeeklySummaryModal = !this.showWeeklySummaryModal;
       }, 500);
+    },
+
+    toggleAIChatModal() {
+      this.showAIChatModal = !this.showAIChatModal;
     },
 
     getNoOfDays(increment) {
