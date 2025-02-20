@@ -312,6 +312,7 @@ function app() {
     start_day: "",
     start_date: "",
     race_date: "",
+    race_distance: "",
     workout_map: new Map(),
     zonePreferences: [],
     average_mileage_weekly: 0,
