@@ -38,7 +38,6 @@ window.addEventListener("load", function () {
         setTimeout(() => {
             slider.noUiSlider.set(60);
             slider.noUiSlider.fireEvent("change");
-            console.log("*** Manually triggered change, new value:", slider.noUiSlider.get());
         }, 500);
     });
 });
@@ -48,7 +47,6 @@ let init = false;
 function configureSlider() {
     const weeklyMileageSlider = document.getElementById("weeklyMileageSlider");
     if (!weeklyMileageSlider) {
-        console.error("Slider element not found!");
         return;
     }
 
@@ -212,11 +210,11 @@ function sharedState() {
                     this.errors.raceDate = 'Please enter a valid race date.';
                 } else if (raceDate < minRaceDate) {
                     this.errors.raceDate = `Race date must be at least 8 weeks from today (${minRaceDate.toLocaleDateString()}).`;
-                    console.log('too short');
                 } else if (raceDate > maxRaceDate) {
                     this.errors.raceDate = `Race date cannot be more than 20 weeks from today (${maxRaceDate.toLocaleDateString()}).`;
-                    console.log('too long');
                 } else {
+                    console.log('***', raceDate);
+                    this.raceDate = raceDate;
                     this.confirmation.raceDate = 'Race date saved successfully!';
                 }
             } else if (fieldName === 'raceTime') {
@@ -286,6 +284,10 @@ function sharedState() {
                     this.confirmation.weeklyMileage = 'Mileage saved successfully!';
                 }
             }
+        },
+
+        generatePlan() {
+            console.log('***', this.selectedRaceDistance, this.selectedTimeframe, this.raceDate);
         },
         
         // not being used currently.
