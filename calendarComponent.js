@@ -706,7 +706,26 @@ function app() {
     async downloadCalendar(event) {
       const downloadHelper = await import("./calendarDownload.js");
       downloadHelper.downloadCalendarFile(this.workouts);
-    }
+    },
+
+    get raceGoalSelector() {
+      return {
+          selectedDistance: '5k', // Default selection
+          selectedGoal: '',
+  
+          raceGoals: {
+              '5k': ['≤ 15:00', '≤ 15:30', '≤ 16:00', '≤ 16:30', '≤ 17:00', '≤ 18:00', '≤ 19:00', '≤ 20:00', '≤ 21:00', '≤ 22:00', '≤ 23:00', '≤ 24:00', '≤ 25:00', '≤ 26:00', '≤ 27:00', '≤ 28:00', '≤ 29:00', '≤ 30:00'],
+              '10k': ['≤ 31:00', '≤ 32:00', '≤ 33:00', '≤ 34:00', '≤ 35:00', '≤ 36:00', '≤ 37:00', '≤ 38:00', '≤ 39:00', '≤ 40:00', '≤ 41:00', '≤ 42:00', '≤ 43:00', '≤ 44:00', '≤ 45:00', '≤ 50:00', '≤ 55:00', '≤ 60:00'],
+              'half_marathon': ['≤ 1:10:00', '≤ 1:15:00', '≤ 1:20:00', '≤ 1:25:00', '≤ 1:30:00', '≤ 1:35:00', '≤ 1:40:00', '≤ 1:45:00', '≤ 1:50:00', '≤ 2:00:00', '≤ 2:10:00', '≤ 2:20:00', '≤ 2:30:00'],
+              'marathon': ['≤ 2:30:00', '≤ 2:40:00', '≤ 2:50:00', '≤ 3:00:00', '≤ 3:10:00', '≤ 3:20:00', '≤ 3:30:00', '≤ 3:40:00', '≤ 3:50:00', '≤ 4:00:00', '≤ 4:15:00', '≤ 4:30:00', '≤ 4:45:00', '≤ 5:00:00']
+          },
+  
+          updateGoals() {
+              // Reset selected goal when distance changes
+              this.selectedGoal = this.raceGoals[this.selectedDistance][0];
+          }
+      };
+  }
   };
 }
 
