@@ -62,7 +62,7 @@
                     <br />
                     
                     <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
-                        Endurance Goal (weekly mileage)
+                        Peek Mileage Goal (during training)
                         <span class="text-gray-500 text-sm" x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A'} - ${timeLimits[selectedRaceDistance]?.max || 'N/A'})`"></span>
                     </label>
 
@@ -108,7 +108,7 @@
 
                     <div id="input-specific_time_goal" class="conditional-input">
                         <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
-                            Speed Goal (min per mile)
+                            Time Goal (during race)
                             <span class="text-gray-500 text-sm" x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A'} - ${timeLimits[selectedRaceDistance]?.max || 'N/A'})`"></span>
                         </label>
                         <div class="py-2">

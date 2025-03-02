@@ -41,11 +41,11 @@ window.addEventListener("load", function () {
     setTimeout(function () {
         configureSlider();
         const slider = document.getElementById("weeklyMileageSlider");
+        slider.noUiSlider.on("change", doSomething);
 
-        setTimeout(() => {
-            slider.noUiSlider.set(60);
-            slider.noUiSlider.fireEvent("change");
-        }, 500);
+        function doSomething(values) {
+            console.log('***', values);
+        };
     });
 });
 
@@ -282,7 +282,7 @@ function sharedState() {
         },
 
         generatePlan() {
-            console.log('***', this.selectedRaceDistance, this.selectedTimeframe, this.raceDate);
+            console.log('***', this.selectedRaceDistance, this.selectedTimeframe, this.raceDate, this.selectedGoal, this.selectedWeeklyMileage);
         },
         
         // not being used currently.
