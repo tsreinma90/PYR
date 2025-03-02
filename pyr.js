@@ -40,12 +40,6 @@ const EVENT_COLOR_MAP = new Map([
 window.addEventListener("load", function () {
     setTimeout(function () {
         configureSlider();
-        const slider = document.getElementById("weeklyMileageSlider");
-        slider.noUiSlider.on("change", doSomething);
-
-        function doSomething(values) {
-            console.log('***', values);
-        };
     });
 });
 
@@ -62,9 +56,9 @@ function configureSlider() {
         weeklyMileageSlider.noUiSlider.destroy();
     }
 
-    // Generate pace values from 4:00 to 13:00 (5-second increments)
-    const paceValues = Array.from({ length: ((13 - 4) * 60) / 5 + 1 }, (_, i) => {
-        const totalSeconds = (4 * 60) + (i * 5);
+    // Generate pace values from 4:30 to 13:00 (5-second increments)
+    const paceValues = Array.from({ length: ((13 - 4.5) * 60) / 5 + 1 }, (_, i) => {
+        const totalSeconds = (4.5 * 60) + (i * 5);
         const minutes = Math.floor(totalSeconds / 60);
         const seconds = (totalSeconds % 60).toString().padStart(2, "0");
         return `${minutes}:${seconds} min/mi`;
@@ -100,13 +94,12 @@ function configureSlider() {
     });
 
     setTimeout(() => {
-        weeklyMileageSlider.noUiSlider.set(60);
-    
-        setTimeout(() => {
-            weeklyMileageSlider.noUiSlider.set(60);
-            weeklyMileageSlider.dispatchEvent(new Event("change")); // Force UI update
-        }, 300);
-    });
+        weeklyMileageSlider.noUiSlider.on("change", (value) => {
+            window.paceGoal = value;
+        });
+
+        weeklyMileageSlider.noUiSlider.set('9:00 min/mi');
+    }, 0);
 }
 
 function calculateDefaults(selectedWorkouts) {
@@ -282,6 +275,7 @@ function sharedState() {
         },
 
         generatePlan() {
+            this.selectedGoal = window.paceGoal[0];
             console.log('***', this.selectedRaceDistance, this.selectedTimeframe, this.raceDate, this.selectedGoal, this.selectedWeeklyMileage);
         },
         
