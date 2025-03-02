@@ -30,6 +30,13 @@ const PLAN_LENGTH_OPTIONS = [
     { label: '20 Week Training Plan', value: 20 },
 ];
 
+const EVENT_COLOR_MAP = new Map([
+    ["Easy Run", "green"],
+    ["Speed Workout", "red"],
+    ["Long Run", "purple"],
+    ["Race", "blue"]
+  ]);
+
 window.addEventListener("load", function () {
     setTimeout(function () {
         configureSlider();
@@ -93,14 +100,11 @@ function configureSlider() {
     });
 
     setTimeout(() => {
-        console.log("*** Trying to set slider to numeric index:", Number(defaultPaceIndex));
         weeklyMileageSlider.noUiSlider.set(60);
-        console.log(weeklyMileageSlider.noUiSlider.get());
     
         setTimeout(() => {
             weeklyMileageSlider.noUiSlider.set(60);
             weeklyMileageSlider.dispatchEvent(new Event("change")); // Force UI update
-            console.log("*** After UI update, slider value is:", weeklyMileageSlider.noUiSlider.get());
         }, 300);
     });
 }
@@ -177,13 +181,11 @@ function sharedState() {
 
         // master-list of all workouts
         currentWorkouts: [
-            { date: "2025-01-05", title: "Rest day", notes: "Take it easy.", theme: "red", event_type: "" },
-            { date: "2025-01-06", title: "5 miles easy run", notes: "Focus on breathing and steady pace.", theme: "blue", event_type: "" },
-            { date: "2025-01-07", title: "4 miles tempo run", notes: "Warm-up: 1 mile\nTempo: 2 miles @ 8:00 min/mile\nCool-down: 1 mile", theme: "blue", event_type: "" },
-            { date: "2025-01-08", title: "5 miles recovery run", notes: "Keep heart rate low.", theme: "green", event_type: "" },
-            { date: "2025-01-09", title: "Rest day", notes: "Optional yoga or light stretching.", theme: "red", event_type: "" },
-            { date: "2025-01-10", title: "7 miles long run", notes: "Progressive pace, finish strong.", theme: "blue", event_type: "" },
-            { date: "2025-01-11", title: "8 miles trail run", notes: "Practice uphill strides.", theme: "purple", event_type: "" }
+            { date: "2025-03-06", title: "5 miles easy run", notes: "Focus on breathing and steady pace.", theme: "", event_type: "Easy Run" },
+            { date: "2025-03-07", title: "4 miles tempo run", notes: "Warm-up: 1 mile\nTempo: 2 miles @ 8:00 min/mile\nCool-down: 1 mile", theme: "", event_type: "Speed Workout" },
+            { date: "2025-03-08", title: "5 miles recovery run", notes: "Keep heart rate low.", theme: "", event_type: "Easy Run" },
+            { date: "2025-03-10", title: "7 miles long run", notes: "Progressive pace, finish strong.", theme: "", event_type: "Long Run" },
+            { date: "2025-03-11", title: "8 miles trail run", notes: "Practice uphill strides.", theme: "", event_type: "Speed Workout" }
         ],
 
         validateField(fieldName) {
@@ -213,7 +215,6 @@ function sharedState() {
                 } else if (raceDate > maxRaceDate) {
                     this.errors.raceDate = `Race date cannot be more than 20 weeks from today (${maxRaceDate.toLocaleDateString()}).`;
                 } else {
-                    console.log('***', raceDate);
                     this.raceDate = raceDate;
                     this.confirmation.raceDate = 'Race date saved successfully!';
                 }
@@ -340,11 +341,12 @@ function sharedState() {
         
                 // Load workouts from `currentWorkouts`
                 loadWorkouts() {
+                    this.workouts = [];
                     this.workouts = self.currentWorkouts.map((workout) => ({
                         event_date: workout.date,
                         event_title: workout.title,
                         event_notes: workout.notes,
-                        event_theme: workout.theme,
+                        event_theme: EVENT_COLOR_MAP.get(workout.event_type),
                         event_type: workout.event_type
                     }));
                 },
@@ -422,8 +424,8 @@ function sharedState() {
                             date: this.eventToEdit.event_date,
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
-                            theme: this.eventToEdit.event_theme,
-                            event_type: this.eventToEdit.event_type, // Include event type
+                            theme: EVENT_COLOR_MAP.get(this.eventToEdit.event_type),
+                            event_type: this.eventToEdit.event_type,
                         };
                     } else {
                         // Add new event
@@ -431,8 +433,8 @@ function sharedState() {
                             date: this.eventToEdit.event_date,
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
-                            theme: this.eventToEdit.event_theme,
-                            event_type: this.eventToEdit.event_type, // Include event type
+                            theme: EVENT_COLOR_MAP.get(this.eventToEdit.event_type),
+                            event_type: this.eventToEdit.event_type,
                         });
                     }
                 
