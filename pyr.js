@@ -171,7 +171,6 @@ function sharedState() {
         errors: {}, 
         weeklyMileage: '',
         raceTime: '',
-        confirmation: {},
         currentTab: 'Calendar',
         tabs: [
             //{ name: 'Overview' },
@@ -190,15 +189,15 @@ function sharedState() {
 
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
-            this.confirmation[fieldName] = ''; // Clear existing confirmations
-            
+        
             if (fieldName === 'raceDate') {
-                const raceDate = new Date(this.raceDate);
+                if (!this.raceDate) return;
+        
+                // Parse the date correctly in local time
+                const raceDate = new Date(this.raceDate + "T00:00:00"); // Force local time zone
+        
                 const today = new Date();
-                
-                // Ensure time is set to midnight for proper comparison
                 today.setHours(0, 0, 0, 0);
-                raceDate.setHours(0, 0, 0, 0);
         
                 // Calculate the min and max allowed race dates
                 const minRaceDate = new Date(today);
@@ -206,7 +205,7 @@ function sharedState() {
         
                 const maxRaceDate = new Date(today);
                 maxRaceDate.setDate(today.getDate() + 140); // 20 weeks
-                
+        
                 // Validate race date
                 if (isNaN(raceDate.getTime())) {
                     this.errors.raceDate = 'Please enter a valid race date.';
@@ -215,8 +214,7 @@ function sharedState() {
                 } else if (raceDate > maxRaceDate) {
                     this.errors.raceDate = `Race date cannot be more than 20 weeks from today (${maxRaceDate.toLocaleDateString()}).`;
                 } else {
-                    this.raceDate = raceDate;
-                    this.confirmation.raceDate = 'Race date saved successfully!';
+                    this.raceDate = this.raceDate; // Keep the original date string
                 }
             } else if (fieldName === 'raceTime') {
                 const time = this.raceTime;
@@ -265,8 +263,6 @@ function sharedState() {
                 } else if (maxSeconds !== null && inputSeconds > maxSeconds) {
                     this.errors.raceTime = `Time cannot exceed ${max.replace(/^00:/, '')}.`;
                     this.selectedGoal = null;
-                } else {
-                    this.confirmation.raceTime = 'Race time saved successfully!';
                 }
             } else if (fieldName === 'weeklyMileage') {
                 const mileage = parseInt(this.weeklyMileage, 10);
@@ -281,8 +277,6 @@ function sharedState() {
                 } else if (mileage > 130) {
                     this.errors.weeklyMileage = 'Mileage cannot exceed 130 miles per week.';
                     this.selectedWeeklyMileage = null;
-                } else {
-                    this.confirmation.weeklyMileage = 'Mileage saved successfully!';
                 }
             }
         },
