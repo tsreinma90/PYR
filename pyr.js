@@ -49,10 +49,8 @@ function configureSlider() {
     const weeklyMileageSlider = document.getElementById("weeklyMileageSlider");
     if (!weeklyMileageSlider) {
         return;
-    }
-
-    // Destroy existing slider instance if it exists
-    if (weeklyMileageSlider.noUiSlider) {
+    } else if (weeklyMileageSlider.noUiSlider) {
+        // Destroy existing slider instance if it exists
         weeklyMileageSlider.noUiSlider.destroy();
     }
 
@@ -171,6 +169,62 @@ function sharedState() {
             { name: 'Training Load Summary' }
         ],
 
+        get zonePreferences() {
+            return [
+                0.6,
+                0.12,
+                0.08,
+                0.2
+            ];
+        },
+
+        get workoutMap() {
+            return new Map([
+                [
+                    "Monday",
+                    [
+                        "Easy"
+                    ]
+                ],
+                [
+                    "Tuesday",
+                    [
+                        "Tempo"
+                    ]
+                ],
+                [
+                    "Wednesday",
+                    [
+                        "Easy"
+                    ]
+                ],
+                [
+                    "Thursday",
+                    [
+                        "Speed"
+                    ]
+                ],
+                [
+                    "Friday",
+                    [
+                        "Rest"
+                    ]
+                ],
+                [
+                    "Saturday",
+                    [
+                        "Long"
+                    ]
+                ],
+                [
+                    "Sunday",
+                    [
+                        "Easy"
+                    ]
+                ]
+            ]);
+        },
+
         // master-list of all workouts
         currentWorkouts: [
             { date: "2025-03-06", title: "5 miles easy run", notes: "Focus on breathing and steady pace.", theme: "", event_type: "Easy Run" },
@@ -272,11 +326,57 @@ function sharedState() {
                     this.selectedWeeklyMileage = null;
                 }
             }
-        },
+        }, 
 
         generatePlan() {
             this.selectedGoal = window.paceGoal[0];
             console.log('***', this.selectedRaceDistance, this.selectedTimeframe, this.raceDate, this.selectedGoal, this.selectedWeeklyMileage);
+            //console.log('***', window.paceGoal);
+            if (!this.formComplete) {
+                this.showErrorToast = true;
+
+                // Make sure the toast disappears every time
+                setTimeout(() => {
+                    this.showErrorToast = false;
+                }, 3000);
+
+                return;
+            }
+
+            //this.selectedGoal = window?.paceGoal[0];
+            //const numberOfWeeksUntilRace = this.selectedTimeframe.substring(0, 2).trim();
+            //const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
+            //console.log('***', numberOfWeeksUntilRace, startDate);
+
+            //console.log('***', this.selectedRaceDistance, this.selectedTimeframe, this.raceDate, this.selectedGoal, this.selectedWeeklyMileage);
+        },
+
+        get formComplete() {
+            return this.selectedRaceDistance && 
+            this.selectedTimeframe && 
+            this.raceDate && 
+            this.selectedGoal && 
+            this.selectedWeeklyMileage;
+        },
+
+        getTrainingStartDate(raceDate, weeks) {
+            // Ensure the input is a valid date
+            let raceDay = new Date(raceDate);
+            if (isNaN(raceDay)) {
+                throw new Error("Invalid race date provided.");
+            }
+        
+            // Ensure weeks is a valid number (8, 10, 12, 14, or 16)
+            const validWeeks = ['8', '10', '12', '14', '16'];
+            if (!validWeeks.includes(weeks)) {
+                throw new Error("Invalid weeks provided. Must be one of: " + validWeeks.join(", "));
+            }
+        
+            // Calculate the start date
+            let startDate = new Date(raceDay);
+            startDate.setDate(raceDay.getDate() - weeks * 7);
+        
+            return startDate.toISOString().split('T')[0]; // Return in YYYY-MM-DD format
         },
         
         // not being used currently.
@@ -429,7 +529,7 @@ function sharedState() {
                     // Reload workouts for the calendar view
                     this.loadWorkouts();
                     this.isModalOpen = false;
-                },
+                }
             };
         },
     };
