@@ -329,7 +329,7 @@ function sharedState() {
         }, 
 
         generatePlan() {
-            this.selectedGoal = window.paceGoal[0];
+            this.selectedGoal = window.paceGoal?.[0];
             console.log('***', this.selectedRaceDistance, this.selectedTimeframe, this.raceDate, this.selectedGoal, this.selectedWeeklyMileage);
             //console.log('***', window.paceGoal);
             if (!this.formComplete) {
