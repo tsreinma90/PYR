@@ -200,58 +200,18 @@ function sharedState() {
         ],
 
         get zonePreferences() {
-            return [
-                0.6,
-                0.12,
-                0.08,
-                0.2
-            ];
+            return [0.6, 0.12, 0.08, 0.2];
         },
 
         get workoutMap() {
             return new Map([
-                [
-                    "Monday",
-                    [
-                        "Easy"
-                    ]
-                ],
-                [
-                    "Tuesday",
-                    [
-                        "Tempo"
-                    ]
-                ],
-                [
-                    "Wednesday",
-                    [
-                        "Easy"
-                    ]
-                ],
-                [
-                    "Thursday",
-                    [
-                        "Speed"
-                    ]
-                ],
-                [
-                    "Friday",
-                    [
-                        "Rest"
-                    ]
-                ],
-                [
-                    "Saturday",
-                    [
-                        "Long"
-                    ]
-                ],
-                [
-                    "Sunday",
-                    [
-                        "Easy"
-                    ]
-                ]
+                ["Monday", ["Easy"]],
+                ["Tuesday", ["Tempo"]],
+                ["Wednesday", ["Easy"]],
+                ["Thursday", ["Speed"]],
+                ["Friday", ["Rest"]],
+                ["Saturday", ["Long"]],
+                ["Sunday", ["Easy"]]
             ]);
         },
 
@@ -422,34 +382,6 @@ function sharedState() {
             return startDate.toISOString().split('T')[0]; // Return in YYYY-MM-DD format
         },
         
-        // not being used currently.
-        /* editableTable() {
-            const self = this;
-            return {
-                // Days of the week
-                days: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
-                weeks: [],
-                init() {
-                    this.weeks = self.mapWorkoutsToWeeks();
-                },
-                // Cell editing state
-                editingCell: { index: null, field: null },
-                // Function to edit a cell
-                editCell(index, field) {
-                    this.editingCell = { index, field };
-                },
-                // Function to save a cell
-                saveCell() {
-                    this.editingCell = { index: null, field: null };
-                    self.updateWorkoutsFromWeeks(this.weeks);
-                },
-                // Function to cancel editing
-                cancelEdit() {
-                    this.editingCell = { index: null, field: null };
-                },
-            }
-        }, */
-
         calendarComponent() {
             const self = this;
             return {
