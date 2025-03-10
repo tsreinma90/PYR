@@ -328,10 +328,9 @@ function sharedState() {
             }
         }, 
 
-        generatePlan() {
+        async generatePlan() {
             this.selectedGoal = window.paceGoal?.[0];
-            console.log('***', this.selectedRaceDistance, this.selectedTimeframe, this.raceDate, this.selectedGoal, this.selectedWeeklyMileage);
-            //console.log('***', window.paceGoal);
+            
             if (!this.formComplete) {
                 this.showErrorToast = true;
 
@@ -341,14 +340,29 @@ function sharedState() {
                 }, 3000);
 
                 return;
+            } else {
+                const numberOfWeeksUntilRace = this.selectedTimeframe.substring(0, 2).trim();
+                const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
+                // weekly mileage target - to-do, determine based on race distance and time goal
+                let mileageTarget = 0;
+                switch (this.selectedWeeklyMileage) {
+                    case "low":
+                        mileageTarget = 30;
+                        break;
+                    case "medium":
+                        mileageTarget = 60;
+                        break;
+                    case "high":
+                        mileageTarget = 90;
+                        break;
+                } 
+                const trainingController = await import("./trainingPlanGenerator.js");
+                console.log('*** variables:', startDate, mileageTarget, this.raceDate, this.workoutMap, this.zonePreferences, numberOfWeeksUntilRace);
+                const allRuns = trainingController.createTrainingPlan(
+                    startDate, mileageTarget, this.raceDate, this.workoutMap, this.zonePreferences, numberOfWeeksUntilRace
+                );
+                console.log('***', JSON.stringify(allRuns, undefined, 2));
             }
-
-            //this.selectedGoal = window?.paceGoal[0];
-            //const numberOfWeeksUntilRace = this.selectedTimeframe.substring(0, 2).trim();
-            //const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
-            //console.log('***', numberOfWeeksUntilRace, startDate);
-
-            //console.log('***', this.selectedRaceDistance, this.selectedTimeframe, this.raceDate, this.selectedGoal, this.selectedWeeklyMileage);
         },
 
         get formComplete() {
