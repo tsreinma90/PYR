@@ -37,6 +37,36 @@ const EVENT_COLOR_MAP = new Map([
     ["Race", "blue"]
   ]);
 
+function transformEvent(event) {
+    // Map event_workout to event_type
+    const workoutTypeMap = {
+        "Easy": "Easy Run",
+        "Speed": "Speed Workout",
+        "Tempo": "Speed Workout",
+        "Long": "Long Run",
+        "Race": "Race"
+    };
+
+    // Ensure event_date is properly formatted
+    const date = new Date(event.event_date).toISOString().split("T")[0];
+
+    return {
+        date: date, // Extract YYYY-MM-DD
+        title: `${event.event_distance} miles ${event.event_workout.toLowerCase()} run`, 
+        distance: event.event_distance,
+        notes: event.event_notes,
+        theme: "", // Leaving this empty as per your request
+        event_type: workoutTypeMap[event.event_workout]
+    };
+}
+
+function triggerPlanGeneratedCustomEvent() {
+    const event = new CustomEvent("trainingplangenerated", { 
+        detail: { message: null, time: new Date() } 
+    });
+    document.dispatchEvent(event);
+}
+
 window.addEventListener("load", function () {
     setTimeout(function () {
         configureSlider();
@@ -226,14 +256,8 @@ function sharedState() {
         },
 
         // master-list of all workouts
-        currentWorkouts: [
-            { date: "2025-03-06", title: "5 miles easy run", notes: "Focus on breathing and steady pace.", theme: "", event_type: "Easy Run" },
-            { date: "2025-03-07", title: "4 miles tempo run", notes: "Warm-up: 1 mile\nTempo: 2 miles @ 8:00 min/mile\nCool-down: 1 mile", theme: "", event_type: "Speed Workout" },
-            { date: "2025-03-08", title: "5 miles recovery run", notes: "Keep heart rate low.", theme: "", event_type: "Easy Run" },
-            { date: "2025-03-10", title: "7 miles long run", notes: "Progressive pace, finish strong.", theme: "", event_type: "Long Run" },
-            { date: "2025-03-11", title: "8 miles trail run", notes: "Practice uphill strides.", theme: "", event_type: "Speed Workout" }
-        ],
-
+        currentWorkouts: [],
+           
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
         
@@ -357,11 +381,16 @@ function sharedState() {
                         break;
                 } 
                 const trainingController = await import("./trainingPlanGenerator.js");
-                console.log('*** variables:', startDate, mileageTarget, this.raceDate, this.workoutMap, this.zonePreferences, numberOfWeeksUntilRace);
                 const allRuns = trainingController.createTrainingPlan(
                     startDate, mileageTarget, this.raceDate, this.workoutMap, this.zonePreferences, numberOfWeeksUntilRace
                 );
-                console.log('***', JSON.stringify(allRuns, undefined, 2));
+                this.currentWorkouts = [];
+                for (let i = 0; i < allRuns.length; i++) {
+                    if (allRuns[i].event_distance && allRuns[i].event_distance > 0) {
+                        this.currentWorkouts.push(transformEvent(allRuns[i]));
+                    }
+                }
+                triggerPlanGeneratedCustomEvent();
             }
         },
 
@@ -439,6 +468,10 @@ function sharedState() {
                 init() {
                     this.loadWorkouts();
                     this.calculateDays();
+                
+                    document.addEventListener("trainingplangenerated", (event) => {
+                        this.loadWorkouts();
+                    });
                 },
         
                 // Load workouts from `currentWorkouts`
