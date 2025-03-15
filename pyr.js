@@ -67,6 +67,14 @@ function triggerPlanGeneratedCustomEvent() {
     document.dispatchEvent(event);
 }
 
+function convertPaceToDecimal(pace) {
+    // Trim to the first 4 characters (e.g., "9:05" → "9:0")
+    pace = pace.trim().slice(0, 4);
+
+    let [minutes, seconds] = pace.split(":").map(Number);
+    return minutes + (seconds / 60);
+}
+
 window.addEventListener("load", function () {
     setTimeout(function () {
         configureSlider();
@@ -325,21 +333,10 @@ function sharedState() {
 
                 return;
             } else {
+                this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
                 const numberOfWeeksUntilRace = this.selectedTimeframe.substring(0, 2).trim();
                 const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
-                // weekly mileage target - to-do, determine based on race distance and time goal
-                let mileageTarget = 0;
-                switch (this.selectedWeeklyMileage) {
-                    case "low":
-                        mileageTarget = 30;
-                        break;
-                    case "medium":
-                        mileageTarget = 60;
-                        break;
-                    case "high":
-                        mileageTarget = 90;
-                        break;
-                } 
+                const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
                 const trainingController = await import("./trainingPlanGenerator.js");
                 const allRuns = trainingController.createTrainingPlan(
                     startDate, mileageTarget, this.raceDate, this.workoutMap, this.zonePreferences, numberOfWeeksUntilRace
@@ -352,6 +349,50 @@ function sharedState() {
                 }
                 triggerPlanGeneratedCustomEvent();
             }
+        },
+
+        getWeeklyMileage(selectedWeeklyMileage, raceDistance, goalPace) {
+            let baseMileageRange = {
+                "5k": [15, 40],
+                "10k": [25, 50],
+                "half-marathon": [30, 70],
+                "marathon": [40, 100]
+            };
+        
+            let baseMin = baseMileageRange[raceDistance][0];
+            let baseMax = baseMileageRange[raceDistance][1];
+        
+            // Convert pace to decimal
+            let pace = convertPaceToDecimal(goalPace);
+        
+            // Adjust based on pace effort
+            const fastestPace = 4.5; // 4:30 min/mi
+            const slowestPace = 13.0; // 13:00 min/mi
+            let paceEffortScale = 0.7 + ((slowestPace - pace) / (slowestPace - fastestPace)) * (1.3 - 0.7);
+        
+            // Adjust based on intensity setting
+            let intensityAdjustment;
+            switch (selectedWeeklyMileage) {
+                case "low":
+                    intensityAdjustment = 0.8;
+                    break;
+                case "medium":
+                    intensityAdjustment = 1.0;
+                    break;
+                case "high":
+                    intensityAdjustment = 1.2;
+                    break;
+                default:
+                    intensityAdjustment = 1.0;
+            }
+        
+            // Calculate target mileage
+            let mileageTarget = ((baseMin + baseMax) / 2) * paceEffortScale * intensityAdjustment;
+        
+            // Ensure within bounds (10 to 100 miles)
+            mileageTarget = Math.max(10, Math.min(100, Math.round(mileageTarget)));
+
+            return mileageTarget;
         },
 
         get formComplete() {
