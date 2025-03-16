@@ -24,21 +24,99 @@ Date.prototype.addDays = function (days) {
   return date;
 };
 
+function convertPaceToDecimal(pace) {
+  // Trim to the first 4 characters (e.g., "9:05" → "9:0")
+  pace = pace.trim().slice(0, 4);
+
+  let [minutes, seconds] = pace.split(":").map(Number);
+  return minutes + (seconds / 60);
+}
+
 function createTrainingPlan(
-  startDay, // Start date user selects
-  mileageGoal, // 1-100 miles
-  raceDate, // Race date user selects
-  workoutMap, // Day of the Week => Workout Selection
-  zonePreferences, // The % of mileage specified for each workout type
-  numWeeksUntilRace // # weeks for training
+  startDay,
+  mileageGoal,
+  raceDate,
+  goalPace,
+  numWeeksUntilRace
 ) {
-  nextRun = new Date(startDay); //(startDay);
-  const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal); // [10, 15, 20, etc., taper]
-  const workoutRatio = createWorkoutPercentileMap(zonePreferences);
+  nextRun = new Date(startDay);
+  raceDate = new Date(raceDate); // Ensure raceDate is a Date object
+
+  const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal);
+  const experienceLevel = determineExperienceLevel(mileageGoal, goalPace);
+  const workoutMap = createDynamicWorkoutMap(experienceLevel, raceDate);
+  const workoutRatio = calculateWorkoutPercentiles(workoutMap);
   const workoutCount = countUniqueValuesInMap(workoutMap);
 
-  // An array of calendar events up until the race date
   return generateRuns(nextRun, milesPerWeek, workoutMap, workoutRatio, workoutCount, raceDate);
+}
+
+// Determine experience level based on mileage and pace
+function determineExperienceLevel(mileageGoal, goalPace) {
+  let pace = convertPaceToDecimal(goalPace);
+
+  if (mileageGoal > 50 || pace <= 7) {
+    return 'advanced';
+  } else if (mileageGoal >= 25 || pace <= 9) {
+    return 'intermediate';
+  } else {
+    return 'beginner';
+  }
+}
+
+function createDynamicWorkoutMap(experienceLevel, raceDistance) {
+  let workoutMap = new Map();
+
+  // Frequency and type of runs based on experience + race distance
+  if (experienceLevel === 'beginner') {
+    workoutMap.set("Monday", ["Easy"]);
+    workoutMap.set("Tuesday", ["Easy"]);
+    workoutMap.set("Wednesday", ["Rest"]);
+    workoutMap.set("Thursday", ["Easy"]);
+    workoutMap.set("Friday", ["Rest"]);
+    workoutMap.set("Saturday", ["Long"]);
+    workoutMap.set("Sunday", ["Easy"]);
+  } else if (experienceLevel === 'intermediate') {
+    workoutMap.set("Monday", ["Easy"]);
+    workoutMap.set("Tuesday", ["Tempo"]);
+    workoutMap.set("Wednesday", ["Easy"]);
+    workoutMap.set("Thursday", ["Speed"]);
+    workoutMap.set("Friday", ["Rest"]);
+    workoutMap.set("Saturday", ["Long"]);
+    workoutMap.set("Sunday", ["Easy"]);
+  } else if (experienceLevel === 'advanced') {
+    workoutMap.set("Monday", ["Easy"]);
+    workoutMap.set("Tuesday", ["Tempo"]);
+    workoutMap.set("Wednesday", ["Speed"]);
+    workoutMap.set("Thursday", ["Easy"]);
+    workoutMap.set("Friday", ["Rest"]);
+    workoutMap.set("Saturday", ["Long"]);
+    workoutMap.set("Sunday", ["Speed"]);
+  }
+
+  // Adjust by race type:
+  if (raceDistance === "5k" || raceDistance === "10k") {
+    // Focus more on speed work
+    workoutMap.set("Wednesday", ["Speed"]);
+  } else if (raceDistance === "half" || raceDistance === "marathon") {
+    // Focus more on long/tempo work
+    workoutMap.set("Wednesday", ["Tempo"]);
+  }
+
+  return workoutMap;
+}
+
+// Adjust workout percentiles based on dynamic map
+function calculateWorkoutPercentiles(workoutMap) {
+  let workoutCount = countUniqueValuesInMap(workoutMap);
+  let totalWorkouts = Array.from(workoutCount.values()).reduce((a, b) => a + b, 0);
+
+  let workoutRatio = new Map();
+  workoutCount.forEach((count, type) => {
+    workoutRatio.set(type, count / totalWorkouts);
+  });
+
+  return workoutRatio;
 }
 
 function generateRuns(
@@ -49,28 +127,35 @@ function generateRuns(
   workoutCount,
   raceDate
 ) {
+  console.log("*** Workout Map at the start:", workoutMap);
   let allRuns = [];
   let longRunIncluded = longRunIncludedInPlan(workoutMap);
+
   for (let i = 0; i < milesPerWeek.length; i++) {
     for (let x = 0; x < 7; x++) {
       let dayOfWeek = weekdayMap.get(nextRun.getDay());
 
-      if (nextRun == raceDate) {
-        
-        // create event for the race
-        let raceShakeout = createWorkout(nextRun);
+      if (nextRun.getTime() === raceDate.getTime()) {
+        // Create race day event
+        let raceShakeout = createWorkout(nextRun, 3, "Race", "Race Day!");
         allRuns.push(raceShakeout);
-
       } else if (workoutMap.has(dayOfWeek)) {
-        
         let workoutType = workoutMap.get(dayOfWeek)[0];
-        
-        let numMiles = Math.ceil(
-          (milesPerWeek[i] * workoutRatio.get(workoutType)) /
-          workoutCount.get(workoutType)
+        console.log(`Workout type for ${dayOfWeek}: ${workoutType}`); // Log workout type for current day
+        /*if (workoutType === "Rest") {
+          console.log(`Skipping ${dayOfWeek} (Rest Day)`);
+          continue;
+        }*/
+
+        // Adjust distance based on workout type
+        let numMiles = calculateWorkoutDistance(
+          milesPerWeek[i],
+          workoutType,
+          workoutRatio,
+          workoutCount
         );
-          
-        if (longRunIncluded && workoutType != 'Long' && numMiles >= 12) {
+
+        if (longRunIncluded && workoutType !== 'Long' && numMiles >= 12) {
           let doDoubleDay = splitRunIntoTwo(numMiles, milesPerWeek[i], workoutRatio, workoutCount);
           if (doDoubleDay) {
             let result = splitRun(numMiles);
@@ -87,10 +172,57 @@ function generateRuns(
           allRuns.push(workout);
         }
       }
+
       nextRun = nextRun.addDays(1);
     }
   }
+
   return allRuns;
+}
+
+// Adjust distance based on type + weekly total
+function calculateWorkoutDistance(
+  weeklyMileage,
+  workoutType,
+  workoutRatio,
+  workoutCount
+) {
+  let baseMiles = Math.ceil(
+    (weeklyMileage * workoutRatio.get(workoutType)) / workoutCount.get(workoutType)
+  );
+
+  // Distance modifiers based on workout type
+  const distanceModifiers = {
+    "Easy": 0.9,     // ~90% of calculated mileage
+    "Tempo": 0.7,    // Shorter than easy
+    "Speed": 0.6,    // Shorter, higher intensity
+    "Long": 1.4,     // Long runs should be significantly longer
+    "Race": 1.0
+  };
+
+  let adjustedMiles = Math.round(baseMiles * (distanceModifiers[workoutType] || 1.0));
+
+  // Ensure runs are at least 3 miles, but not more than 40% of weekly mileage
+  return Math.max(3, Math.min(adjustedMiles, Math.ceil(weeklyMileage * 0.4)));
+}
+
+// Progressive mileage builder
+function createWeeklyMileage(numOfWeeks, maxMileage) {
+  let milesPerWeek = [];
+  
+  const startingMileage = Math.ceil(0.6 * maxMileage); // Start at 60% of max mileage
+  const increaseRate = (maxMileage - startingMileage) / (numOfWeeks - 3); // Spread increase over plan, save room for taper
+  
+  for (let i = 1; i <= numOfWeeks - 3; i++) {
+    milesPerWeek.push(Math.ceil(startingMileage + increaseRate * i));
+  }
+
+  // Taper phase (reduce mileage over last 3 weeks)
+  milesPerWeek.push(Math.ceil(maxMileage * 0.7)); // 3 weeks out
+  milesPerWeek.push(Math.ceil(maxMileage * 0.5)); // 2 weeks out
+  milesPerWeek.push(Math.ceil(maxMileage * 0.3)); // Race week
+
+  return milesPerWeek;
 }
 
 function longRunIncludedInPlan(workoutMap) {
@@ -153,7 +285,7 @@ function countUniqueValuesInMap(map) {
   return count;
 }
 
-function createWeeklyMileage(numOfWeeks, maxMileage) {
+/*function createWeeklyMileage(numOfWeeks, maxMileage) {
   let milesPerWeek = [];
   const startingMileage = Number(Math.ceil(0.65 * maxMileage));
   const diff = maxMileage - startingMileage;
@@ -176,7 +308,7 @@ function createWeeklyMileage(numOfWeeks, maxMileage) {
   milesPerWeek.push(Number(Math.ceil(0.2 * maxMileage)));
 
   return milesPerWeek;
-}
+}*/
 
 function isEven(num) {
   if(num % 2 === 0) {

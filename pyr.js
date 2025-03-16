@@ -333,16 +333,16 @@ function sharedState() {
 
                 return;
             } else {
-                this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
                 const numberOfWeeksUntilRace = this.selectedTimeframe.substring(0, 2).trim();
                 const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
                 const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
                 const trainingController = await import("./trainingPlanGenerator.js");
                 const allRuns = trainingController.createTrainingPlan(
-                    startDate, mileageTarget, this.raceDate, this.workoutMap, this.zonePreferences, numberOfWeeksUntilRace
+                    startDate, mileageTarget, this.raceDate, this.selectedGoal, numberOfWeeksUntilRace
                 );
                 this.currentWorkouts = [];
                 for (let i = 0; i < allRuns.length; i++) {
+                    console.log('***', allRuns[i]);
                     if (allRuns[i].event_distance && allRuns[i].event_distance > 0) {
                         this.currentWorkouts.push(transformEvent(allRuns[i]));
                     }
