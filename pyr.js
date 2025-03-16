@@ -78,6 +78,7 @@ function convertPaceToDecimal(pace) {
 window.addEventListener("load", function () {
     setTimeout(function () {
         configureSlider();
+        window.paceGoal = '9:00 min/mi';
     });
 });
 
@@ -122,7 +123,6 @@ function configureSlider() {
 
     // Ensure it sets correctly to 9:00
     const defaultPaceIndex = paceValues.indexOf("9:00 min/mi");
-
 
     // Move tooltip below slider
     document.querySelectorAll(".noUi-tooltip").forEach(tooltip => {
@@ -322,6 +322,12 @@ function sharedState() {
 
         async generatePlan() {
             this.selectedGoal = window.paceGoal?.[0];
+            // to-do, strange bug
+            if (this.selectedGoal === '9') {
+                this.selectedGoal = '9:00 min/mi';
+            }
+
+            console.log('***', this.selectedGoal);
             
             if (!this.formComplete) {
                 this.showErrorToast = true;
@@ -342,8 +348,7 @@ function sharedState() {
                 );
                 this.currentWorkouts = [];
                 for (let i = 0; i < allRuns.length; i++) {
-                    console.log('***', allRuns[i]);
-                    if (allRuns[i].event_distance && allRuns[i].event_distance > 0) {
+                    if (allRuns[i].event_distance && allRuns[i].event_workout != 'Rest') {
                         this.currentWorkouts.push(transformEvent(allRuns[i]));
                     }
                 }

@@ -127,7 +127,6 @@ function generateRuns(
   workoutCount,
   raceDate
 ) {
-  console.log("*** Workout Map at the start:", workoutMap);
   let allRuns = [];
   let longRunIncluded = longRunIncludedInPlan(workoutMap);
 
@@ -141,7 +140,6 @@ function generateRuns(
         allRuns.push(raceShakeout);
       } else if (workoutMap.has(dayOfWeek)) {
         let workoutType = workoutMap.get(dayOfWeek)[0];
-        console.log(`Workout type for ${dayOfWeek}: ${workoutType}`); // Log workout type for current day
         /*if (workoutType === "Rest") {
           console.log(`Skipping ${dayOfWeek} (Rest Day)`);
           continue;
