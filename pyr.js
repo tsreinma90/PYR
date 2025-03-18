@@ -506,35 +506,40 @@ function sharedState() {
                             new Date(e.event_date).toDateString() ===
                             new Date(this.year, this.month, date).toDateString()
                     );
-        
+                
                     if (existingEvent) {
                         // Edit existing event
                         this.eventToEdit = { ...existingEvent, date };
                     } else {
                         // Create a new event
+                        const localDate = new Date(this.year, this.month, date);
+                        console.log('***', localDate, date);
+                        localDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
                         this.eventToEdit = {
-                            event_date: new Date(this.year, this.month, date).toISOString().split("T")[0],
+                            event_date: `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`,
                             event_title: "",
                             event_notes: "",
                             event_theme: "blue", // Default theme
                             date,
                         };
                     }
-        
+                
                     this.isModalOpen = true;
                 },
         
-                // Save Event and Sync to `currentWorkouts`
                 saveEvent() {
-                    const eventDate = new Date(this.year, this.month, this.eventToEdit.date).toDateString();
+                    // Create local date string (avoid UTC conversion)
+                    const eventDate = new Date(`${this.eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-CA'); // 'YYYY-MM-DD' format
+                
+                    // Normalize comparison dates to avoid drift
                     const index = self.currentWorkouts.findIndex(
-                        (e) => new Date(e.date).toDateString() === eventDate
+                        (e) => new Date(`${e.date}T12:00:00`).toLocaleDateString('en-CA') === eventDate
                     );
                 
                     if (index !== -1) {
                         // Update existing event
                         self.currentWorkouts[index] = {
-                            date: this.eventToEdit.event_date,
+                            date: eventDate, // Keep in local format
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
                             theme: EVENT_COLOR_MAP.get(this.eventToEdit.event_type),
@@ -543,7 +548,7 @@ function sharedState() {
                     } else {
                         // Add new event
                         self.currentWorkouts.push({
-                            date: this.eventToEdit.event_date,
+                            date: eventDate, // Store in consistent format
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
                             theme: EVENT_COLOR_MAP.get(this.eventToEdit.event_type),
@@ -551,7 +556,6 @@ function sharedState() {
                         });
                     }
                 
-                    // Reload workouts for the calendar view
                     this.loadWorkouts();
                     this.isModalOpen = false;
                 }

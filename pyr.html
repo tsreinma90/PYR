@@ -7,17 +7,17 @@
                 <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
                     <h3 class="text-lg font-semibold text-white">Race Details</h3>
                     <p class="text-sm text-gray-400">
-                        Choose your race distance, race date, and training plan duration. 
-                        Your race date must be at least 8 weeks from today, and your training plan will start based on the duration you select.
+                        Choose your race distance, race date, and training plan duration.
+                        Your race date must be at least 8 weeks from today, and your training plan will start based on
+                        the duration you select.
                     </p>
                     <br />
                     <div>
                         <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
                             Race Distance
                         </label>
-                        <select id="raceDistance" 
-                                x-model="selectedRaceDistance"
-                                class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
+                        <select id="raceDistance" x-model="selectedRaceDistance"
+                            class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
                             <option value="" disabled>Select a distance</option>
                             <template x-for="option in raceDistanceOptions" :key="option.value">
                                 <option :value="option.value" x-text="option.label"></option>
@@ -30,12 +30,11 @@
                             class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
                             Race Date
                         </label>
-                        <div class="input-container" style="display: flex; align-items: center; gap: 8px; height: 40px;">
-                            <input type="date" 
-                                   id="raceDate" 
-                                   x-model="raceDate"
-                                   x-effect="if(raceDate) { validateField('raceDate') }"
-                                   class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none">
+                        <div class="input-container"
+                            style="display: flex; align-items: center; gap: 8px; height: 40px;">
+                            <input type="date" id="raceDate" x-model="raceDate"
+                                x-effect="if(raceDate) { validateField('raceDate') }"
+                                class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500 appearance-none">
                             </input>
                         </div>
                         <p class="text-red-500 text-sm mt-1" x-show="errors.raceDate" x-text="errors.raceDate"></p>
@@ -55,79 +54,67 @@
                         </select>
                     </div>
                 </div>
-                
+
                 <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15 mt-6">
                     <h3 class="text-lg font-semibold text-white">Training & Race Goals</h3>
-                    <p class="text-sm text-gray-400">Select your weekly mileage preference and your goal finish time for this race.</p>
+                    <p class="text-sm text-gray-400">Select your weekly mileage preference and your goal finish time for
+                        this race.</p>
                     <br />
-                    
+
                     <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
                         Peek Mileage Goal (during training)
-                        <span class="text-gray-500 text-sm" x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A'} - ${timeLimits[selectedRaceDistance]?.max || 'N/A'})`"></span>
+                        <span class="text-gray-500 text-sm"
+                            x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A'} - ${timeLimits[selectedRaceDistance]?.max || 'N/A'})`"></span>
                     </label>
 
                     <label class="inline-flex flex-col items-start mr-4">
-                        <input 
-                            type="radio" 
-                            name="planType" 
-                            value="low" 
-                            class="form-radio text-blue-600" 
-                            x-model="selectedWeeklyMileage"
-                        />
+                        <input type="radio" name="planType" value="low" class="form-radio text-blue-600"
+                            x-model="selectedWeeklyMileage" />
                         <span class="block text-sm font-medium text-white">Low</span>
                         <span class="text-xs text-gray-400 mt-1">(10–30 mi/wk)</span>
                     </label>
-                
+
                     <!-- Intermediate -->
                     <label class="inline-flex flex-col items-start mr-4">
-                        <input 
-                            type="radio" 
-                            name="planType" 
-                            value="medium" 
-                            class="form-radio text-blue-600" 
-                            x-model="selectedWeeklyMileage"
-                        />
+                        <input type="radio" name="planType" value="medium" class="form-radio text-blue-600"
+                            x-model="selectedWeeklyMileage" />
                         <span class="block text-sm font-medium text-white">Medium</span>
                         <span class="text-xs text-gray-400 mt-1">(30–60 mi/wk)</span>
                     </label>
-                
+
                     <!-- Advanced -->
                     <label class="inline-flex flex-col items-start mr-4">
-                        <input 
-                            type="radio" 
-                            name="planType" 
-                            value="high" 
-                            class="form-radio text-blue-600" 
-                            x-model="selectedWeeklyMileage"
-                        />
+                        <input type="radio" name="planType" value="high" class="form-radio text-blue-600"
+                            x-model="selectedWeeklyMileage" />
                         <span class="block text-sm font-medium text-white">High</span>
                         <span class="text-xs text-gray-400 mt-1">(60–90+ mi/wk)</span>
                     </label>
 
-                    <br/><br/>
+                    <br /><br />
 
                     <div id="input-specific_time_goal" class="conditional-input">
                         <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-2">
                             Time Goal (during race)
-                            <span class="text-gray-500 text-sm" x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A'} - ${timeLimits[selectedRaceDistance]?.max || 'N/A'})`"></span>
+                            <span class="text-gray-500 text-sm"
+                                x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A'} - ${timeLimits[selectedRaceDistance]?.max || 'N/A'})`"></span>
                         </label>
                         <div class="py-2">
                             <div id="weeklyMileageSlider"></div>
                         </div>
                     </div>
-                </div>  
+                </div>
 
-                <div x-show="showErrorToast" 
-                    x-transition 
+                <div x-show="showErrorToast" x-transition
                     class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-xl z-50">
                     Please fill out all required fields!
                 </div>
-                                
+
                 <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15 mt-6">
-                    <button @click="generatePlan()" class="mt-4 w-full rounded-md bg-blue-600 py-2 text-white hover:bg-blue-700">
+                    <button @click="generatePlan()"
+                        class="mt-4 w-full rounded-md bg-blue-600 py-2 text-white hover:bg-blue-700">
                         Generate
                     </button>
-                </div>  
+                </div>
             </div>
 
 
@@ -201,42 +188,92 @@
                                         </template>
                                     </div>
 
-                                    <!-- Calendar Dates -->
-                                    <div class="grid grid-cols-7 gap-1 border-t border-gray-700 pt-2">
-                                        <!-- Blank Days -->
-                                        <template x-for="blankday in blankdays" :key="blankday">
-                                            <div class="h-20"></div>
+                                    <!--<div class="flex flex-wrap border-t border-l">
+                                        <template x-for="blankday in blankdays">
+                                            <div style="width: 14.28%; height: 120px"
+                                                class="text-center border-r border-b px-4 pt-2">
+                                            </div>
                                         </template>
-
-                                        <!-- Days with Events -->
                                         <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
-                                            <div class="relative h-20 border border-gray-700 rounded-lg px-2">
-                                                <!-- Date Number -->
-                                                <div @click="showEventModal(date)"
-                                                    class="cursor-pointer rounded-full bg-gray-800 w-8 h-8 flex items-center justify-center text-sm font-semibold"
-                                                    :class="{'bg-indigo-500 text-white': isToday(date)}">
-                                                    <span x-text="date"></span>
+                                            <div style="width: 14.28%; height: 120px"
+                                                class="px-4 pt-2 border-r border-b relative">
+                                                <div @click="showEventModal(date, dateIndex, null)" x-text="date"
+                                                    class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
+                                                    :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
                                                 </div>
-
-                                                <!-- Events -->
-                                                <div class="mt-2 space-y-1 overflow-y-auto max-h-12">
+                                                <div style="height: 80px;" class="overflow-y-auto mt-1"
+                                                    x-show="workouts.length > 0">
                                                     <template
-                                                        x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() === new Date(year, month, date).toDateString())"
-                                                        :key="event.event_title">
-                                                        <div @click="editEvent(event, date)"
-                                                            class="text-xs px-2 py-1 rounded-lg cursor-pointer" :class="{
-                                                                'bg-blue-100 text-blue-700': event.event_theme === 'blue',
-                                                                'bg-red-100 text-red-700': event.event_theme === 'red',
-                                                                'bg-yellow-100 text-yellow-700': event.event_theme === 'yellow',
-                                                                'bg-green-100 text-green-700': event.event_theme === 'green',
-                                                                'bg-purple-100 text-purple-700': event.event_theme === 'purple'
-                                                                }">
-                                                            <span x-text="event.event_title"></span>
+                                                        x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
+                                                        <div @click="showEventModal(date, dateIndex, event.event_title)"
+                                                            class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
+                                                            :class="{
+                                                                                    'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
+                                                                                    'border-red-200 text-red-800 bg-red-100': event.event_theme === 'red',
+                                                                                    'border-yellow-200 text-yellow-800 bg-yellow-100': event.event_theme === 'yellow',
+                                                                                    'border-green-200 text-green-800 bg-green-100': event.event_theme === 'green',
+                                                                                    'border-purple-200 text-purple-800 bg-purple-100': event.event_theme === 'purple'
+                                                                                }">
+                                                            <p x-text="event.event_title"
+                                                                class="text-sm truncate leading-tight">
+                                                                <p x-text="event.event_notes" class="text-sm"
+                                                                    style="zoom: 85%;" />
+                                                            </p>
                                                         </div>
                                                     </template>
                                                 </div>
                                             </div>
                                         </template>
+                                    </div>-->
+
+                                    <div class="-mx-1 -mb-1">
+                                        <!--<div class="flex flex-wrap" style="margin-bottom: -40px;">
+                                            <template x-for="(day, index) in DAYS" :key="index">
+                                                <div style="width: 14.26%" class="px-2 py-2">
+                                                    <div x-text="day"
+                                                        class="text-gray-600 text-sm uppercase tracking-wide font-bold text-center">
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>-->
+
+                                        <div class="flex flex-wrap border-t border-l">
+                                            <template x-for="blankday in blankdays">
+                                                <div style="width: 14.28%; height: 120px"
+                                                    class="text-center border-r border-b px-4 pt-2">
+                                                </div>
+                                            </template>
+                                            <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
+                                                <div style="width: 14.28%; height: 120px"
+                                                    class="px-4 pt-2 border-r border-b relative">
+                                                    <div @click="showEventModal(date, dateIndex, null)" x-text="date"
+                                                        class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
+                                                        :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
+                                                    </div>
+                                                    <div style="height: 80px;" class="overflow-y-auto mt-1"
+                                                        x-show="workouts.length > 0">
+                                                        <template
+                                                            x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
+                                                            <div @click="showEventModal(date, dateIndex, event.event_title)"
+                                                                class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
+                                                                :class="{
+                                                                                        'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
+                                                                                        'border-red-200 text-red-800 bg-red-100': event.event_theme === 'red',
+                                                                                        'border-yellow-200 text-yellow-800 bg-yellow-100': event.event_theme === 'yellow',
+                                                                                        'border-green-200 text-green-800 bg-green-100': event.event_theme === 'green',
+                                                                                        'border-purple-200 text-purple-800 bg-purple-100': event.event_theme === 'purple'
+                                                                                    }">
+                                                                <p x-text="event.event_title"
+                                                                    class="text-sm truncate leading-tight">
+                                                                    <p x-text="event.event_notes" class="text-sm"
+                                                                        style="zoom: 85%;" />
+                                                                </p>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
                                     </div>
 
                                     <!-- Event Modal -->
@@ -244,9 +281,12 @@
                                         class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
                                         <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
                                             <h3 class="text-lg font-semibold text-white">
-                                                Edit - <span x-text="new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(new Date(eventToEdit.event_date))"></span>
+                                                Edit -
+                                                <span
+                                                    x-text="new Date(`${eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })">
+                                                </span>
                                             </h3>
-                                            
+
                                             <div class="mt-4">
                                                 <label class="block text-sm font-medium text-gray-300">Event
                                                     Title</label>
@@ -254,7 +294,8 @@
                                                     class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2" />
                                             </div>
                                             <div class="mt-4">
-                                                <label class="block text-sm font-medium text-gray-300">Event Type</label>
+                                                <label class="block text-sm font-medium text-gray-300">Event
+                                                    Type</label>
                                                 <select x-model="eventToEdit.event_type"
                                                     class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2">
                                                     <option value="">Select Event Type</option>
