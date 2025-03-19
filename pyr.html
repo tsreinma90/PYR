@@ -121,74 +121,115 @@
             <!-- Right Column -->
             <div class="lg:col-span-2">
                 <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15 h-full">
-                    <div>
-                        <!-- Dropdown for small screens -->
-                        <div class="grid grid-cols-1 sm:hidden">
-                            <select x-model="currentTab" aria-label="Select a tab"
-                                class="col-start-1 row-start-1 w-full appearance-none rounded-md bg-white py-2 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600">
-                                <template x-for="tab in tabs" :key="tab.name">
-                                    <option :value="tab.name" x-text="tab.name"></option>
-                                </template>
-                            </select>
-                            <svg xmlns="http://www.w3.org/2000/svg"
-                                class="pointer-events-none col-start-1 row-start-1 mr-2 w-5 h-5 self-center justify-self-end fill-gray-500"
-                                viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                                <path fill-rule="evenodd"
-                                    d="M5.23 7.21a.75.75 0 011.06.02L10 10.94l3.71-3.71a.75.75 0 111.06 1.06l-4 4a.75.75 0 01-1.06 0l-4-4a.75.75 0 01.02-1.06z"
-                                    clip-rule="evenodd" />
-                            </svg>
+                    <div x-data="{ activeTab: 'calendar' }" class="bg-gray-900 text-white rounded-lg p-4">
+                        <!-- Tabs -->
+                        <div class="flex border-b border-gray-700">
+                            <button 
+                                @click="activeTab = 'calendar'"
+                                :class="activeTab === 'calendar' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
+                                class="w-1/3 py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200"
+                            >
+                                Calendar
+                            </button>
+                            <button 
+                                @click="activeTab = 'summary'"
+                                :class="activeTab === 'summary' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
+                                class="w-1/3 py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200"
+                            >
+                                Metrics
+                            </button>
+                            <button 
+                                @click="activeTab = 'ai'"
+                                :class="activeTab === 'ai' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
+                                class="w-1/3 py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200"
+                            >
+                                Ask AI
+                            </button>
                         </div>
 
-                        <!-- Tabs for larger screens -->
-                        <div class="hidden sm:block">
-                            <div class="border-b border-gray-200">
-                                <nav aria-label="Tabs" class="-mb-px flex">
-                                    <template x-for="tab in tabs" :key="tab.name">
-                                        <a href="#" @click.prevent="currentTab = tab.name"
-                                            :aria-current="currentTab === tab.name ? 'page' : undefined" :class="currentTab === tab.name
-                          ? 'border-indigo-500 text-indigo-600'
-                          : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'"
-                                            class="w-1/4 border-b-2 px-1 py-4 text-center text-sm font-medium"
-                                            x-text="tab.name"></a>
-                                    </template>
-                                </nav>
-                            </div>
-                        </div>
-
-                        <!-- Tab Content -->
-                        <div class="mt-6">
-                            <template x-if="currentTab === 'Calendar'">
-                                <div x-data="calendarComponent()" class="p-6 bg-gray-900 text-white">
-                                    <!-- Calendar Header -->
-                                    <div class="calendar-container flex flex-col bg-gray-900 rounded-lg p-4">
-                                        <div class="flex justify-between items-center mb-4">
-                                            <div>
-                                                <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
-                                                <span x-text="year" class="ml-1 text-lg font-normal"></span>
-                                            </div>
-                                            <div class="flex items-center space-x-4">
-                                                <button @click="changeMonth(-1)"
-                                                    class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
-                                                    Prev
-                                                </button>
-                                                <button @click="changeMonth(1)"
-                                                    class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
-                                                    Next
-                                                </button>
-                                            </div>
+                    <!-- Tab Content -->
+                    <div class="mt-6">
+                        <template x-if="activeTab === 'calendar'">
+                            <div x-data="calendarComponent()" class="p-6 bg-gray-900 text-white">
+                                <!-- Calendar Header -->
+                                <div class="calendar-container flex flex-col bg-gray-900 rounded-lg p-4">
+                                    <div class="flex justify-between items-center mb-4">
+                                        <div>
+                                            <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
+                                            <span x-text="year" class="ml-1 text-lg font-normal"></span>
+                                        </div>
+                                        <div class="flex items-center space-x-4">
+                                            <button @click="changeMonth(-1)"
+                                                class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
+                                                Prev
+                                            </button>
+                                            <button @click="changeMonth(1)"
+                                                class="rounded-lg bg-gray-700 hover:bg-gray-600 px-3 py-1 text-sm">
+                                                Next
+                                            </button>
                                         </div>
                                     </div>
+                                </div>
 
-                                    <!-- Weekdays -->
-                                    <div class="grid grid-cols-7 gap-1">
-                                        <template x-for="day in DAYS" :key="day">
-                                            <div class="text-center text-sm font-semibold text-gray-400 uppercase">
-                                                <span x-text="day"></span>
+                                <!-- Weekdays -->
+                                <div class="grid grid-cols-7 gap-1">
+                                    <template x-for="day in DAYS" :key="day">
+                                        <div class="text-center text-sm font-semibold text-gray-400 uppercase">
+                                            <span x-text="day"></span>
+                                        </div>
+                                    </template>
+                                </div>
+
+                                <!--<div class="flex flex-wrap border-t border-l">
+                                    <template x-for="blankday in blankdays">
+                                        <div style="width: 14.28%; height: 120px"
+                                            class="text-center border-r border-b px-4 pt-2">
+                                        </div>
+                                    </template>
+                                    <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
+                                        <div style="width: 14.28%; height: 120px"
+                                            class="px-4 pt-2 border-r border-b relative">
+                                            <div @click="showEventModal(date, dateIndex, null)" x-text="date"
+                                                class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
+                                                :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
+                                            </div>
+                                            <div style="height: 80px;" class="overflow-y-auto mt-1"
+                                                x-show="workouts.length > 0">
+                                                <template
+                                                    x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
+                                                    <div @click="showEventModal(date, dateIndex, event.event_title)"
+                                                        class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
+                                                        :class="{
+                                                                                'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
+                                                                                'border-red-200 text-red-800 bg-red-100': event.event_theme === 'red',
+                                                                                'border-yellow-200 text-yellow-800 bg-yellow-100': event.event_theme === 'yellow',
+                                                                                'border-green-200 text-green-800 bg-green-100': event.event_theme === 'green',
+                                                                                'border-purple-200 text-purple-800 bg-purple-100': event.event_theme === 'purple'
+                                                                            }">
+                                                        <p x-text="event.event_title"
+                                                            class="text-sm truncate leading-tight">
+                                                            <p x-text="event.event_notes" class="text-sm"
+                                                                style="zoom: 85%;" />
+                                                        </p>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
+                                    </template>
+                                </div>-->
+
+                                <div class="-mx-1 -mb-1">
+                                    <!--<div class="flex flex-wrap" style="margin-bottom: -40px;">
+                                        <template x-for="(day, index) in DAYS" :key="index">
+                                            <div style="width: 14.26%" class="px-2 py-2">
+                                                <div x-text="day"
+                                                    class="text-gray-600 text-sm uppercase tracking-wide font-bold text-center">
+                                                </div>
                                             </div>
                                         </template>
-                                    </div>
+                                    </div>-->
 
-                                    <!--<div class="flex flex-wrap border-t border-l">
+                                    <div class="flex flex-wrap border-t border-l">
                                         <template x-for="blankday in blankdays">
                                             <div style="width: 14.28%; height: 120px"
                                                 class="text-center border-r border-b px-4 pt-2">
@@ -224,114 +265,70 @@
                                                 </div>
                                             </div>
                                         </template>
-                                    </div>-->
-
-                                    <div class="-mx-1 -mb-1">
-                                        <!--<div class="flex flex-wrap" style="margin-bottom: -40px;">
-                                            <template x-for="(day, index) in DAYS" :key="index">
-                                                <div style="width: 14.26%" class="px-2 py-2">
-                                                    <div x-text="day"
-                                                        class="text-gray-600 text-sm uppercase tracking-wide font-bold text-center">
-                                                    </div>
-                                                </div>
-                                            </template>
-                                        </div>-->
-
-                                        <div class="flex flex-wrap border-t border-l">
-                                            <template x-for="blankday in blankdays">
-                                                <div style="width: 14.28%; height: 120px"
-                                                    class="text-center border-r border-b px-4 pt-2">
-                                                </div>
-                                            </template>
-                                            <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
-                                                <div style="width: 14.28%; height: 120px"
-                                                    class="px-4 pt-2 border-r border-b relative">
-                                                    <div @click="showEventModal(date, dateIndex, null)" x-text="date"
-                                                        class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
-                                                        :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
-                                                    </div>
-                                                    <div style="height: 80px;" class="overflow-y-auto mt-1"
-                                                        x-show="workouts.length > 0">
-                                                        <template
-                                                            x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
-                                                            <div @click="showEventModal(date, dateIndex, event.event_title)"
-                                                                class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
-                                                                :class="{
-                                                                                        'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
-                                                                                        'border-red-200 text-red-800 bg-red-100': event.event_theme === 'red',
-                                                                                        'border-yellow-200 text-yellow-800 bg-yellow-100': event.event_theme === 'yellow',
-                                                                                        'border-green-200 text-green-800 bg-green-100': event.event_theme === 'green',
-                                                                                        'border-purple-200 text-purple-800 bg-purple-100': event.event_theme === 'purple'
-                                                                                    }">
-                                                                <p x-text="event.event_title"
-                                                                    class="text-sm truncate leading-tight">
-                                                                    <p x-text="event.event_notes" class="text-sm"
-                                                                        style="zoom: 85%;" />
-                                                                </p>
-                                                            </div>
-                                                        </template>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                        </div>
                                     </div>
+                                </div>
 
-                                    <!-- Event Modal -->
-                                    <div x-show="isModalOpen"
-                                        class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
-                                        <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
-                                            <h3 class="text-lg font-semibold text-white">
-                                                Edit -
-                                                <span
-                                                    x-text="new Date(`${eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })">
-                                                </span>
-                                            </h3>
+                                <!-- Event Modal -->
+                                <div x-show="isModalOpen"
+                                    class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
+                                    <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
+                                        <h3 class="text-lg font-semibold text-white">
+                                            Edit -
+                                            <span
+                                                x-text="new Date(`${eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })">
+                                            </span>
+                                        </h3>
 
-                                            <div class="mt-4">
-                                                <label class="block text-sm font-medium text-gray-300">Event
-                                                    Title</label>
-                                                <input x-model="eventToEdit.event_title" type="text"
-                                                    class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2" />
-                                            </div>
-                                            <div class="mt-4">
-                                                <label class="block text-sm font-medium text-gray-300">Event
-                                                    Type</label>
-                                                <select x-model="eventToEdit.event_type"
-                                                    class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2">
-                                                    <option value="">Select Event Type</option>
-                                                    <option value="Easy Run">Easy Run</option>
-                                                    <option value="Speed Workout">Speed Workout</option>
-                                                    <option value="Long Run">Long Run</option>
-                                                    <option value="Race">Race</option>
-                                                </select>
-                                            </div>
-                                            <div class="mt-4">
-                                                <label class="block text-sm font-medium text-gray-300">Notes</label>
-                                                <textarea x-model="eventToEdit.event_notes"
-                                                    class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2"
-                                                    rows="3"></textarea>
-                                            </div>
-                                            <div class="mt-6 flex justify-end space-x-4">
-                                                <button @click="isModalOpen = false"
-                                                    class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg">
-                                                    Cancel
-                                                </button>
-                                                <button @click="saveEvent()"
-                                                    class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-lg">
-                                                    Save
-                                                </button>
-                                            </div>
+                                        <div class="mt-4">
+                                            <label class="block text-sm font-medium text-gray-300">Event
+                                                Title</label>
+                                            <input x-model="eventToEdit.event_title" type="text"
+                                                class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2" />
+                                        </div>
+                                        <div class="mt-4">
+                                            <label class="block text-sm font-medium text-gray-300">Event
+                                                Type</label>
+                                            <select x-model="eventToEdit.event_type"
+                                                class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2">
+                                                <option value="">Select Event Type</option>
+                                                <option value="Easy Run">Easy Run</option>
+                                                <option value="Speed Workout">Speed Workout</option>
+                                                <option value="Long Run">Long Run</option>
+                                                <option value="Race">Race</option>
+                                            </select>
+                                        </div>
+                                        <div class="mt-4">
+                                            <label class="block text-sm font-medium text-gray-300">Notes</label>
+                                            <textarea x-model="eventToEdit.event_notes"
+                                                class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2"
+                                                rows="3"></textarea>
+                                        </div>
+                                        <div class="mt-6 flex justify-end space-x-4">
+                                            <button @click="isModalOpen = false"
+                                                class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg">
+                                                Cancel
+                                            </button>
+                                            <button @click="saveEvent()"
+                                                class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-lg">
+                                                Save
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
-                            </template>
-                            <template x-if="currentTab === 'Training Load Summary'">
-                                <div>
-                                    <h3 class="text-lg font-semibold text-indigo-600">Tab 3 Content</h3>
-                                    <p class="text-gray-600">This is the content for Tab 3.</p>
-                                </div>
-                            </template>
-                        </div>
+                            </div>
+                        </template>
+                        <template x-if="activeTab === 'summary'">
+                            <div>
+                                <h3 class="text-lg font-semibold text-indigo-600">Metrics</h3>
+                                <p class="text-gray-600">This is the content for Tab 2.</p>
+                            </div>
+                        </template>
+                        <template x-if="activeTab === 'ai'">
+                            <div>
+                                <h3 class="text-lg font-semibold text-indigo-600">Ask AI</h3>
+                                <p class="text-gray-600">This is the content for Tab 3.</p>
+                            </div>
+                        </template>
                     </div>
                 </div>
             </div>
