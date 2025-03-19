@@ -53,10 +53,10 @@ function transformEvent(event) {
     return {
         date: date, // Extract YYYY-MM-DD
         title: `${event.event_distance} miles ${event.event_workout.toLowerCase()} run`, 
-        distance: event.event_distance,
+        event_distance: event.event_distance,
         notes: event.event_notes,
         theme: "", // Leaving this empty as per your request
-        event_type: workoutTypeMap[event.event_workout]
+        event_type: workoutTypeMap[event.event_workout],
     };
 }
 
@@ -206,6 +206,7 @@ function sharedState() {
             { name: 'Calendar' },
             { name: 'Training Load Summary' }
         ],
+        miles: Array.from({ length: 30 }, (_, i) => ({ value: i + 1, label: i + 1 })),
 
         get zonePreferences() {
             return [0.6, 0.12, 0.08, 0.2];
@@ -326,8 +327,6 @@ function sharedState() {
             if (this.selectedGoal === '9') {
                 this.selectedGoal = '9:00 min/mi';
             }
-
-            console.log('***', this.selectedGoal);
             
             if (!this.formComplete) {
                 this.showErrorToast = true;
@@ -459,6 +458,7 @@ function sharedState() {
                         event_date: workout.date,
                         event_title: workout.title,
                         event_notes: workout.notes,
+                        event_distance: workout.event_distance,
                         event_theme: EVENT_COLOR_MAP.get(workout.event_type),
                         event_type: workout.event_type
                     }));
@@ -513,12 +513,13 @@ function sharedState() {
                     } else {
                         // Create a new event
                         const localDate = new Date(this.year, this.month, date);
-                        console.log('***', localDate, date);
+
                         localDate.setHours(12, 0, 0, 0); // Set to noon to avoid timezone issues
                         this.eventToEdit = {
                             event_date: `${localDate.getFullYear()}-${String(localDate.getMonth() + 1).padStart(2, '0')}-${String(localDate.getDate()).padStart(2, '0')}`,
                             event_title: "",
                             event_notes: "",
+                            event_distance: 1,
                             event_theme: "blue", // Default theme
                             date,
                         };
@@ -544,6 +545,7 @@ function sharedState() {
                             notes: this.eventToEdit.event_notes,
                             theme: EVENT_COLOR_MAP.get(this.eventToEdit.event_type),
                             event_type: this.eventToEdit.event_type,
+                            event_distance: this.eventToEdit.event_distance
                         };
                     } else {
                         // Add new event
@@ -553,6 +555,7 @@ function sharedState() {
                             notes: this.eventToEdit.event_notes,
                             theme: EVENT_COLOR_MAP.get(this.eventToEdit.event_type),
                             event_type: this.eventToEdit.event_type,
+                            event_distance: this.eventToEdit.event_distance
                         });
                     }
                 
