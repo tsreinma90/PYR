@@ -112,6 +112,74 @@ const monthLabelPlugin = {
     }
 };
 
+const trainingPhasePlugin = {
+    id: "trainingPhasePlugin",
+    beforeDraw(chart) {
+        const ctx = chart.ctx;
+        const xAxis = chart.scales["x"];
+        if (!xAxis) return;
+
+        const totalWeeks = chart.config.data.labels.length;
+        const peakIndex = getPeakWeekIndex(chart);
+        const taperStart = totalWeeks - 2;
+
+        const bracketY = chart.height - 5;
+        const bracketHeight = 10;
+
+        function drawBracket(startX, endX, y, label, labelOffset = 4, height = bracketHeight) {
+            ctx.strokeStyle = "rgba(255,255,255,0.5)";
+            ctx.lineWidth = 1.5;
+            ctx.beginPath();
+
+            ctx.moveTo(startX, y - height);
+            ctx.lineTo(startX, y);
+            ctx.lineTo(endX, y);
+            ctx.lineTo(endX, y - height);
+            ctx.stroke();
+
+            const centerX = (startX + endX) / 2;
+            ctx.font = "12px sans-serif";
+            ctx.fillStyle = "rgba(255,255,255,0.8)";
+            ctx.textAlign = "center";
+            ctx.fillText(label, centerX, y - height - labelOffset);
+        }
+
+        ctx.save();
+
+        // Build Phase: Week 0 to (Peak - 1)
+        const buildStartX = xAxis.getPixelForTick(0);
+        const buildEndX = xAxis.getPixelForTick(peakIndex - 1);
+        drawBracket(buildStartX, buildEndX - 6, bracketY, "Build Phase");
+
+        // Peak: widen a little more
+        const peakXStart = xAxis.getPixelForTick(peakIndex - 1);
+        const peakXEnd = xAxis.getPixelForTick(peakIndex + 1);
+        drawBracket(peakXStart, peakXEnd, bracketY, "Peak", 6, 14);
+
+        // Taper: extend one more week back
+        const taperStartX = xAxis.getPixelForTick(taperStart - 1); // 👈 widen left
+        const taperEndX = xAxis.getPixelForTick(totalWeeks - 1);
+        drawBracket(taperStartX + 4, taperEndX, bracketY, "Taper");
+
+        ctx.restore();
+    }
+};
+
+function getPeakWeekIndex(chart) {
+    const datasets = chart.config.data.datasets;
+    const weekCount = chart.config.data.labels.length;
+
+    const totals = new Array(weekCount).fill(0);
+
+    datasets.forEach(ds => {
+        ds.data.forEach((val, i) => {
+            totals[i] += val;
+        });
+    });
+
+    return totals.indexOf(Math.max(...totals));
+}
+
 function setupBarChart(workoutEvents) {
     if (workoutEvents.length === 0) return;
 
@@ -145,6 +213,13 @@ function setupBarChart(workoutEvents) {
 
     const weekLabels = Object.keys(aggregatedData).map(week => `Week ${week}`);
     const monthLabels = weekLabels.map((_, index) => weekToMonthMap[index + 1] || ""); // Align with weeks
+
+    const totalPerWeek = Object.values(aggregatedData).map(w => 
+        w["Easy Run"] + w["Speed Workout"] + w["Long Run"]
+    );
+    
+    const peakIndex = totalPerWeek.indexOf(Math.max(...totalPerWeek));
+    const taperStart = totalPerWeek.length - 2;
 
     const ctx = document.getElementById("myChart").getContext("2d");
     if (myChart) {
@@ -200,9 +275,8 @@ function setupBarChart(workoutEvents) {
                 }
             },
             plugins: {
-                monthLabelPlugin: {
-                    monthLabels: monthLabels
-                }
+                monthLabelPlugin: { monthLabels },
+                trainingPhasePlugin: true
             }
         }
     });
@@ -230,6 +304,7 @@ function getMonthName(date) {
 
 window.addEventListener("load", function () {
     Chart.register(monthLabelPlugin);
+    Chart.register(trainingPhasePlugin);
     setTimeout(function () {
         configureSlider();
         window.paceGoal = '9:00 min/mi';
