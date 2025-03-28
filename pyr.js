@@ -505,13 +505,15 @@ function sharedState() {
                     startDate, mileageTarget, this.raceDate, this.selectedGoal, numberOfWeeksUntilRace
                 );
                 this.currentWorkouts = [];
+                let totalDistance = 0
                 for (let i = 0; i < allRuns.length; i++) {
                     if (allRuns[i].event_distance && allRuns[i].event_workout != 'Rest') {
                         this.currentWorkouts.push(transformEvent(allRuns[i]));
+                        totalDistance += allRuns[i].event_distance;
                     }
                 }
                 this.numOfWeeksInTraining = numberOfWeeksUntilRace;
-                this.average_mileage_weekly = Math.ceil(mileageTarget / numberOfWeeksUntilRace);
+                this.average_mileage_weekly = Math.ceil(totalDistance / numberOfWeeksUntilRace);
                 this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
                 triggerPlanGeneratedCustomEvent();
             }
