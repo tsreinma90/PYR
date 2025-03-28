@@ -706,6 +706,7 @@ function sharedState() {
                         const diff = startingMonth - this.month; // should always be either 0 or 1
                         this.changeMonth(diff);
                     }
+                    self.loadBarChart();
                 },
 
                 // Navigate Months
