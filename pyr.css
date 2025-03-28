@@ -1,0 +1,158 @@
+.calendar-container {
+    max-height: calc(100vh - some-offset);
+    overflow-y: auto;
+}
+
+.slider {
+    width: 100%;
+    height: 15px;
+    background: #ddd;
+    outline: none;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+}
+
+.slider::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 25px;
+    height: 25px;
+    background: #4caf50;
+    cursor: pointer;
+}
+
+.slider::-moz-range-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4caf50;
+    cursor: pointer;
+}
+
+.slider::-ms-thumb {
+    width: 25px;
+    height: 25px;
+    background: #4caf50;
+    cursor: pointer;
+}
+
+/* Change the filled part of the slider */
+/* Change the slider track color */
+#weeklyMileageSlider .noUi-base {
+    background: #ccc; /* Change this to any color you want */
+}
+
+#weeklyMileageSlider .noUi-connect {
+    background: #2e5bc4 !important; /* Green color, change as needed */
+}
+
+.c-1-color {
+    background: linear-gradient(to right, rgb(169, 169, 240), rgb(159, 228, 159)) !important;
+}
+
+.c-2-color {
+    background: linear-gradient(to right, rgb(128, 172, 128), rgb(203, 203, 20)) !important;
+}
+
+.c-3-color {
+    background: linear-gradient(to right, rgb(203, 203, 20), rgb(159, 34, 31)) !important;
+}
+
+.c-4-color {
+    background: linear-gradient(to right, rgb(213, 69, 67), rgb(39, 0, 115)) !important;
+}
+
+.c-5-color {
+    background: grey !important;
+}
+
+/* Style for the legend container */
+.legend {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 400px;
+    /* Adjust the width as needed */
+    height: 50px;
+    /* Adjust the height as needed */
+    margin: 10px;
+    /* Adjust the margin as needed */
+}
+
+/* Style for the individual squares */
+.square {
+    width: 30px;
+    /* Adjust the width of each square */
+    height: 15px;
+    /* Adjust the height of each square */
+    border: 1px solid #000;
+}
+
+/* The rest of the CSS remains the same as in the previous example */
+
+/* Additional style for the legend-item container */
+.legend-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Style for the text below the squares */
+.text {
+    margin-top: 5px;
+    /* Adjust the margin as needed */
+}
+
+.centered-title {
+    text-align: center;
+    margin-top: 50px;
+    /* Adjust as needed */
+}
+
+.centered-title h1 {
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+}
+
+.daily-workouts-container {
+    gap: 16px; /* Spacing between days */
+    overflow-x: auto;
+}
+
+.legend-item .square {
+    width: 20px;
+    height: 20px;
+    margin: 0 auto;
+    border-radius: 4px;
+}
+
+.hidden {
+    display: none;
+}
+
+.icon-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 36px;
+    height: 36px;
+    background-color: #2563eb; /* Tailwind's blue-600 */
+    border-radius: 50%;
+    color: white;
+    transition: background-color 0.2s ease;
+}
+
+.icon-button:hover {
+    background-color: #1d4ed8; /* Tailwind's blue-700 */
+}
+
+.icon-button svg {
+    width: 20px;
+    height: 20px;
+}
+
+.input-container {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* Add spacing between input and button */
+}
