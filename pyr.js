@@ -138,6 +138,11 @@ function setupBarChart(workoutEvents) {
         aggregatedData[weekNumber][w.event_type] += w.event_distance;
     });
 
+    // remove the last week for now
+    const keys = Object.keys(aggregatedData);
+    const lastKey = keys[keys.length - 1];
+    delete aggregatedData[lastKey];
+
     const weekLabels = Object.keys(aggregatedData).map(week => `Week ${week}`);
     const monthLabels = weekLabels.map((_, index) => weekToMonthMap[index + 1] || ""); // Align with weeks
 
