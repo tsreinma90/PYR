@@ -701,6 +701,11 @@ function sharedState() {
                         event_theme: EVENT_COLOR_MAP.get(workout.event_type),
                         event_type: workout.event_type
                     }));
+                    if (this.workouts.length) {
+                        let startingMonth = new Date(this.workouts[0].event_date).getMonth();
+                        const diff = startingMonth - this.month; // should always be either 0 or 1
+                        this.changeMonth(diff);
+                    }
                 },
 
                 // Navigate Months
