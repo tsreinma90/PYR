@@ -15,15 +15,15 @@ const DAYS_OF_WEEK = [
 ];
 
 const DISTANCE_OPTIONS = [
-        { label: '5K', value: '5k' },
-        { label: '10K', value: '10k' },
-        { label: 'Half Marathon', value: 'half-marathon' },
-        { label: 'Marathon', value: 'marathon' },
+    { label: '5K', value: '5k' },
+    { label: '10K', value: '10k' },
+    { label: 'Half Marathon', value: 'half-marathon' },
+    { label: 'Marathon', value: 'marathon' },
 ];
 
 const PLAN_LENGTH_OPTIONS = [
     { label: '8 Week Training Plan', value: 8 },
-    { label: '10 Week Training Plan', value: 10},
+    { label: '10 Week Training Plan', value: 10 },
     { label: '12 Week Training Plan', value: 12 },
     { label: '14 Week Training Plan', value: 14 },
     { label: '16 Week Training Plan', value: 16 },
@@ -35,7 +35,7 @@ const EVENT_COLOR_MAP = new Map([
     ["Speed Workout", "red"],
     ["Long Run", "purple"],
     ["Race", "blue"]
-  ]);
+]);
 
 function transformEvent(event) {
     // Map event_workout to event_type
@@ -52,7 +52,7 @@ function transformEvent(event) {
 
     return {
         date: date, // Extract YYYY-MM-DD
-        title: `${event.event_distance} miles ${event.event_workout.toLowerCase()} run`, 
+        title: `${event.event_distance} miles ${event.event_workout.toLowerCase()} run`,
         event_distance: event.event_distance,
         notes: event.event_notes,
         theme: "", // Leaving this empty as per your request
@@ -61,8 +61,8 @@ function transformEvent(event) {
 }
 
 function triggerPlanGeneratedCustomEvent() {
-    const event = new CustomEvent("trainingplangenerated", { 
-        detail: { message: null, time: new Date() } 
+    const event = new CustomEvent("trainingplangenerated", {
+        detail: { message: null, time: new Date() }
     });
     document.dispatchEvent(event);
 }
@@ -75,10 +75,82 @@ function convertPaceToDecimal(pace) {
     return minutes + (seconds / 60);
 }
 
+function getMonthName(dateString) {
+    const date = new Date(dateString);
+    return MONTH_NAMES[date.getMonth()];
+}
+
+var myChart;
+
+function setupBarChart(workoutEvents) {
+    if (workoutEvents) {
+        let aggregatedData = {};
+        workoutEvents.forEach(w => {
+            const month = getMonthName(w.date);
+            if (!aggregatedData[month]) {
+                aggregatedData[month] = {
+                    "Easy Run": 0, "Speed Workout": 0, "Long Run": 0
+                };
+            }
+            aggregatedData[month][w.event_type] += w.event_distance;
+        });
+
+        const ctx = document.getElementById("myChart").getContext("2d");
+        if (myChart) {
+            myChart.destroy();
+        }
+
+        myChart = new Chart(ctx, {
+            type: "bar",
+            data: {
+                labels: Object.keys(aggregatedData),
+                datasets: [
+                    {
+                        label: "Easy Run",
+                        backgroundColor: "rgba(167, 243, 208, 0.2)",
+                        borderColor: "rgba(167, 243, 208, 1)",
+                        borderWidth: 1,
+                        data: Object.values(aggregatedData).map(monthData => monthData["Easy Run"])
+                    },
+                    {
+                        label: "Speed Workout",
+                        backgroundColor: "rgba(216, 4, 4, 0.2)",
+                        borderColor: "rgba(216, 4, 4, 1)",
+                        borderWidth: 1,
+                        data: Object.values(aggregatedData).map(monthData => monthData["Speed Workout"])
+                    },
+                    {
+                        label: "Long Run",
+                        backgroundColor: "rgba(118, 1, 168, 0.2)",
+                        borderColor: "rgba(118, 1, 168, 1)",
+                        borderWidth: 1,
+                        data: Object.values(aggregatedData).map(monthData => monthData["Long Run"])
+                    }
+                ]
+            },
+            options: {
+                scales: {
+                    xAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }],
+                    yAxes: [{
+                        ticks: {
+                            beginAtZero: true
+                        }
+                    }]
+                }
+            }
+        });
+    }
+}
+
 window.addEventListener("load", function () {
     setTimeout(function () {
         configureSlider();
         window.paceGoal = '9:00 min/mi';
+        setupBarChart(null);
     });
 });
 
@@ -111,7 +183,7 @@ function configureSlider() {
             return index >= 0 ? index : 0;
         }
     };
-    
+
     noUiSlider.create(weeklyMileageSlider, {
         start: [60],
         connect: [true, true],
@@ -173,7 +245,7 @@ function sharedState() {
                 const today = new Date();
                 const raceDay = new Date(this.raceDate);
                 const weeksUntilRace = Math.floor((raceDay - today) / (1000 * 60 * 60 * 24 * 7)); // Convert ms to weeks
-        
+
                 // Define the cutoffs for each training plan
                 if (weeksUntilRace < 10) {
                     return PLAN_LENGTH_OPTIONS.filter(option => option.value === 8);
@@ -197,7 +269,7 @@ function sharedState() {
         raceDate: '',
         selectedGoal: '',
         selectedWeeklyMileage: '',
-        errors: {}, 
+        errors: {},
         weeklyMileage: '',
         raceTime: '',
         currentTab: 'Calendar',
@@ -207,6 +279,10 @@ function sharedState() {
             { name: 'Training Load Summary' }
         ],
         miles: Array.from({ length: 30 }, (_, i) => ({ value: i + 1, label: i + 1 })),
+
+        average_mileage_weekly: 0,
+        average_mileage_daily: 0,
+        numOfWeeksInTraining: 0,
 
         get zonePreferences() {
             return [0.6, 0.12, 0.08, 0.2];
@@ -226,26 +302,26 @@ function sharedState() {
 
         // master-list of all workouts
         currentWorkouts: [],
-           
+
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
-        
+
             if (fieldName === 'raceDate') {
                 if (!this.raceDate) return;
-        
+
                 // Parse the date correctly in local time
                 const raceDate = new Date(this.raceDate + "T00:00:00"); // Force local time zone
-        
+
                 const today = new Date();
                 today.setHours(0, 0, 0, 0);
-        
+
                 // Calculate the min and max allowed race dates
                 const minRaceDate = new Date(today);
                 minRaceDate.setDate(today.getDate() + 56); // 8 weeks
-        
+
                 const maxRaceDate = new Date(today);
                 maxRaceDate.setDate(today.getDate() + 140); // 20 weeks
-        
+
                 // Validate race date
                 if (isNaN(raceDate.getTime())) {
                     this.errors.raceDate = 'Please enter a valid race date.';
@@ -258,7 +334,7 @@ function sharedState() {
                 }
             } else if (fieldName === 'raceTime') {
                 const time = this.raceTime;
-        
+
                 // Define min/max times based on the selected race distance
                 const timeLimits = {
                     '5k': { min: '00:12:00', max: '01:30:00' },
@@ -266,9 +342,9 @@ function sharedState() {
                     'half-marathon': { min: '01:00:00', max: '04:00:00' },
                     'marathon': { min: '02:00:00', max: '06:00:00' },
                 };
-        
+
                 const { min, max } = timeLimits[this.selectedRaceDistance] || {};
-        
+
                 // Validate time format (hh:mm:ss or mm:ss)
                 const timeRegex = /^(\d{1,2}:\d{2}(:\d{2})?)$/;
                 if (!time || !timeRegex.test(time)) {
@@ -276,7 +352,7 @@ function sharedState() {
                     this.selectedGoal = null;
                     return;
                 }
-        
+
                 // Convert time strings to seconds for comparison
                 const toSeconds = (timeString) => {
                     const parts = timeString.split(':').map(Number);
@@ -291,11 +367,11 @@ function sharedState() {
                     }
                     return 0;
                 };
-        
+
                 const inputSeconds = toSeconds(time);
                 const minSeconds = min ? toSeconds(min) : null;
                 const maxSeconds = max ? toSeconds(max) : null;
-        
+
                 // Validate range
                 if (minSeconds !== null && inputSeconds < minSeconds) {
                     this.errors.raceTime = `Time must be at least ${min.replace(/^00:/, '')}.`;
@@ -306,7 +382,7 @@ function sharedState() {
                 }
             } else if (fieldName === 'weeklyMileage') {
                 const mileage = parseInt(this.weeklyMileage, 10);
-        
+
                 // Validate mileage input
                 if (!mileage || isNaN(mileage) || mileage <= 0) {
                     this.errors.weeklyMileage = 'Please enter a valid number greater than 0.';
@@ -319,7 +395,7 @@ function sharedState() {
                     this.selectedWeeklyMileage = null;
                 }
             }
-        }, 
+        },
 
         async generatePlan() {
             this.selectedGoal = window.paceGoal?.[0];
@@ -327,7 +403,7 @@ function sharedState() {
             if (this.selectedGoal === '9') {
                 this.selectedGoal = '9:00 min/mi';
             }
-            
+
             if (!this.formComplete) {
                 this.showErrorToast = true;
 
@@ -362,18 +438,18 @@ function sharedState() {
                 "half-marathon": [30, 70],
                 "marathon": [40, 100]
             };
-        
+
             let baseMin = baseMileageRange[raceDistance][0];
             let baseMax = baseMileageRange[raceDistance][1];
-        
+
             // Convert pace to decimal
             let pace = convertPaceToDecimal(goalPace);
-        
+
             // Adjust based on pace effort
             const fastestPace = 4.5; // 4:30 min/mi
             const slowestPace = 13.0; // 13:00 min/mi
             let paceEffortScale = 0.7 + ((slowestPace - pace) / (slowestPace - fastestPace)) * (1.3 - 0.7);
-        
+
             // Adjust based on intensity setting
             let intensityAdjustment;
             switch (selectedWeeklyMileage) {
@@ -389,10 +465,10 @@ function sharedState() {
                 default:
                     intensityAdjustment = 1.0;
             }
-        
+
             // Calculate target mileage
             let mileageTarget = ((baseMin + baseMax) / 2) * paceEffortScale * intensityAdjustment;
-        
+
             // Ensure within bounds (10 to 100 miles)
             mileageTarget = Math.max(10, Math.min(100, Math.round(mileageTarget)));
 
@@ -400,11 +476,11 @@ function sharedState() {
         },
 
         get formComplete() {
-            return this.selectedRaceDistance && 
-            this.selectedTimeframe && 
-            this.raceDate && 
-            this.selectedGoal && 
-            this.selectedWeeklyMileage;
+            return this.selectedRaceDistance &&
+                this.selectedTimeframe &&
+                this.raceDate &&
+                this.selectedGoal &&
+                this.selectedWeeklyMileage;
         },
 
         getTrainingStartDate(raceDate, weeks) {
@@ -413,20 +489,20 @@ function sharedState() {
             if (isNaN(raceDay)) {
                 throw new Error("Invalid race date provided.");
             }
-        
+
             // Ensure weeks is a valid number (8, 10, 12, 14, or 16)
             const validWeeks = ['8', '10', '12', '14', '16'];
             if (!validWeeks.includes(weeks)) {
                 throw new Error("Invalid weeks provided. Must be one of: " + validWeeks.join(", "));
             }
-        
+
             // Calculate the start date
             let startDate = new Date(raceDay);
             startDate.setDate(raceDay.getDate() - weeks * 7);
-        
+
             return startDate.toISOString().split('T')[0]; // Return in YYYY-MM-DD format
         },
-        
+
         calendarComponent() {
             const self = this;
             return {
@@ -437,20 +513,20 @@ function sharedState() {
                 no_of_days: [],
                 isModalOpen: false,
                 eventToEdit: null,
-        
+
                 MONTH_NAMES,
                 DAYS,
-        
+
                 // Initialize Calendar
                 init() {
                     this.loadWorkouts();
                     this.calculateDays();
-                
+
                     document.addEventListener("trainingplangenerated", (event) => {
                         this.loadWorkouts();
                     });
                 },
-        
+
                 // Load workouts from `currentWorkouts`
                 loadWorkouts() {
                     this.workouts = [];
@@ -463,7 +539,7 @@ function sharedState() {
                         event_type: workout.event_type
                     }));
                 },
-        
+
                 // Navigate Months
                 changeMonth(step) {
                     this.month += step;
@@ -476,37 +552,37 @@ function sharedState() {
                     }
                     this.calculateDays();
                 },
-        
+
                 // Calculate Days in Month
                 calculateDays() {
                     // Adjust the first day to align weeks to Sunday
                     const firstDay = new Date(this.year, this.month, 1).getDay(); // 0 = Sunday
                     const daysInMonth = new Date(this.year, this.month + 1, 0).getDate();
-                
+
                     this.blankdays = Array(firstDay).fill(null); // Prepend blank days for alignment
                     this.no_of_days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
                 },
-        
+
                 // Check if Today
                 isToday(date) {
                     const today = new Date();
                     const currentDay = new Date(this.year, this.month, date);
                     return today.toDateString() === currentDay.toDateString();
                 },
-        
+
                 // Show Edit Modal
                 editEvent(event, date) {
                     this.eventToEdit = { ...event, date };
                     this.isModalOpen = true;
                 },
-        
+
                 showEventModal(date) {
                     const existingEvent = this.workouts.find(
                         (e) =>
                             new Date(e.event_date).toDateString() ===
                             new Date(this.year, this.month, date).toDateString()
                     );
-                
+
                     if (existingEvent) {
                         // Edit existing event
                         this.eventToEdit = { ...existingEvent, date };
@@ -524,19 +600,19 @@ function sharedState() {
                             date,
                         };
                     }
-                
+
                     this.isModalOpen = true;
                 },
-        
+
                 saveEvent() {
                     // Create local date string (avoid UTC conversion)
                     const eventDate = new Date(`${this.eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-CA'); // 'YYYY-MM-DD' format
-                
+
                     // Normalize comparison dates to avoid drift
                     const index = self.currentWorkouts.findIndex(
                         (e) => new Date(`${e.date}T12:00:00`).toLocaleDateString('en-CA') === eventDate
                     );
-                
+
                     if (index !== -1) {
                         // Update existing event
                         self.currentWorkouts[index] = {
@@ -558,11 +634,17 @@ function sharedState() {
                             event_distance: this.eventToEdit.event_distance
                         });
                     }
-                
+
                     this.loadWorkouts();
                     this.isModalOpen = false;
                 }
             };
         },
+
+        loadBarChart() {
+            setTimeout(() => {
+                setupBarChart(this.currentWorkouts);
+            }, 500);
+        }
     };
 }
