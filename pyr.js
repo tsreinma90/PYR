@@ -82,71 +82,149 @@ function getMonthName(dateString) {
 
 var myChart;
 
-function setupBarChart(workoutEvents) {
-    if (workoutEvents) {
-        let aggregatedData = {};
-        workoutEvents.forEach(w => {
-            const month = getMonthName(w.date);
-            if (!aggregatedData[month]) {
-                aggregatedData[month] = {
-                    "Easy Run": 0, "Speed Workout": 0, "Long Run": 0
-                };
+const monthLabelPlugin = {
+    id: "monthLabelPlugin",
+    beforeDraw(chart) {
+        const ctx = chart.ctx;
+        const xAxis = chart.scales["x"];
+        if (!xAxis) return;
+
+        const pluginOptions = chart.config.options.plugins.monthLabelPlugin || {};
+        const monthLabels = pluginOptions.monthLabels || [];
+
+        ctx.save();
+        ctx.font = "14px sans-serif";
+        ctx.fillStyle = "white";
+        ctx.textAlign = "center";
+
+        let lastMonth = null;
+
+        monthLabels.forEach((month, index) => {
+            if (month && month !== lastMonth) {
+                lastMonth = month;
+                const x = xAxis.getPixelForTick(index);
+                const y = chart.chartArea.bottom + 40;
+                ctx.fillText(month, x, y);
             }
-            aggregatedData[month][w.event_type] += w.event_distance;
         });
 
-        const ctx = document.getElementById("myChart").getContext("2d");
-        if (myChart) {
-            myChart.destroy();
+        ctx.restore();
+    }
+};
+
+function setupBarChart(workoutEvents) {
+    if (workoutEvents.length === 0) return;
+
+    workoutEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const firstEventDate = new Date(workoutEvents[0].date);
+    const startOfWeek1 = getPreviousMonday(firstEventDate);
+
+    let aggregatedData = {};
+    let weekToMonthMap = {}; // Store week-to-month mapping
+
+    workoutEvents.forEach(w => {
+        const eventDate = new Date(w.date);
+        const weekNumber = getWeekNumber(startOfWeek1, eventDate);
+        const monthLabel = getMonthName(eventDate); // Get month name (e.g., "January")
+
+        if (!aggregatedData[weekNumber]) {
+            aggregatedData[weekNumber] = { "Easy Run": 0, "Speed Workout": 0, "Long Run": 0 };
+        }
+        if (!weekToMonthMap[weekNumber]) {
+            weekToMonthMap[weekNumber] = monthLabel; // Assign month for each week
         }
 
-        myChart = new Chart(ctx, {
-            type: "bar",
-            data: {
-                labels: Object.keys(aggregatedData),
-                datasets: [
-                    {
-                        label: "Easy Run",
-                        backgroundColor: "rgba(167, 243, 208, 0.2)",
-                        borderColor: "rgba(167, 243, 208, 1)",
-                        borderWidth: 1,
-                        data: Object.values(aggregatedData).map(monthData => monthData["Easy Run"])
-                    },
-                    {
-                        label: "Speed Workout",
-                        backgroundColor: "rgba(216, 4, 4, 0.2)",
-                        borderColor: "rgba(216, 4, 4, 1)",
-                        borderWidth: 1,
-                        data: Object.values(aggregatedData).map(monthData => monthData["Speed Workout"])
-                    },
-                    {
-                        label: "Long Run",
-                        backgroundColor: "rgba(118, 1, 168, 0.2)",
-                        borderColor: "rgba(118, 1, 168, 1)",
-                        borderWidth: 1,
-                        data: Object.values(aggregatedData).map(monthData => monthData["Long Run"])
-                    }
-                ]
+        aggregatedData[weekNumber][w.event_type] += w.event_distance;
+    });
+
+    const weekLabels = Object.keys(aggregatedData).map(week => `Week ${week}`);
+    const monthLabels = weekLabels.map((_, index) => weekToMonthMap[index + 1] || ""); // Align with weeks
+
+    const ctx = document.getElementById("myChart").getContext("2d");
+    if (myChart) {
+        myChart.destroy();
+    }
+
+    myChart = new Chart(ctx, {
+        type: "bar",
+        data: {
+            labels: weekLabels,
+            datasets: [
+                {
+                    label: "Easy Run",
+                    backgroundColor: "rgba(167, 243, 208, 0.2)",
+                    borderColor: "rgba(167, 243, 208, 1)",
+                    borderWidth: 1,
+                    data: Object.values(aggregatedData).map(weekData => weekData["Easy Run"])
+                },
+                {
+                    label: "Speed Workout",
+                    backgroundColor: "rgba(216, 4, 4, 0.2)",
+                    borderColor: "rgba(216, 4, 4, 1)",
+                    borderWidth: 1,
+                    data: Object.values(aggregatedData).map(weekData => weekData["Speed Workout"])
+                },
+                {
+                    label: "Long Run",
+                    backgroundColor: "rgba(118, 1, 168, 0.2)",
+                    borderColor: "rgba(118, 1, 168, 1)",
+                    borderWidth: 1,
+                    data: Object.values(aggregatedData).map(weekData => weekData["Long Run"])
+                }
+            ]
+        },
+        options: {
+            layout: {
+                padding: {
+                    top: 10,
+                    bottom: 50
+                }
             },
-            options: {
-                scales: {
-                    xAxes: [{
-                        ticks: {
-                            beginAtZero: true
-                        }
-                    }],
-                    yAxes: [{
-                        ticks: {
-                            beginAtZero: true
-                        }
-                    }]
+            scales: {
+                x: {
+                    ticks: {
+                        beginAtZero: true,
+                        padding: 5
+                    }
+                },
+                y: {
+                    ticks: {
+                        beginAtZero: true
+                    }
+                }
+            },
+            plugins: {
+                monthLabelPlugin: {
+                    monthLabels: monthLabels
                 }
             }
-        });
-    }
+        }
+    });
+}
+
+// **Helper function to get the previous (or same) Monday**
+function getPreviousMonday(date) {
+    const dayOfWeek = date.getDay();
+    const difference = (dayOfWeek === 0 ? -6 : 1) - dayOfWeek;
+    const monday = new Date(date);
+    monday.setDate(date.getDate() + difference);
+    return monday;
+}
+
+// **Compute week number using Monday as the start**
+function getWeekNumber(startOfWeek1, eventDate) {
+    const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+    return Math.min(20, Math.floor((eventDate - startOfWeek1) / msPerWeek) + 1);
+}
+
+// **Helper function to get month name from a date**
+function getMonthName(date) {
+    return date.toLocaleString('default', { month: 'long' });
 }
 
 window.addEventListener("load", function () {
+    Chart.register(monthLabelPlugin);
     setTimeout(function () {
         configureSlider();
         window.paceGoal = '9:00 min/mi';
@@ -427,6 +505,9 @@ function sharedState() {
                         this.currentWorkouts.push(transformEvent(allRuns[i]));
                     }
                 }
+                this.numOfWeeksInTraining = numberOfWeeksUntilRace;
+                this.average_mileage_weekly = Math.ceil(mileageTarget / numberOfWeeksUntilRace);
+                this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
                 triggerPlanGeneratedCustomEvent();
             }
         },
@@ -644,7 +725,7 @@ function sharedState() {
         loadBarChart() {
             setTimeout(() => {
                 setupBarChart(this.currentWorkouts);
-            }, 500);
+            }, 0);
         }
     };
 }
