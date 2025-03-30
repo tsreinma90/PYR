@@ -56,6 +56,71 @@ function exportToCSV(events) {
     document.body.removeChild(link);
 }
 
+function exportToPDF(events) {
+    // Using the jsPDF library (ensure it's loaded)
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(12);
+    let y = 10;
+
+    events.forEach((event, index) => {
+        const dateStr = new Date(event.event_date).toLocaleDateString();
+        doc.text(`Date: ${dateStr}`, 10, y);
+        y += 6;
+        doc.text(`Title: ${event.event_title}`, 10, y);
+        y += 6;
+        doc.text(`Workout: ${event.event_workout}`, 10, y);
+        y += 6;
+        doc.text(`Distance: ${event.event_distance} miles`, 10, y);
+        y += 6;
+        doc.text(`Notes: ${event.event_notes}`, 10, y);
+        y += 10;
+
+        // Add a new page if we're near the bottom
+        if (y > 280) {
+            doc.addPage();
+            y = 10;
+        }
+    });
+
+    doc.save("training_plan.pdf");
+}
+
+function exportToICS(events) {
+    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Your Company//TrainingPlan//EN\r\n";
+
+    events.forEach((event, index) => {
+        const uid = `event-${index}@yourdomain.com`;
+        // Format dates as YYYYMMDD
+        const dtStart = new Date(event.event_date)
+            .toISOString()
+            .slice(0, 10)
+            .replace(/-/g, "");
+        // For simplicity, we set DTEND as the same day.
+        const dtEnd = dtStart;
+        icsContent += "BEGIN:VEVENT\r\n";
+        icsContent += `UID:${uid}\r\n`;
+        icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z\r\n`;
+        icsContent += `DTSTART;VALUE=DATE:${dtStart}\r\n`;
+        icsContent += `DTEND;VALUE=DATE:${dtEnd}\r\n`;
+        icsContent += `SUMMARY:${event.event_title}\r\n`;
+        icsContent += `DESCRIPTION:${event.event_notes}\r\n`;
+        icsContent += "END:VEVENT\r\n";
+    });
+
+    icsContent += "END:VCALENDAR\r\n";
+
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "training_plan.ics");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 function transformEvent(event) {
     // Map event_workout to event_type
     const workoutTypeMap = {
@@ -120,29 +185,29 @@ function exportToPDF(events) {
     const doc = new jsPDF();
     doc.setFontSize(12);
     let y = 10;
-    
+
     events.forEach((event, index) => {
-      const dateStr = new Date(event.event_date).toLocaleDateString();
-      doc.text(`Date: ${dateStr}`, 10, y);
-      y += 6;
-      doc.text(`Title: ${event.event_title}`, 10, y);
-      y += 6;
-      doc.text(`Workout: ${event.event_workout}`, 10, y);
-      y += 6;
-      doc.text(`Distance: ${event.event_distance} miles`, 10, y);
-      y += 6;
-      doc.text(`Notes: ${event.event_notes}`, 10, y);
-      y += 10;
-      
-      // Add a new page if we're near the bottom
-      if (y > 280) {
-        doc.addPage();
-        y = 10;
-      }
+        const dateStr = new Date(event.event_date).toLocaleDateString();
+        doc.text(`Date: ${dateStr}`, 10, y);
+        y += 6;
+        doc.text(`Title: ${event.event_title}`, 10, y);
+        y += 6;
+        doc.text(`Workout: ${event.event_workout}`, 10, y);
+        y += 6;
+        doc.text(`Distance: ${event.event_distance} miles`, 10, y);
+        y += 6;
+        doc.text(`Notes: ${event.event_notes}`, 10, y);
+        y += 10;
+
+        // Add a new page if we're near the bottom
+        if (y > 280) {
+            doc.addPage();
+            y = 10;
+        }
     });
-    
+
     doc.save("training_plan.pdf");
-  }
+}
 
 function triggerPlanGeneratedCustomEvent() {
     const event = new CustomEvent("trainingplangenerated", {
@@ -894,7 +959,40 @@ function sharedState() {
 
                 exportAsCSV() {
                     exportToCSV(this.workouts);
-                }
+                },
+
+                exportAsPDF() {
+                    exportToPDF(this.workouts);
+                },
+
+                exportAsCal() {
+                    exportToICS(this.workouts);
+                },
+
+                dropdown() {
+                    return {
+                      open: false,
+                      dropdownStyles: '',
+                      toggleDropdown() {
+                        this.open = !this.open;
+                        if (this.open) {
+                          this.$nextTick(() => {
+                            const rect = this.$refs.toggle.getBoundingClientRect();
+                            let left = rect.right - 192;
+                            left = Math.max(left, 0);
+                            if (left + 192 > window.innerWidth) {
+                              left = window.innerWidth - 192;
+                            }
+                            this.dropdownStyles = `position: fixed; top: ${rect.bottom}px; left: ${left}px;`;
+                          });
+                        }
+                      },
+                      closeDropdown() {
+                        this.open = false;
+                      }
+                    }
+                  }
+                
             };
         },
 

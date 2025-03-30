@@ -152,39 +152,62 @@
                                                 <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
                                                 <span x-text="year" class="ml-1 text-lg font-normal"></span>
                                             </div>
-                                            <div class="flex items-center space-x-3 mt-4">
-                                                <button
-  @click="exportAsCSV()"
-  :disabled="workouts.length === 0"
-  :class="workouts.length === 0
-    ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-60'
-    : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
-  class="rounded-md px-4 py-2 text-sm font-medium shadow transition">
-  Download as CSV
-</button>
-
-                                                <!-- Future buttons for calendar or PDF export -->
-                                                <!--
-                                                <button @click="generatePlan()"
-                                                  class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700 transition">
-                                                  Download as Calendar
-                                                </button>
-                                                <button @click="generatePlan()"
-                                                  class="rounded-md bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow hover:bg-blue-700 transition">
-                                                  Download as PDF
-                                                </button>
-                                                -->
-
+                                            <div class="flex items-center justify-end space-x-3 mt-4">
+                                                <div x-data="dropdown()" class="relative inline-block text-left">
+                                                  <button x-ref="toggle" @click="toggleDropdown()"
+                                                    class="rounded-md px-3 py-2 text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none"
+                                                      viewBox="0 0 24 24" stroke="currentColor">
+                                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                                            d="M4 6h16M4 12h16M4 18h16" />
+                                                    </svg>
+                                                  </button>
+                                              
+                                                  <template x-teleport="body">
+                                                    <div x-show="open" @click.away="closeDropdown()" x-transition x-cloak
+                                                      :style="dropdownStyles"
+                                                      class="z-50 w-48 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5">
+                                                      <div class="py-1">
+                                                        <button @click="exportAsCSV(); closeDropdown()"
+                                                          :disabled="workouts.length === 0"
+                                                          :class="workouts.length === 0
+                                                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-60'
+                                                            : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
+                                                          class="rounded-md px-4 py-2 text-sm font-medium shadow transition w-full text-left">
+                                                          Download CSV
+                                                        </button>
+                                                        <button @click="exportAsPDF(); closeDropdown()"
+                                                          :disabled="workouts.length === 0"
+                                                          :class="workouts.length === 0
+                                                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-60'
+                                                            : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
+                                                          class="rounded-md px-4 py-2 text-sm font-medium shadow transition w-full text-left">
+                                                          Download PDF
+                                                        </button>
+                                                        <button @click="exportAsCal(); closeDropdown()"
+                                                          :disabled="workouts.length === 0"
+                                                          :class="workouts.length === 0
+                                                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-60'
+                                                            : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
+                                                          class="rounded-md px-4 py-2 text-sm font-medium shadow transition w-full text-left">
+                                                          Download Calendar
+                                                        </button>
+                                                      </div>
+                                                    </div>
+                                                  </template>
+                                                </div>
+                                              
+                                                <!-- Prev/Next buttons -->
                                                 <button @click="changeMonth(-1)"
-                                                    class="rounded-md bg-gray-700 px-3 py-2 text-sm text-white hover:bg-gray-600 transition">
-                                                    Prev
+                                                  class="rounded-md bg-gray-700 px-3 py-2 text-sm text-white hover:bg-gray-600 transition">
+                                                  Prev
                                                 </button>
-
+                                              
                                                 <button @click="changeMonth(1)"
-                                                    class="rounded-md bg-gray-700 px-3 py-2 text-sm text-white hover:bg-gray-600 transition">
-                                                    Next
+                                                  class="rounded-md bg-gray-700 px-3 py-2 text-sm text-white hover:bg-gray-600 transition">
+                                                  Next
                                                 </button>
-                                            </div>
+                                              </div>
                                         </div>
                                     </div>
 
