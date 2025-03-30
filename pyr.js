@@ -37,6 +37,136 @@ const EVENT_COLOR_MAP = new Map([
     ["Race", "blue"]
 ]);
 
+function exportToCSV(events) {
+    const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    // Group events by week number
+    const grouped = {};
+
+    events.forEach(event => {
+        const dateObj = new Date(event.event_date);
+        const monday = getMonday(dateObj);
+        const weekKey = monday.toISOString().split('T')[0];
+
+        if (!grouped[weekKey]) {
+            grouped[weekKey] = Array(7).fill('');
+        }
+
+        const dayIndex = (dateObj.getDay() + 6) % 7; // Convert Sun–Sat => 6–5
+        grouped[weekKey][dayIndex] = event.event_distance || '';
+    });
+
+    const header = ['Week', ...daysOfWeek, 'Total'];
+    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
+        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+        return [i + 1, ...distances, total.toFixed(1)];
+    });
+
+    const csvContent = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "training_plan.csv");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function getMonday(date) {
+    const d = new Date(date);
+    const day = d.getDay(); // 0 (Sun) to 6 (Sat)
+    const diff = d.getDate() - ((day + 6) % 7); // Adjust back to Monday
+    return new Date(d.setDate(diff));
+}
+
+function exportToPDF(events) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const grouped = {};
+
+    events.forEach(event => {
+        const dateObj = new Date(event.event_date);
+        const monday = getMonday(dateObj);
+        const weekKey = monday.toISOString().split('T')[0];
+
+        if (!grouped[weekKey]) {
+            grouped[weekKey] = Array(7).fill('');
+        }
+
+        // Calculate day index: Monday=0, Sunday=6
+        const dayIndex = (dateObj.getDay() + 6) % 7;
+        grouped[weekKey][dayIndex] = event.event_distance || '';
+    });
+
+    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
+        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+        return [i + 1, ...distances, total.toFixed(1)];
+    });
+
+    const header = ['Week', ...daysOfWeek, 'Total'];
+
+    doc.autoTable({
+        head: [header],
+        body: rows,
+        startY: 10,
+        theme: 'grid',
+        headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            halign: 'center'
+        },
+        styles: {
+            fontSize: 10,
+            cellPadding: 3,
+        },
+        columnStyles: {
+            0: { halign: 'center' },
+            8: { fontStyle: 'bold' }
+        }
+    });
+
+    doc.save("training_plan.pdf");
+}
+
+function exportToICS(events) {
+    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Your Company//TrainingPlan//EN\r\n";
+
+    events.forEach((event, index) => {
+        const uid = `event-${index}@yourdomain.com`;
+        // Format dates as YYYYMMDD
+        const dtStart = new Date(event.event_date)
+            .toISOString()
+            .slice(0, 10)
+            .replace(/-/g, "");
+        // For simplicity, we set DTEND as the same day.
+        const dtEnd = dtStart;
+        icsContent += "BEGIN:VEVENT\r\n";
+        icsContent += `UID:${uid}\r\n`;
+        icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z\r\n`;
+        icsContent += `DTSTART;VALUE=DATE:${dtStart}\r\n`;
+        icsContent += `DTEND;VALUE=DATE:${dtEnd}\r\n`;
+        icsContent += `SUMMARY:${event.event_title}\r\n`;
+        icsContent += `DESCRIPTION:${event.event_notes}\r\n`;
+        icsContent += "END:VEVENT\r\n";
+    });
+
+    icsContent += "END:VCALENDAR\r\n";
+
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "training_plan.ics");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
 function transformEvent(event) {
     // Map event_workout to event_type
     const workoutTypeMap = {
@@ -58,6 +188,71 @@ function transformEvent(event) {
         theme: "", // Leaving this empty as per your request
         event_type: workoutTypeMap[event.event_workout],
     };
+}
+
+function exportToICS(events) {
+    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Your Company//TrainingPlan//EN\r\n";
+
+    events.forEach((event, index) => {
+        const uid = `event-${index}@yourdomain.com`;
+        // Format dates as YYYYMMDD
+        const dtStart = new Date(event.event_date)
+            .toISOString()
+            .slice(0, 10)
+            .replace(/-/g, "");
+        // For simplicity, we set DTEND as the same day.
+        const dtEnd = dtStart;
+        icsContent += "BEGIN:VEVENT\r\n";
+        icsContent += `UID:${uid}\r\n`;
+        icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z\r\n`;
+        icsContent += `DTSTART;VALUE=DATE:${dtStart}\r\n`;
+        icsContent += `DTEND;VALUE=DATE:${dtEnd}\r\n`;
+        icsContent += `SUMMARY:${event.event_title}\r\n`;
+        icsContent += `DESCRIPTION:${event.event_notes}\r\n`;
+        icsContent += "END:VEVENT\r\n";
+    });
+
+    icsContent += "END:VCALENDAR\r\n";
+
+    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", "training_plan.ics");
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+}
+
+function exportToPDF(events) {
+    // Using the jsPDF library (ensure it's loaded)
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    doc.setFontSize(12);
+    let y = 10;
+
+    events.forEach((event, index) => {
+        const dateStr = new Date(event.event_date).toLocaleDateString();
+        doc.text(`Date: ${dateStr}`, 10, y);
+        y += 6;
+        doc.text(`Title: ${event.event_title}`, 10, y);
+        y += 6;
+        doc.text(`Workout: ${event.event_workout}`, 10, y);
+        y += 6;
+        doc.text(`Distance: ${event.event_distance} miles`, 10, y);
+        y += 6;
+        doc.text(`Notes: ${event.event_notes}`, 10, y);
+        y += 10;
+
+        // Add a new page if we're near the bottom
+        if (y > 280) {
+            doc.addPage();
+            y = 10;
+        }
+    });
+
+    doc.save("training_plan.pdf");
 }
 
 function triggerPlanGeneratedCustomEvent() {
@@ -214,10 +409,10 @@ function setupBarChart(workoutEvents) {
     const weekLabels = Object.keys(aggregatedData).map(week => `Week ${week}`);
     const monthLabels = weekLabels.map((_, index) => weekToMonthMap[index + 1] || ""); // Align with weeks
 
-    const totalPerWeek = Object.values(aggregatedData).map(w => 
+    const totalPerWeek = Object.values(aggregatedData).map(w =>
         w["Easy Run"] + w["Speed Workout"] + w["Long Run"]
     );
-    
+
     const peakIndex = totalPerWeek.indexOf(Math.max(...totalPerWeek));
     const taperStart = totalPerWeek.length - 2;
 
@@ -806,7 +1001,44 @@ function sharedState() {
 
                     this.loadWorkouts();
                     this.isModalOpen = false;
-                }
+                },
+
+                exportAsCSV() {
+                    exportToCSV(this.workouts);
+                },
+
+                exportAsPDF() {
+                    exportToPDF(this.workouts);
+                },
+
+                exportAsCal() {
+                    exportToICS(this.workouts);
+                },
+
+                dropdown() {
+                    return {
+                      open: false,
+                      dropdownStyles: '',
+                      toggleDropdown() {
+                        this.open = !this.open;
+                        if (this.open) {
+                          this.$nextTick(() => {
+                            const rect = this.$refs.toggle.getBoundingClientRect();
+                            let left = rect.right - 192;
+                            left = Math.max(left, 0);
+                            if (left + 192 > window.innerWidth) {
+                              left = window.innerWidth - 192;
+                            }
+                            this.dropdownStyles = `position: fixed; top: ${rect.bottom}px; left: ${left}px;`;
+                          });
+                        }
+                      },
+                      closeDropdown() {
+                        this.open = false;
+                      }
+                    }
+                  }
+                
             };
         },
 
