@@ -38,13 +38,31 @@ const EVENT_COLOR_MAP = new Map([
 ]);
 
 function exportToCSV(events) {
-    const header = "Date,Title,Workout,Distance,Notes,Theme";
-    const rows = events.map(event => {
-        const date = new Date(event.event_date).toISOString().split("T")[0];
-        // Wrap text fields in quotes to handle commas
-        return `${date},"${event.event_title}","${event.event_workout}",${event.event_distance},"${event.event_notes}","${event.event_theme}"`;
+    const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    // Group events by week number
+    const grouped = {};
+
+    events.forEach(event => {
+        const dateObj = new Date(event.event_date);
+        const monday = getMonday(dateObj);
+        const weekKey = monday.toISOString().split('T')[0];
+
+        if (!grouped[weekKey]) {
+            grouped[weekKey] = Array(7).fill('');
+        }
+
+        const dayIndex = (dateObj.getDay() + 6) % 7; // Convert Sun–Sat => 6–5
+        grouped[weekKey][dayIndex] = event.event_distance || '';
     });
-    const csvContent = [header, ...rows].join("\n");
+
+    const header = ['Week', ...daysOfWeek, 'Total'];
+    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
+        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+        return [i + 1, ...distances, total.toFixed(1)];
+    });
+
+    const csvContent = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
 
@@ -56,30 +74,58 @@ function exportToCSV(events) {
     document.body.removeChild(link);
 }
 
+function getMonday(date) {
+    const d = new Date(date);
+    const day = d.getDay(); // 0 (Sun) to 6 (Sat)
+    const diff = d.getDate() - ((day + 6) % 7); // Adjust back to Monday
+    return new Date(d.setDate(diff));
+}
+
 function exportToPDF(events) {
-    // Using the jsPDF library (ensure it's loaded)
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
-    doc.setFontSize(12);
-    let y = 10;
 
-    events.forEach((event, index) => {
-        const dateStr = new Date(event.event_date).toLocaleDateString();
-        doc.text(`Date: ${dateStr}`, 10, y);
-        y += 6;
-        doc.text(`Title: ${event.event_title}`, 10, y);
-        y += 6;
-        doc.text(`Workout: ${event.event_workout}`, 10, y);
-        y += 6;
-        doc.text(`Distance: ${event.event_distance} miles`, 10, y);
-        y += 6;
-        doc.text(`Notes: ${event.event_notes}`, 10, y);
-        y += 10;
+    const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+    const grouped = {};
 
-        // Add a new page if we're near the bottom
-        if (y > 280) {
-            doc.addPage();
-            y = 10;
+    events.forEach(event => {
+        const dateObj = new Date(event.event_date);
+        const monday = getMonday(dateObj);
+        const weekKey = monday.toISOString().split('T')[0];
+
+        if (!grouped[weekKey]) {
+            grouped[weekKey] = Array(7).fill('');
+        }
+
+        // Calculate day index: Monday=0, Sunday=6
+        const dayIndex = (dateObj.getDay() + 6) % 7;
+        grouped[weekKey][dayIndex] = event.event_distance || '';
+    });
+
+    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
+        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
+        return [i + 1, ...distances, total.toFixed(1)];
+    });
+
+    const header = ['Week', ...daysOfWeek, 'Total'];
+
+    doc.autoTable({
+        head: [header],
+        body: rows,
+        startY: 10,
+        theme: 'grid',
+        headStyles: {
+            fillColor: [41, 128, 185],
+            textColor: 255,
+            halign: 'center'
+        },
+        styles: {
+            fontSize: 10,
+            cellPadding: 3,
+        },
+        columnStyles: {
+            0: { halign: 'center' },
+            8: { fontStyle: 'bold' }
         }
     });
 

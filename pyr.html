@@ -168,22 +168,14 @@
                                                       :style="dropdownStyles"
                                                       class="z-50 w-48 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5">
                                                       <div class="py-1">
-                                                        <button @click="exportAsCSV(); closeDropdown()"
-                                                          :disabled="workouts.length === 0"
-                                                          :class="workouts.length === 0
-                                                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-60'
-                                                            : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
-                                                          class="rounded-md px-4 py-2 text-sm font-medium shadow transition w-full text-left">
-                                                          Download CSV
-                                                        </button>
-                                                        <button @click="exportAsPDF(); closeDropdown()"
+                                                        <!--<button @click="exportAsPDF(); closeDropdown()"
                                                           :disabled="workouts.length === 0"
                                                           :class="workouts.length === 0
                                                             ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-60'
                                                             : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
                                                           class="rounded-md px-4 py-2 text-sm font-medium shadow transition w-full text-left">
                                                           Download PDF
-                                                        </button>
+                                                        </button>-->
                                                         <button @click="exportAsCal(); closeDropdown()"
                                                           :disabled="workouts.length === 0"
                                                           :class="workouts.length === 0
@@ -191,6 +183,14 @@
                                                             : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
                                                           class="rounded-md px-4 py-2 text-sm font-medium shadow transition w-full text-left">
                                                           Download Calendar
+                                                        </button>
+                                                        <button @click="exportAsCSV(); closeDropdown()"
+                                                          :disabled="workouts.length === 0"
+                                                          :class="workouts.length === 0
+                                                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-60'
+                                                            : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
+                                                          class="rounded-md px-4 py-2 text-sm font-medium shadow transition w-full text-left">
+                                                          Download CSV
                                                         </button>
                                                       </div>
                                                     </div>
@@ -383,4 +383,5 @@
         <script src="sliderOptions.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
         <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
     </head>
