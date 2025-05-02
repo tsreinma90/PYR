@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Workout Menu</title>
+        <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.x.x/dist/tailwind.min.css" rel="stylesheet">
+    </head>
+    <body class="bg-gray-100 p-6">
+        <div x-data="workoutMenu" class="p-4">
+            <!-- Level Selection -->
+            <div class="flex space-x-4 justify-center mb-6">
+                <template x-for="(level, index) in levels" :key="index">
+                    <button 
+                        @click="selectLevel(level)" 
+                        :class="{
+                        'bg-green-500 text-white': selectedLevel === level,
+                        'bg-gray-200 text-gray-800': selectedLevel !== level
+                        }" 
+                        class="px-4 py-2 rounded-md transition duration-300">
+                        <span x-text="level"></span>
+                    </button>
+                </template>
+            </div>
+
+            <!-- Radio Button Selection -->
+            <div class="flex space-x-4 justify-center mb-6">
+            <template x-for="(option, index) in categories" :key="index">
+                <button 
+                @click="selectCategory(option)" 
+                :class="{
+                    'bg-blue-500 text-white': selectedCategory === option,
+                    'bg-gray-200 text-gray-800': selectedCategory !== option
+                }" 
+                class="px-4 py-2 rounded-md transition duration-300">
+                <span x-text="option"></span>
+                </button>
+            </template>
+            </div>
+        
+            <!-- Infinite Scrollable Picklist -->
+            <div 
+            class="overflow-y-auto h-64 bg-gray-50 shadow-inner rounded-md p-4" 
+            x-ref="scrollable"
+            @scroll="handleScroll"
+            >
+            <template x-for="(workout, index) in infiniteList" :key="index">
+                <div 
+                @click="toggleWorkoutSelection(workout)" 
+                :class="{
+                    'bg-blue-100 border-blue-500': workout.selected,
+                    'bg-white border-gray-300': !workout.selected
+                }"
+                class="flex items-center justify-between px-4 py-2 mb-2 border rounded-md cursor-pointer transition duration-300">
+                <span x-text="workout.name"></span>
+                <span x-show="workout.selected" class="text-blue-500">✔</span>
+                </div>
+            </template>
+            </div>
+        </div>
+        
+        <script>
+        document.addEventListener('alpine:init', () => {
+            Alpine.data('workoutMenu', () => ({
+            // Categories for radio buttons
+            categories: ['Tempo', 'Speed', 'Strength'],
+
+            // Levels for filtering workouts
+            levels: ['Beginner', 'Intermediate', 'Advanced', 'Custom'],
+
+            // State for the selected category and level
+            selectedCategory: 'Tempo',
+            selectedLevel: 'Beginner',
+
+            // List of all workouts
+            workouts: [
+                // Speed Workouts
+                { id: 1, name: '4 x 200m @ 75%', category: 'Speed', level: 'Beginner', selected: false },
+                { id: 2, name: '6 x 400m @ 80%', category: 'Speed', level: 'Intermediate', selected: false },
+                { id: 3, name: '8 x 400m @ 90%', category: 'Speed', level: 'Advanced', selected: false },
+
+                // Tempo Workouts
+                { id: 4, name: '2-mile continuous run @ 65%', category: 'Tempo', level: 'Beginner', selected: false },
+                { id: 5, name: '4-mile continuous run @ 75%', category: 'Tempo', level: 'Intermediate', selected: false },
+                { id: 6, name: '5-mile continuous run @ 85%', category: 'Tempo', level: 'Advanced', selected: false },
+
+                // Strength Workouts
+                { id: 7, name: '3 sets of 10 squats (bodyweight)', category: 'Strength', level: 'Beginner', selected: false },
+                { id: 8, name: '4 sets of 12 squats (weighted)', category: 'Strength', level: 'Intermediate', selected: false },
+                { id: 9, name: '5 sets of 15 squats (heavy)', category: 'Strength', level: 'Advanced', selected: false },
+            ],
+
+            // Computed property to filter workouts based on selected category and level
+            get filteredWorkouts() {
+                if (this.selectedLevel === 'Custom') {
+                return this.workouts.filter(workout => workout.category === this.selectedCategory);
+                }
+                return this.workouts.filter(
+                workout => workout.category === this.selectedCategory && workout.level === this.selectedLevel
+                );
+            },
+
+            // Method to select a category
+            selectCategory(category) {
+                this.selectedCategory = category;
+            },
+
+            // Method to select a level
+            selectLevel(level) {
+                this.selectedLevel = level;
+            },
+
+            // Method to toggle workout selection
+            toggleWorkoutSelection(workout) {
+                workout.selected = !workout.selected;
+            },
+
+            // Infinite scroll logic for circular behavior
+            get infiniteList() {
+                // To simulate circular scrolling, we repeat the list
+                const repetitions = 10; // Adjust how many times to repeat the list for scrolling
+                return Array(repetitions)
+                .fill(this.filteredWorkouts)
+                .flat(); // Flatten to create a long scrollable list
+            },
+
+            // Handle infinite scroll behavior
+            handleScroll(event) {
+                const scrollable = this.$refs.scrollable;
+                if (scrollable.scrollTop + scrollable.clientHeight >= scrollable.scrollHeight - 10) {
+                // Reset scroll position to top to simulate infinite scroll
+                scrollable.scrollTop = 0;
+                }
+            }
+            }));
+        });
+        </script>
+    </body>
+</html>
