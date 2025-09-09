@@ -22,12 +22,13 @@ const DISTANCE_OPTIONS = [
 ];
 
 const PLAN_LENGTH_OPTIONS = [
+    { label: '4 Week Training Plan', value: 4 },
+    { label: '6 Week Training Plan', value: 6 },
     { label: '8 Week Training Plan', value: 8 },
     { label: '10 Week Training Plan', value: 10 },
     { label: '12 Week Training Plan', value: 12 },
-    { label: '14 Week Training Plan', value: 14 },
     { label: '16 Week Training Plan', value: 16 },
-    { label: '20 Week Training Plan', value: 20 },
+    { label: '20 Week Training Plan', value: 20 }
 ];
 
 const EVENT_COLOR_MAP = new Map([
@@ -599,9 +600,13 @@ function sharedState() {
                 const raceDay = new Date(this.raceDate);
                 const weeksUntilRace = Math.floor((raceDay - today) / (1000 * 60 * 60 * 24 * 7)); // Convert ms to weeks
 
-                // Define the cutoffs for each training plan
-                if (weeksUntilRace < 10) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value === 8);
+                // New logic
+                if (weeksUntilRace < 6) {
+                    return PLAN_LENGTH_OPTIONS.filter(option => option.value === 4);
+                } else if (weeksUntilRace < 8) {
+                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 6);
+                } else if (weeksUntilRace < 10) {
+                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 8);
                 } else if (weeksUntilRace < 12) {
                     return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 10);
                 } else if (weeksUntilRace < 14) {
@@ -611,7 +616,7 @@ function sharedState() {
                 } else if (weeksUntilRace <= 20) {
                     return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 16);
                 } else {
-                    return PLAN_LENGTH_OPTIONS; // Show all options if race is 20+ weeks away
+                    return PLAN_LENGTH_OPTIONS;
                 }
             }
         },
@@ -670,7 +675,7 @@ function sharedState() {
 
                 // Calculate the min and max allowed race dates
                 const minRaceDate = new Date(today);
-                minRaceDate.setDate(today.getDate() + 56); // 8 weeks
+                minRaceDate.setDate(today.getDate() + 28); // 4 weeks
 
                 const maxRaceDate = new Date(today);
                 maxRaceDate.setDate(today.getDate() + 140); // 20 weeks
@@ -679,7 +684,7 @@ function sharedState() {
                 if (isNaN(raceDate.getTime())) {
                     this.errors.raceDate = 'Please enter a valid race date.';
                 } else if (raceDate < minRaceDate) {
-                    this.errors.raceDate = `Race date must be at least 8 weeks from today (${minRaceDate.toLocaleDateString()}).`;
+                    this.errors.raceDate = `Race date must be at least 4 weeks from today (${minRaceDate.toLocaleDateString()}).`;
                 } else if (raceDate > maxRaceDate) {
                     this.errors.raceDate = `Race date cannot be more than 20 weeks from today (${maxRaceDate.toLocaleDateString()}).`;
                 } else {
@@ -849,7 +854,7 @@ function sharedState() {
             }
 
             // Ensure weeks is a valid number (8, 10, 12, 14, or 16)
-            const validWeeks = ['8', '10', '12', '14', '16'];
+            const validWeeks = ['4', '6', '8', '10', '12', '14', '16'];
             if (!validWeeks.includes(weeks)) {
                 throw new Error("Invalid weeks provided. Must be one of: " + validWeeks.join(", "));
             }
@@ -1017,30 +1022,55 @@ function sharedState() {
 
                 dropdown() {
                     return {
-                      open: false,
-                      dropdownStyles: '',
-                      toggleDropdown() {
-                        this.open = !this.open;
-                        if (this.open) {
-                          this.$nextTick(() => {
-                            const rect = this.$refs.toggle.getBoundingClientRect();
-                            let left = rect.right - 192;
-                            left = Math.max(left, 0);
-                            if (left + 192 > window.innerWidth) {
-                              left = window.innerWidth - 192;
+                        open: false,
+                        dropdownStyles: '',
+                        toggleDropdown() {
+                            this.open = !this.open;
+                            if (this.open) {
+                                this.$nextTick(() => {
+                                    const rect = this.$refs.toggle.getBoundingClientRect();
+                                    let left = rect.right - 192;
+                                    left = Math.max(left, 0);
+                                    if (left + 192 > window.innerWidth) {
+                                        left = window.innerWidth - 192;
+                                    }
+                                    this.dropdownStyles = `position: fixed; top: ${rect.bottom}px; left: ${left}px;`;
+                                });
                             }
-                            this.dropdownStyles = `position: fixed; top: ${rect.bottom}px; left: ${left}px;`;
-                          });
+                        },
+                        closeDropdown() {
+                            this.open = false;
                         }
-                      },
-                      closeDropdown() {
-                        this.open = false;
-                      }
                     }
-                  }
-                
+                }
+
             };
         },
+
+        /*trainingAIEnhancer() {
+            return {
+                userInput: '',
+                loading: false,
+                enhancedOutput: '',
+                enhancePlan: async function () {
+                    this.loading = true;
+                    const payload = {
+                        userNotes: this.userInput,
+                        planJson: window.generatedTrainingPlan  // assumes plan is globally available
+                    };
+
+                    const res = await fetch('/api/ai/enhance-plan', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+  
+                    const data = await res.json();
+                    this.enhancedOutput = data.refinedText || 'Something went wrong. Try again.';
+                    this.loading = false;
+                }
+            }
+        },*/
 
         loadBarChart() {
             setTimeout(() => {

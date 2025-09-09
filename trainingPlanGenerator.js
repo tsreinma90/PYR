@@ -324,20 +324,33 @@ function calculateWorkoutDistance(
   return Math.max(3, Math.min(adjustedMiles, Math.ceil(weeklyMileage * 0.4)));
 }
 
-// Progressive mileage builder with recovery taper.
-// Final week mileage is capped at 10 miles.
+// Progressive mileage builder with adaptive taper.
 function createWeeklyMileage(numOfWeeks, maxMileage) {
   let milesPerWeek = [];
   const startingMileage = Math.ceil(0.6 * maxMileage);
-  const increaseRate = (maxMileage - startingMileage) / (numOfWeeks - 3);
-  for (let i = 1; i <= numOfWeeks - 3; i++) {
+
+  // Dynamic taper length
+  let taperWeeks;
+  if (numOfWeeks <= 5) taperWeeks = 1;
+  else if (numOfWeeks <= 7) taperWeeks = 2;
+  else taperWeeks = 3;
+
+  const buildWeeks = numOfWeeks - taperWeeks;
+  const increaseRate = (maxMileage - startingMileage) / Math.max(buildWeeks - 1, 1);
+
+  // Build phase
+  for (let i = 0; i < buildWeeks; i++) {
     milesPerWeek.push(Math.ceil(startingMileage + increaseRate * i));
   }
-  // Taper phase: last 3 weeks reduce mileage.
-  milesPerWeek.push(Math.ceil(maxMileage * 0.7)); // 3 weeks out
-  milesPerWeek.push(Math.ceil(maxMileage * 0.5)); // 2 weeks out
-  // Final (race) week: cap total mileage at 10 miles.
+
+  // Taper phase
+  for (let t = taperWeeks; t > 1; t--) {
+    milesPerWeek.push(Math.ceil(maxMileage * (0.5 + 0.2 * (t - 1)))); 
+  }
+
+  // Final (race) week: cap at 10 miles
   milesPerWeek.push(Math.min(Math.ceil(maxMileage * 0.3), 10));
+
   return milesPerWeek;
 }
 

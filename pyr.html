@@ -353,9 +353,32 @@
                             </template>
                             <template x-if="activeTab === 'ai'">
                                 <div>
-                                    <h3 class="text-lg font-semibold text-indigo-600">(AI) Enhance Training Specificity
-                                    </h3>
-                                    <p class="text-gray-600">Coming Soon :)</p>
+                                    <div class="mt-4" x-data="trainingAIEnhancer()">
+                                        <!-- User Input -->
+                                        <label class="block font-semibold mb-1 text-sm text-gray-700">
+                                            Describe anything relevant to your training (e.g., past injuries, goals,
+                                            travel, time limits):
+                                        </label>
+                                        <textarea x-model="userInput" rows="4"
+                                            placeholder="e.g. I’m coming back from injury and can train 3x/week"
+                                            class="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-indigo-300 text-sm resize-y"></textarea>
+
+                                        <!-- Action Button -->
+                                        <button @click="enhancePlan()"
+                                            class="mt-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
+                                            :disabled="loading">
+                                            Refine Plan
+                                        </button>
+
+                                        <!-- Output -->
+                                        <template x-if="enhancedOutput">
+                                            <div
+                                                class="mt-4 p-3 border border-green-200 bg-green-50 rounded-lg text-sm">
+                                                <p class="font-semibold text-green-800">Refined Description:</p>
+                                                <p class="mt-1 text-gray-800" x-text="enhancedOutput"></p>
+                                            </div>
+                                        </template>
+                                    </div>
                                 </div>
                             </template>
                         </div>
@@ -363,28 +386,27 @@
                 </div>
             </div>
         </div>
-        <br/><br/>
+        <br /><br />
     </div>
 </div>
 
-    <head>
-        <meta charset="UTF-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        <title>Training Plan</title>
+    <title>Training Plan</title>
 
-        <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-        <link rel="stylesheet" href="./dist/nouislider.min.css">
-        <link rel="stylesheet" href="./pyr.css">
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="./dist/nouislider.min.css">
+    <link rel="stylesheet" href="./pyr.css">
 
-        <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-        <script type="text/javascript" src="./pyr.js"></script>
-        <script src="./dist/nouislider.min.js"></script>
-        <script src="sliderOptions.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-        <script
-            src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-    </head>
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script type="text/javascript" src="./pyr.js"></script>
+    <script src="./dist/nouislider.min.js"></script>
+    <script src="sliderOptions.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
