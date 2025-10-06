@@ -311,6 +311,9 @@ const monthLabelPlugin = {
 const trainingPhasePlugin = {
     id: "trainingPhasePlugin",
     beforeDraw(chart) {
+        // Only draw if this chart explicitly enables the plugin
+        const enabled = chart.config?.options?.plugins?.trainingPhasePlugin;
+        if (!enabled) return;
         const ctx = chart.ctx;
         const xAxis = chart.scales["x"];
         if (!xAxis) return;
@@ -377,7 +380,7 @@ function getPeakWeekIndex(chart) {
 }
 
 function setupBarChart(workoutEvents) {
-    if (workoutEvents.length === 0) return;
+    if (!workoutEvents || workoutEvents.length === 0) return;
 
     workoutEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 
@@ -638,9 +641,20 @@ function sharedState() {
         ],
         miles: Array.from({ length: 30 }, (_, i) => ({ value: i + 1, label: i + 1 })),
 
+        // Track the active tab for the new tab state
+        activeTab: 'calendar',
+
         average_mileage_weekly: 0,
         average_mileage_daily: 0,
         numOfWeeksInTraining: 0,
+
+        // Analytics summary and chart refs
+        analyticsSummary: {
+            totalMileage: 0,
+            typePercents: { easy: 0, speed: 0, long: 0 },
+            peakWeekMileage: 0,
+        },
+        analyticsCharts: { weeklyTrend: null, typeBreakdown: null, longRun: null },
 
         get zonePreferences() {
             return [0.6, 0.12, 0.08, 0.2];
@@ -791,6 +805,9 @@ function sharedState() {
                 this.average_mileage_weekly = Math.ceil(totalDistance / numberOfWeeksUntilRace);
                 this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
                 triggerPlanGeneratedCustomEvent();
+                if (this.activeTab === 'analytics') {
+                    this.loadAnalyticsCharts();
+                }
             }
         },
 
@@ -1071,6 +1088,175 @@ function sharedState() {
                 }
             }
         },*/
+
+        // Safely destroy any existing analytics charts
+        destroyAnalyticsCharts() {
+            const c = this.analyticsCharts || {};
+            if (c.weeklyTrend && typeof c.weeklyTrend.destroy === 'function') c.weeklyTrend.destroy();
+            if (c.typeBreakdown && typeof c.typeBreakdown.destroy === 'function') c.typeBreakdown.destroy();
+            if (c.longRun && typeof c.longRun.destroy === 'function') c.longRun.destroy();
+            this.analyticsCharts = { weeklyTrend: null, typeBreakdown: null, longRun: null };
+        },
+
+        // Build analytics data series from currentWorkouts
+        _buildAnalyticsData() {
+            const workouts = this.currentWorkouts || [];
+            if (!workouts.length) {
+                return { labels: [], weekly: [], typeCounts: { 'Easy Run': 0, 'Speed Workout': 0, 'Long Run': 0, 'Race': 0 }, longRun: [] };
+            }
+
+            // Sort by date and anchor weeks to the Monday of the first workout
+            const sorted = [...workouts].sort((a, b) => new Date(a.date) - new Date(b.date));
+            const firstDate = new Date(sorted[0].date);
+            const startMonday = getPreviousMonday(firstDate);
+
+            const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+            const weekIndex = (d) => Math.max(0, Math.floor((new Date(d) - startMonday) / msPerWeek));
+
+            const weeklyMileage = [];
+            const typeCounts = { 'Easy Run': 0, 'Speed Workout': 0, 'Long Run': 0, 'Race': 0 };
+            const longRunByWeek = {};
+
+            sorted.forEach(w => {
+                const wk = weekIndex(w.date);
+                const dist = parseFloat(w.event_distance || 0) || 0;
+                weeklyMileage[wk] = (weeklyMileage[wk] || 0) + dist;
+                if (w.event_type in typeCounts) typeCounts[w.event_type] += dist;
+                if (w.event_type === 'Long Run') {
+                    longRunByWeek[wk] = Math.max(longRunByWeek[wk] || 0, dist);
+                }
+            });
+
+            const weekCount = Math.max(weeklyMileage.length, parseInt(this.numOfWeeksInTraining || weeklyMileage.length || 0, 10));
+            const labels = Array.from({ length: weekCount }, (_, i) => `Week ${i + 1}`);
+            const weekly = Array.from({ length: weekCount }, (_, i) => weeklyMileage[i] || 0);
+            const longRun = Array.from({ length: weekCount }, (_, i) => longRunByWeek[i] || 0);
+
+            // Summary
+            const total = weekly.reduce((a, b) => a + b, 0);
+            const easy = typeCounts['Easy Run'] || 0;
+            const speed = typeCounts['Speed Workout'] || 0;
+            const long = typeCounts['Long Run'] || 0;
+            const denom = Math.max(total, 1);
+
+            this.analyticsSummary.totalMileage = total;
+            this.analyticsSummary.typePercents = {
+                easy: Math.round((easy / denom) * 100),
+                speed: Math.round((speed / denom) * 100),
+                long: Math.round((long / denom) * 100),
+            };
+            this.analyticsSummary.peakWeekMileage = weekly.reduce((m, v) => Math.max(m, v), 0);
+
+            return { labels, weekly, typeCounts, longRun };
+        },
+
+        // Render the Analytics tab charts
+        loadAnalyticsCharts() {
+            if (!this.currentWorkouts || this.currentWorkouts.length === 0) {
+                this.destroyAnalyticsCharts();
+                return;
+            }
+
+            const render = () => {
+                this.destroyAnalyticsCharts();
+                const { labels, weekly, typeCounts, longRun } = this._buildAnalyticsData();
+
+                // Weekly Mileage Trend (line)
+                const t1 = document.getElementById('weeklyMileageTrend');
+                if (t1) {
+                    this.analyticsCharts.weeklyTrend = new Chart(t1, {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Weekly Mileage',
+                                data: weekly,
+                                borderWidth: 2,
+                                tension: 0.25,
+                                borderColor: '#60a5fa', // blue-400
+                                backgroundColor: 'rgba(96,165,250,0.15)',
+                                pointBackgroundColor: '#93c5fd',
+                                pointBorderColor: '#93c5fd',
+                                pointRadius: 3,
+                                pointHoverRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 2,
+                            scales: {
+                                x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                                y: { beginAtZero: true, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                            },
+                            plugins: { legend: { labels: { color: '#e5e7eb' } } }
+                        }
+                    });
+                }
+
+                // Workout Type Breakdown (doughnut)
+                const t2 = document.getElementById('workoutTypeBreakdown');
+                if (t2) {
+                    this.analyticsCharts.typeBreakdown = new Chart(t2, {
+                        type: 'doughnut',
+                        data: {
+                            labels: Object.keys(typeCounts),
+                            datasets: [{
+                                data: Object.values(typeCounts).map(v => Math.round(v)),
+                                backgroundColor: ['#34d399', '#ef4444', '#8b5cf6', '#60a5fa'],
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 1.6,
+                            plugins: { legend: { labels: { color: '#e5e7eb' } } }
+                        }
+                    });
+                }
+
+                // Long Run Progression (line)
+                const t3 = document.getElementById('longRunProgression');
+                if (t3) {
+                    this.analyticsCharts.longRun = new Chart(t3, {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Long Run (mi)',
+                                data: longRun,
+                                borderWidth: 2,
+                                tension: 0.25,
+                                borderColor: '#a78bfa', // violet-300
+                                backgroundColor: 'rgba(167,139,250,0.18)',
+                                pointBackgroundColor: '#c4b5fd',
+                                pointBorderColor: '#c4b5fd',
+                                pointRadius: 3,
+                                pointHoverRadius: 4
+                            }]
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: true,
+                            aspectRatio: 2,
+                            scales: {
+                                x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
+                                y: { beginAtZero: true, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                            },
+                            plugins: { legend: { labels: { color: '#e5e7eb' } } }
+                        }
+                    });
+                }
+            };
+
+            // Ensure canvases exist (tab just switched). Use Alpine's nextTick if available.
+            if (typeof this.$nextTick === 'function') {
+                this.$nextTick(render);
+            } else {
+                setTimeout(render, 0);
+            }
+        },
 
         loadBarChart() {
             setTimeout(() => {
