@@ -14,6 +14,31 @@ const DAYS_OF_WEEK = [
     { name: 'Sunday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 }
 ];
 
+const MS_PER_WEEK = 1000 * 60 * 60 * 24 * 7;
+
+const PLAN_THRESHOLDS = [
+    { maxWeeks: 6, maxValue: 4 }, // < 6 weeks  → only 4-week plan
+    { maxWeeks: 8, maxValue: 6 }, // < 8 weeks  → up to 6 weeks
+    { maxWeeks: 10, maxValue: 8 },
+    { maxWeeks: 12, maxValue: 10 },
+    { maxWeeks: 14, maxValue: 12 },
+    { maxWeeks: 16, maxValue: 14 },
+    { maxWeeks: 20, maxValue: 16 },
+    // ≥ 20 weeks → no cap
+];
+
+function getMaxPlanLength(weeksUntilRace) {
+    const rule = PLAN_THRESHOLDS.find(t => weeksUntilRace < t.maxWeeks);
+    return rule ? rule.maxValue : Infinity;
+}
+
+function getWeeksUntil(dateStr) {
+    const today = new Date();
+    const target = new Date(dateStr);
+    const diffWeeks = Math.floor((target.getTime() - today.getTime()) / MS_PER_WEEK);
+    return Math.max(diffWeeks, 0); // clamp past dates to 0
+}
+
 const DISTANCE_OPTIONS = [
     { label: '5K', value: '5k' },
     { label: '10K', value: '10k' },
@@ -597,31 +622,13 @@ function sharedState() {
 
         get raceDateOptions() {
             if (!this.raceDate) {
-                return PLAN_LENGTH_OPTIONS; // Show all options when no race date is selected
-            } else {
-                const today = new Date();
-                const raceDay = new Date(this.raceDate);
-                const weeksUntilRace = Math.floor((raceDay - today) / (1000 * 60 * 60 * 24 * 7)); // Convert ms to weeks
-
-                // New logic
-                if (weeksUntilRace < 6) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value === 4);
-                } else if (weeksUntilRace < 8) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 6);
-                } else if (weeksUntilRace < 10) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 8);
-                } else if (weeksUntilRace < 12) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 10);
-                } else if (weeksUntilRace < 14) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 12);
-                } else if (weeksUntilRace < 16) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 14);
-                } else if (weeksUntilRace <= 20) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 16);
-                } else {
-                    return PLAN_LENGTH_OPTIONS;
-                }
+                return PLAN_LENGTH_OPTIONS;
             }
+
+            const weeksUntilRace = getWeeksUntil(this.raceDate);
+            const maxPlanLength = getMaxPlanLength(weeksUntilRace);
+
+            return PLAN_LENGTH_OPTIONS.filter(o => o.value <= maxPlanLength);
         },
 
         // selections made by the user
