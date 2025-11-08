@@ -1,8 +1,11 @@
-const MONTH_NAMES = [
-    "January", "February", "March", "April", "May", "June",
-    "July", "August", "September", "October", "November", "December"
-];
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+// Pull shared configuration from config.js
+const {
+    MONTH_NAMES,
+    DAYS,
+    DISTANCE_OPTIONS,
+    PLAN_LENGTH_OPTIONS,
+    EVENT_COLOR_MAP
+} = window.PYR_CONFIG || {};
 
 const DAYS_OF_WEEK = [
     { name: 'Monday', options: ['Rest', 'Easy', 'Tempo', 'Speed', 'Long'], activeOption: 0 },
@@ -17,9 +20,9 @@ const DAYS_OF_WEEK = [
 const MS_PER_WEEK = 1000 * 60 * 60 * 24 * 7;
 
 const PLAN_THRESHOLDS = [
-    { maxWeeks: 6, maxValue: 4 }, // < 6 weeks  → only 4-week plan
-    { maxWeeks: 8, maxValue: 6 }, // < 8 weeks  → up to 6 weeks
-    { maxWeeks: 10, maxValue: 8 },
+    { maxWeeks: 6,  maxValue: 4  },
+    { maxWeeks: 8,  maxValue: 6  },
+    { maxWeeks: 10, maxValue: 8  },
     { maxWeeks: 12, maxValue: 10 },
     { maxWeeks: 14, maxValue: 12 },
     { maxWeeks: 16, maxValue: 14 },
@@ -27,78 +30,24 @@ const PLAN_THRESHOLDS = [
     // ≥ 20 weeks → no cap
 ];
 
+function getWeeksUntil(dateStr) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const target = new Date(dateStr + 'T00:00:00');
+    if (isNaN(target.getTime())) {
+        return 0;
+    }
+
+    const diffWeeks = Math.floor((target.getTime() - today.getTime()) / MS_PER_WEEK);
+    return Math.max(diffWeeks, 0);
+}
+
 function getMaxPlanLength(weeksUntilRace) {
     const rule = PLAN_THRESHOLDS.find(t => weeksUntilRace < t.maxWeeks);
     return rule ? rule.maxValue : Infinity;
 }
 
-function getWeeksUntil(dateStr) {
-    const today = new Date();
-    const target = new Date(dateStr);
-    const diffWeeks = Math.floor((target.getTime() - today.getTime()) / MS_PER_WEEK);
-    return Math.max(diffWeeks, 0); // clamp past dates to 0
-}
-
-const DISTANCE_OPTIONS = [
-    { label: '5K', value: '5k' },
-    { label: '10K', value: '10k' },
-    { label: 'Half Marathon', value: 'half-marathon' },
-    { label: 'Marathon', value: 'marathon' },
-];
-
-const PLAN_LENGTH_OPTIONS = [
-    { label: '4 Week Training Plan', value: 4 },
-    { label: '6 Week Training Plan', value: 6 },
-    { label: '8 Week Training Plan', value: 8 },
-    { label: '10 Week Training Plan', value: 10 },
-    { label: '12 Week Training Plan', value: 12 },
-    { label: '16 Week Training Plan', value: 16 },
-    { label: '20 Week Training Plan', value: 20 }
-];
-
-const EVENT_COLOR_MAP = new Map([
-    ["Easy Run", "green"],
-    ["Speed Workout", "red"],
-    ["Long Run", "purple"],
-    ["Race", "blue"]
-]);
-
-function exportToCSV(events) {
-    const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-
-    // Group events by week number
-    const grouped = {};
-
-    events.forEach(event => {
-        const dateObj = new Date(event.event_date);
-        const monday = getMonday(dateObj);
-        const weekKey = monday.toISOString().split('T')[0];
-
-        if (!grouped[weekKey]) {
-            grouped[weekKey] = Array(7).fill('');
-        }
-
-        const dayIndex = (dateObj.getDay() + 6) % 7; // Convert Sun–Sat => 6–5
-        grouped[weekKey][dayIndex] = event.event_distance || '';
-    });
-
-    const header = ['Week', ...daysOfWeek, 'Total'];
-    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
-        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
-        return [i + 1, ...distances, total.toFixed(1)];
-    });
-
-    const csvContent = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "training_plan.csv");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
 function getMonday(date) {
     const d = new Date(date);
@@ -107,91 +56,7 @@ function getMonday(date) {
     return new Date(d.setDate(diff));
 }
 
-function exportToPDF(events) {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
 
-    const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-    const grouped = {};
-
-    events.forEach(event => {
-        const dateObj = new Date(event.event_date);
-        const monday = getMonday(dateObj);
-        const weekKey = monday.toISOString().split('T')[0];
-
-        if (!grouped[weekKey]) {
-            grouped[weekKey] = Array(7).fill('');
-        }
-
-        // Calculate day index: Monday=0, Sunday=6
-        const dayIndex = (dateObj.getDay() + 6) % 7;
-        grouped[weekKey][dayIndex] = event.event_distance || '';
-    });
-
-    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
-        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
-        return [i + 1, ...distances, total.toFixed(1)];
-    });
-
-    const header = ['Week', ...daysOfWeek, 'Total'];
-
-    doc.autoTable({
-        head: [header],
-        body: rows,
-        startY: 10,
-        theme: 'grid',
-        headStyles: {
-            fillColor: [41, 128, 185],
-            textColor: 255,
-            halign: 'center'
-        },
-        styles: {
-            fontSize: 10,
-            cellPadding: 3,
-        },
-        columnStyles: {
-            0: { halign: 'center' },
-            8: { fontStyle: 'bold' }
-        }
-    });
-
-    doc.save("training_plan.pdf");
-}
-
-function exportToICS(events) {
-    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Your Company//TrainingPlan//EN\r\n";
-
-    events.forEach((event, index) => {
-        const uid = `event-${index}@yourdomain.com`;
-        // Format dates as YYYYMMDD
-        const dtStart = new Date(event.event_date)
-            .toISOString()
-            .slice(0, 10)
-            .replace(/-/g, "");
-        // For simplicity, we set DTEND as the same day.
-        const dtEnd = dtStart;
-        icsContent += "BEGIN:VEVENT\r\n";
-        icsContent += `UID:${uid}\r\n`;
-        icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z\r\n`;
-        icsContent += `DTSTART;VALUE=DATE:${dtStart}\r\n`;
-        icsContent += `DTEND;VALUE=DATE:${dtEnd}\r\n`;
-        icsContent += `SUMMARY:${event.event_title}\r\n`;
-        icsContent += `DESCRIPTION:${event.event_notes}\r\n`;
-        icsContent += "END:VEVENT\r\n";
-    });
-
-    icsContent += "END:VCALENDAR\r\n";
-
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "training_plan.ics");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
 function transformEvent(event) {
     // Map event_workout to event_type
@@ -216,70 +81,6 @@ function transformEvent(event) {
     };
 }
 
-function exportToICS(events) {
-    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Your Company//TrainingPlan//EN\r\n";
-
-    events.forEach((event, index) => {
-        const uid = `event-${index}@yourdomain.com`;
-        // Format dates as YYYYMMDD
-        const dtStart = new Date(event.event_date)
-            .toISOString()
-            .slice(0, 10)
-            .replace(/-/g, "");
-        // For simplicity, we set DTEND as the same day.
-        const dtEnd = dtStart;
-        icsContent += "BEGIN:VEVENT\r\n";
-        icsContent += `UID:${uid}\r\n`;
-        icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z\r\n`;
-        icsContent += `DTSTART;VALUE=DATE:${dtStart}\r\n`;
-        icsContent += `DTEND;VALUE=DATE:${dtEnd}\r\n`;
-        icsContent += `SUMMARY:${event.event_title}\r\n`;
-        icsContent += `DESCRIPTION:${event.event_notes}\r\n`;
-        icsContent += "END:VEVENT\r\n";
-    });
-
-    icsContent += "END:VCALENDAR\r\n";
-
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "training_plan.ics");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
-
-function exportToPDF(events) {
-    // Using the jsPDF library (ensure it's loaded)
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(12);
-    let y = 10;
-
-    events.forEach((event, index) => {
-        const dateStr = new Date(event.event_date).toLocaleDateString();
-        doc.text(`Date: ${dateStr}`, 10, y);
-        y += 6;
-        doc.text(`Title: ${event.event_title}`, 10, y);
-        y += 6;
-        doc.text(`Workout: ${event.event_workout}`, 10, y);
-        y += 6;
-        doc.text(`Distance: ${event.event_distance} miles`, 10, y);
-        y += 6;
-        doc.text(`Notes: ${event.event_notes}`, 10, y);
-        y += 10;
-
-        // Add a new page if we're near the bottom
-        if (y > 280) {
-            doc.addPage();
-            y = 10;
-        }
-    });
-
-    doc.save("training_plan.pdf");
-}
 
 function triggerPlanGeneratedCustomEvent() {
     const event = new CustomEvent("trainingplangenerated", {
@@ -521,10 +322,7 @@ function getWeekNumber(startOfWeek1, eventDate) {
     return Math.min(20, Math.floor((eventDate - startOfWeek1) / msPerWeek) + 1);
 }
 
-// **Helper function to get month name from a date**
-function getMonthName(date) {
-    return date.toLocaleString('default', { month: 'long' });
-}
+
 
 window.addEventListener("load", function () {
     Chart.register(monthLabelPlugin);
@@ -618,17 +416,85 @@ function sharedState() {
     return {
         // Constants
         daysOfWeek: DAYS_OF_WEEK,
-        raceDistanceOptions: DISTANCE_OPTIONS,
 
+        // Race distance options derived from shared config
+        get raceDistanceOptions() {
+            if (!Array.isArray(DISTANCE_OPTIONS)) return [];
+            return DISTANCE_OPTIONS.map(label => {
+                const normalized = label.toLowerCase();
+                let value = normalized;
+
+                if (normalized === '5k') value = '5k';
+                else if (normalized === '10k') value = '10k';
+                else if (normalized === 'half marathon') value = 'half-marathon';
+                else if (normalized === 'marathon') value = 'marathon';
+
+                return { label, value };
+            });
+        },
+
+        // Plan length options derived from shared config
         get raceDateOptions() {
+            const raw = PLAN_LENGTH_OPTIONS || [];
+
+            // Normalize: support [4,6,8,...], ["4",...], or [{ value: 4 }, ...]
+            const normalizeWeeks = (item) => {
+                if (typeof item === 'number') return item;
+                if (typeof item === 'string') return parseInt(item, 10);
+                if (item && typeof item.value !== 'undefined') return parseInt(item.value, 10);
+                return NaN;
+            };
+
+            const makeOption = (weeks) => ({
+                label: `${weeks} Week Training Plan`,
+                value: String(weeks)
+            });
+
+            // No race date → show all configured options
             if (!this.raceDate) {
-                return PLAN_LENGTH_OPTIONS;
+                const options = raw
+                    .map(normalizeWeeks)
+                    .filter(w => !Number.isNaN(w))
+                    .map(makeOption);
+                // Auto-select the numerically longest valid plan by default, and reset if invalid
+                const optionValues = options.map(o => o.value);
+                const needsDefault =
+                    !this.selectedTimeframe || !optionValues.includes(this.selectedTimeframe);
+
+                if (needsDefault && options.length) {
+                    const longest = options.reduce((max, o) => {
+                        const v = parseInt(o.value, 10);
+                        return isNaN(v) ? max : Math.max(max, v);
+                    }, -Infinity);
+                    if (longest !== -Infinity) {
+                        this.selectedTimeframe = String(longest);
+                    }
+                }
+                return options;
             }
 
             const weeksUntilRace = getWeeksUntil(this.raceDate);
             const maxPlanLength = getMaxPlanLength(weeksUntilRace);
 
-            return PLAN_LENGTH_OPTIONS.filter(o => o.value <= maxPlanLength);
+            const options = raw
+                .map(normalizeWeeks)
+                .filter(w => !Number.isNaN(w) && w <= maxPlanLength)
+                .map(makeOption);
+            // Auto-select the numerically longest valid plan by default, and reset if invalid
+            const optionValues = options.map(o => o.value);
+            const needsDefault =
+                !this.selectedTimeframe || !optionValues.includes(this.selectedTimeframe);
+
+            if (needsDefault && options.length) {
+                const longest = options.reduce((max, o) => {
+                    const v = parseInt(o.value, 10);
+                    return isNaN(v) ? max : Math.max(max, v);
+                }, -Infinity);
+                if (longest !== -Infinity) {
+                    this.selectedTimeframe = String(longest);
+                }
+            }
+            return options;
         },
 
         // selections made by the user
@@ -1033,15 +899,21 @@ function sharedState() {
                 },
 
                 exportAsCSV() {
-                    exportToCSV(this.workouts);
+                    if (window.PYR_Exporters) {
+                        window.PYR_Exporters.exportToCSV(this.workouts);
+                    }
                 },
 
                 exportAsPDF() {
-                    exportToPDF(this.workouts);
+                    if (window.PYR_Exporters) {
+                        window.PYR_Exporters.exportToPDF(this.workouts);
+                    }
                 },
 
                 exportAsCal() {
-                    exportToICS(this.workouts);
+                    if (window.PYR_Exporters) {
+                        window.PYR_Exporters.exportToICS(this.workouts);
+                    }
                 },
 
                 dropdown() {
