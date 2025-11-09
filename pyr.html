@@ -1,3 +1,20 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Training Plan</title>
+
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="./dist/nouislider.min.css" />
+    <link rel="stylesheet" href="./pyr.css" />
+
+    <!-- Alpine core -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+</head>
+<body class="bg-gray-900">
 <div x-data="sharedState()">
     <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8">
         <div class="mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -56,7 +73,7 @@
                 </div>
 
                 <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15 mt-6">
-                    <h3 class="text-lg font-semibold text-white">Training & Race Goals</h3>
+                    <h3 class="text-lg font-semibold text-white">Training &amp; Race Goals</h3>
                     <p class="text-sm text-gray-400">Select your weekly mileage preference and your goal finish time for
                         this race.</p>
                     <br />
@@ -117,7 +134,6 @@
                 </div>
             </div>
 
-
             <!-- Right Column -->
             <div class="lg:col-span-2">
                 <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15 h-full">
@@ -139,16 +155,13 @@
                                 class="w-1/3 py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
                                 Analytics
                             </button>
-                            <!--<button @click="activeTab = 'ai'"
-                                :class="activeTab === 'ai' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
-                                class="w-1/3 py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
-                                Enhance Training Specificity
-                            </button>-->
                         </div>
 
                         <!-- Tab Content -->
                         <div class="mt-6">
                             <template x-if="activeTab === 'calendar'">
+                                <!-- existing calendarComponent markup (unchanged) -->
+                                <!-- BEGIN CALENDAR CONTENT -->
                                 <div x-data="calendarComponent()" class="p-6 bg-gray-900 text-white">
                                     <!-- Calendar Header -->
                                     <div class="calendar-container flex flex-col bg-gray-900 rounded-lg p-4">
@@ -173,14 +186,6 @@
                                                             x-cloak :style="dropdownStyles"
                                                             class="z-50 w-48 origin-top-right rounded-md bg-gray-800 shadow-lg ring-1 ring-black ring-opacity-5">
                                                             <div class="py-1">
-                                                                <!--<button @click="exportAsPDF(); closeDropdown()"
-                                                          :disabled="workouts.length === 0"
-                                                          :class="workouts.length === 0
-                                                            ? 'bg-gray-500 text-gray-300 cursor-not-allowed opacity-60'
-                                                            : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
-                                                          class="rounded-md px-4 py-2 text-sm font-medium shadow transition w-full text-left">
-                                                          Download PDF
-                                                        </button>-->
                                                                 <button @click="exportAsCal(); closeDropdown()"
                                                                     :disabled="workouts.length === 0"
                                                                     :class="workouts.length === 0
@@ -324,11 +329,12 @@
                                         </div>
                                     </div>
                                 </div>
+                                <!-- END CALENDAR CONTENT -->
                             </template>
+
                             <template x-if="activeTab === 'summary'">
                                 <div>
-                                    <h2 class="font-bold text-2xl mb-6 text-white border-b pb-2">Training Block Summary
-                                    </h2>
+                                    <h2 class="font-bold text-2xl mb-6 text-white border-b pb-2">Training Block Summary</h2>
                                     <div>
                                         <h3 class="text-base font-semibold leading-6 text-gray-900">Volume Details</h3>
                                         <dl class="mt-5 grid grid-cols-1 gap-5 sm:grid-cols-3">
@@ -356,6 +362,7 @@
                                     <canvas id="myChart" width="50%" height="20%"></canvas>
                                 </div>
                             </template>
+
                             <template x-if="activeTab === 'analytics'">
                                 <div class="p-6 space-y-6">
                                     <h2 class="font-bold text-2xl mb-6 text-white border-b pb-2">Training Analytics</h2>
@@ -384,64 +391,25 @@
                                     <canvas id="longRunProgression"></canvas>
                                 </div>
                             </template>
-                            <template x-if="activeTab === 'ai'">
-                                <div>
-                                    <div class="mt-4" x-data="trainingAIEnhancer()">
-                                        <!-- User Input -->
-                                        <label class="block font-semibold mb-1 text-sm text-gray-700">
-                                            Describe anything relevant to your training (e.g., past injuries, goals,
-                                            travel, time limits):
-                                        </label>
-                                        <textarea x-model="userInput" rows="4"
-                                            placeholder="e.g. I’m coming back from injury and can train 3x/week"
-                                            class="w-full p-2 border border-gray-300 rounded-lg focus:ring focus:ring-indigo-300 text-sm resize-y"></textarea>
-
-                                        <!-- Action Button -->
-                                        <button @click="enhancePlan()"
-                                            class="mt-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
-                                            :disabled="loading">
-                                            Refine Plan
-                                        </button>
-
-                                        <!-- Output -->
-                                        <template x-if="enhancedOutput">
-                                            <div
-                                                class="mt-4 p-3 border border-green-200 bg-green-50 rounded-lg text-sm">
-                                                <p class="font-semibold text-green-800">Refined Description:</p>
-                                                <p class="mt-1 text-gray-800" x-text="enhancedOutput"></p>
-                                            </div>
-                                        </template>
-                                    </div>
-                                </div>
-                            </template>
                         </div>
                     </div>
                 </div>
             </div>
+
         </div>
         <br /><br />
     </div>
 </div>
 
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Training Plan</title>
-
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="./dist/nouislider.min.css">
-    <link rel="stylesheet" href="./pyr.css">
-
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script type="text/javascript" src="./config.js"></script>
-    <script type="text/javascript" src="./exporters.js"></script>
-    <script type="text/javascript" src="./pyr.js"></script>
-    <script src="./dist/nouislider.min.js"></script>
-    <script src="sliderOptions.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-</head>
+<!-- Scripts: order matters -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+<script src="./dist/nouislider.min.js"></script>
+<script src="./config.js"></script>
+<script src="./exporters.js"></script>
+<script src="./sliderOptions.js"></script>
+<script src="./pyr.charts.js"></script>
+<script src="./pyr.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</body>
+</html>

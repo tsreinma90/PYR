@@ -48,15 +48,12 @@ function getMaxPlanLength(weeksUntilRace) {
     return rule ? rule.maxValue : Infinity;
 }
 
-
 function getMonday(date) {
     const d = new Date(date);
     const day = d.getDay(); // 0 (Sun) to 6 (Sat)
     const diff = d.getDate() - ((day + 6) % 7); // Adjust back to Monday
     return new Date(d.setDate(diff));
 }
-
-
 
 function transformEvent(event) {
     // Map event_workout to event_type
@@ -80,7 +77,6 @@ function transformEvent(event) {
         event_type: workoutTypeMap[event.event_workout],
     };
 }
-
 
 function triggerPlanGeneratedCustomEvent() {
     const event = new CustomEvent("trainingplangenerated", {
@@ -322,8 +318,6 @@ function getWeekNumber(startOfWeek1, eventDate) {
     return Math.min(20, Math.floor((eventDate - startOfWeek1) / msPerWeek) + 1);
 }
 
-
-
 window.addEventListener("load", function () {
     Chart.register(monthLabelPlugin);
     Chart.register(trainingPhasePlugin);
@@ -456,20 +450,14 @@ function sharedState() {
                     .map(normalizeWeeks)
                     .filter(w => !Number.isNaN(w))
                     .map(makeOption);
-                // Auto-select the numerically longest valid plan by default, and reset if invalid
-                const optionValues = options.map(o => o.value);
-                const needsDefault =
-                    !this.selectedTimeframe || !optionValues.includes(this.selectedTimeframe);
 
-                if (needsDefault && options.length) {
-                    const longest = options.reduce((max, o) => {
-                        const v = parseInt(o.value, 10);
-                        return isNaN(v) ? max : Math.max(max, v);
-                    }, -Infinity);
-                    if (longest !== -Infinity) {
-                        this.selectedTimeframe = String(longest);
-                    }
+                // When no race date is selected, do NOT auto-select a training block.
+                // If the current selection is not in the available options, clear it.
+                const optionValues = options.map(o => o.value);
+                if (!this.selectedTimeframe || !optionValues.includes(this.selectedTimeframe)) {
+                    this.selectedTimeframe = '';
                 }
+
                 return options;
             }
 
@@ -480,20 +468,28 @@ function sharedState() {
                 .map(normalizeWeeks)
                 .filter(w => !Number.isNaN(w) && w <= maxPlanLength)
                 .map(makeOption);
-            // Auto-select the numerically longest valid plan by default, and reset if invalid
-            const optionValues = options.map(o => o.value);
-            const needsDefault =
-                !this.selectedTimeframe || !optionValues.includes(this.selectedTimeframe);
 
-            if (needsDefault && options.length) {
-                const longest = options.reduce((max, o) => {
-                    const v = parseInt(o.value, 10);
-                    return isNaN(v) ? max : Math.max(max, v);
-                }, -Infinity);
-                if (longest !== -Infinity) {
-                    this.selectedTimeframe = String(longest);
-                }
+            const optionValues = options.map(o => o.value);
+
+            // Always align to the longest available option for the current race date.
+            // This ensures that after *any* race date update (including while scrolling),
+            // the selected timeframe reflects the latest valid maximum instead of sticking on an earlier 4-week value.
+            const longest = options.reduce((max, o) => {
+                const v = parseInt(o.value, 10);
+                return (isNaN(v) || v <= max) ? max : v;
+            }, -Infinity);
+
+            const next = (longest === -Infinity) ? '' : String(longest);
+
+            if (this.selectedTimeframe !== next) {
+                queueMicrotask(() => {
+                    // Use the options/values captured for this computation so we don't fight later recomputes.
+                    if (optionValues.includes(next)) {
+                        this.selectedTimeframe = next;
+                    }
+                });
             }
+
             return options;
         },
 
