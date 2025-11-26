@@ -442,4 +442,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <!-- Somewhere in your body -->
+<div id="pyr-ai-container"></div>
+
+<!-- Load Lightning Out from your Experience Cloud site -->
+<script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/lightning/lightning.out.js"></script>
+
+<script>
+  $Lightning.use(
+    "c:lightningAppContainer",
+    function () {
+      $Lightning.createComponent(
+        "c:trainingPlanReviewBridge",
+        {},
+        "pyr-ai-container",
+        function (cmp) {
+          // Expose the bridge so your JS (pyr.js) can call reviewPlan(...)
+          window.pyrAiBridge = cmp;
+          console.log("***", cmp);
+        }
+      );
+    },
+    "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com"
+  );
+</script>
 </head>
