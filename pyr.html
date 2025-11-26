@@ -1,4 +1,5 @@
 <div x-data="sharedState()">
+    <div id="pyr-ai-container"></div>
     <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8">
         <div class="mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -443,28 +444,29 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
-    <!-- Somewhere in your body -->
-<div id="pyr-ai-container"></div>
+    <!-- Load Lightning Out -->
+    <script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/lightning/lightning.out.js"
+        onload="initLightningOut()"></script>
 
-<!-- Load Lightning Out from your Experience Cloud site -->
-<script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/lightning/lightning.out.js"></script>
+    <script>
+        function initLightningOut() {
+            console.log("lightning.out.js loaded — initializing Lightning Out…");
 
-<script>
-  $Lightning.use(
-    "c:lightningAppContainer",
-    function () {
-      $Lightning.createComponent(
-        "c:trainingPlanReviewBridge",
-        {},
-        "pyr-ai-container",
-        function (cmp) {
-          // Expose the bridge so your JS (pyr.js) can call reviewPlan(...)
-          window.pyrAiBridge = cmp;
-          console.log("***", cmp);
+            $Lightning.use(
+                "c:lightningAppContainer",
+                function () {
+                    $Lightning.createComponent(
+                        "c:trainingPlanReviewBridge",
+                        {},
+                        "pyr-ai-container",
+                        function (cmp) {
+                            window.pyrAiBridge = cmp;
+                            console.log("TrainingPlanReviewBridge ready", cmp);
+                        }
+                    );
+                },
+                "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com"
+            );
         }
-      );
-    },
-    "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com"
-  );
-</script>
+    </script>
 </head>
