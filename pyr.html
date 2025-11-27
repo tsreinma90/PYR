@@ -20,12 +20,34 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
 
-    <!--<script type="text/javascript" async=""
-        src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.salesforce.com/lightning/lightning.out.latest/index.iife.prod.js"></script>-->
+    <script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr/lightning/lightning.out.js"></script>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // TODO: update names below to match your actual Aura app + component
+        $Lightning.use(
+            "c:LightningAppContainer",  // Aura app (example name)
+            function () {
+                $Lightning.createComponent(
+                    "c:trainingPlanReviewBridge", // Aura wrapper or LWC wrapper
+                    {
+                        // Pass attributes into your component here, e.g.:
+                        // trainingPlanJson: window.currentTrainingPlanJson
+                    },
+                    "sf-ai-review",  // DOM element id where the component will be injected
+                    function (cmp) {
+                        console.log("Lightning Out component created:", cmp);
+                    }
+                );
+            },
+            "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr" // community base URL (no /s/)
+        );
+    });
+</script>
 </head>
 
     <div x-data="sharedState()">
-        <!--<lightning-out-application components="c-training-plan-review-bridge"></lightning-out-application>-->
+        <div id="sf-ai-review"></div>
         <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8">
             <div class="mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
 
