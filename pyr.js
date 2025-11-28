@@ -43,7 +43,7 @@ function trainingAIEnhancer() {
         userInput: '',
         loading: false,
 
-        async enhancePlan() {
+        enhancePlan() {
             // Ensure the Lightning Out bridge is ready
             if (!window.reviewTrainingPlanWithAI) {
                 console.error('reviewTrainingPlanWithAI is not available yet.');
@@ -317,10 +317,6 @@ function convertPaceToDecimal(pace) {
     return minutes + (seconds / 60);
 }
 
-function getMonthName(dateString) {
-    const date = new Date(dateString);
-    return MONTH_NAMES[date.getMonth()];
-}
 
 var myChart;
 
@@ -816,11 +812,7 @@ function sharedState() {
         },
 
         async generatePlan() {
-            this.selectedGoal = window.paceGoal?.[0];
-            // to-do, strange bug
-            if (this.selectedGoal === '9') {
-                this.selectedGoal = '9:00 min/mi';
-            }
+            this.selectedGoal = window.paceGoal;
 
             if (!this.formComplete) {
                 this.showErrorToast = true;
