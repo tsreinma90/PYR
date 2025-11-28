@@ -38,6 +38,52 @@ const EVENT_COLOR_MAP = new Map([
     ["Race", "blue"]
 ]);
 
+function trainingAIEnhancer() {
+    return {
+        userInput: '',
+        loading: false,
+
+        async enhancePlan() {
+            // Ensure the Lightning Out bridge is ready
+            if (!window.reviewTrainingPlanWithAI) {
+                console.error('reviewTrainingPlanWithAI is not available yet.');
+                alert('AI review is still loading. Please try again in a few seconds.');
+                return;
+            }
+
+            // Require that a plan has been generated
+            if (
+                !window.currentTrainingPlan ||
+                !Array.isArray(window.currentTrainingPlan) ||
+                window.currentTrainingPlan.length === 0
+            ) {
+                alert('Please generate a training plan before asking the AI for a review.');
+                return;
+            }
+
+            this.loading = true;
+
+            try {
+                const question =
+                    this.userInput && this.userInput.trim().length > 0
+                        ? this.userInput.trim()
+                        : 'Please review this training plan and suggest improvements.';
+
+                const runnerContext = window.currentRunnerContext || {};
+
+                // Call into the Lightning Out bridge (LWC) to perform the review.
+                window.reviewTrainingPlanWithAI(
+                    window.currentTrainingPlan,
+                    question,
+                    runnerContext
+                );
+            } finally {
+                this.loading = false;
+            }
+        }
+    };
+}
+
 function exportToCSV(events) {
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -804,6 +850,14 @@ function sharedState() {
                 this.numOfWeeksInTraining = numberOfWeeksUntilRace;
                 this.average_mileage_weekly = Math.ceil(totalDistance / numberOfWeeksUntilRace);
                 this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
+                // Expose the current plan and runner context for the AI review bridge.
+                window.currentTrainingPlan = this.currentWorkouts;
+                window.currentRunnerContext = {
+                    raceDistance: this.selectedRaceDistance,
+                    raceDate: this.raceDate,
+                    timeframe: this.selectedTimeframe,
+                    weeklyMileage: this.selectedWeeklyMileage
+                };
                 triggerPlanGeneratedCustomEvent();
                 if (this.activeTab === 'analytics') {
                     this.loadAnalyticsCharts();
@@ -1063,31 +1117,6 @@ function sharedState() {
 
             };
         },
-
-        /*trainingAIEnhancer() {
-            return {
-                userInput: '',
-                loading: false,
-                enhancedOutput: '',
-                enhancePlan: async function () {
-                    this.loading = true;
-                    const payload = {
-                        userNotes: this.userInput,
-                        planJson: window.generatedTrainingPlan  // assumes plan is globally available
-                    };
-
-                    const res = await fetch('/api/ai/enhance-plan', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-  
-                    const data = await res.json();
-                    this.enhancedOutput = data.refinedText || 'Something went wrong. Try again.';
-                    this.loading = false;
-                }
-            }
-        },*/
 
         // Safely destroy any existing analytics charts
         destroyAnalyticsCharts() {
