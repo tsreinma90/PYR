@@ -428,45 +428,45 @@ function getPeakWeekIndex(chart) {
 function setupBarChart(workoutEvents) {
     if (!workoutEvents || workoutEvents.length === 0) return;
 
+    // If the chart canvas isn't in the DOM yet (e.g., on the Calendar tab), just bail.
+    const canvas = document.getElementById("myChart");
+    if (!canvas) return;
+
     workoutEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const firstEventDate = new Date(workoutEvents[0].date);
     const startOfWeek1 = getPreviousMonday(firstEventDate);
 
     let aggregatedData = {};
-    let weekToMonthMap = {}; // Store week-to-month mapping
+    let weekToMonthMap = {};
 
     workoutEvents.forEach(w => {
         const eventDate = new Date(w.date);
         const weekNumber = getWeekNumber(startOfWeek1, eventDate);
-        const monthLabel = getMonthName(eventDate); // Get month name (e.g., "January")
+        const monthLabel = getMonthName(eventDate);
 
         if (!aggregatedData[weekNumber]) {
             aggregatedData[weekNumber] = { "Easy Run": 0, "Speed Workout": 0, "Long Run": 0 };
         }
         if (!weekToMonthMap[weekNumber]) {
-            weekToMonthMap[weekNumber] = monthLabel; // Assign month for each week
+            weekToMonthMap[weekNumber] = monthLabel;
         }
 
         aggregatedData[weekNumber][w.event_type] += w.event_distance;
     });
 
-    // remove the last week for now
     const keys = Object.keys(aggregatedData);
     const lastKey = keys[keys.length - 1];
     delete aggregatedData[lastKey];
 
     const weekLabels = Object.keys(aggregatedData).map(week => `Week ${week}`);
-    const monthLabels = weekLabels.map((_, index) => weekToMonthMap[index + 1] || ""); // Align with weeks
+    const monthLabels = weekLabels.map((_, index) => weekToMonthMap[index + 1] || "");
 
     const totalPerWeek = Object.values(aggregatedData).map(w =>
         w["Easy Run"] + w["Speed Workout"] + w["Long Run"]
     );
 
-    const peakIndex = totalPerWeek.indexOf(Math.max(...totalPerWeek));
-    const taperStart = totalPerWeek.length - 2;
-
-    const ctx = document.getElementById("myChart").getContext("2d");
+    const ctx = canvas.getContext("2d");
     if (myChart) {
         myChart.destroy();
     }
