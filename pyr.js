@@ -39,52 +39,6 @@ const EVENT_COLOR_MAP = new Map([
     ["Race", "blue"]
 ]);
 
-function trainingAIEnhancer() {
-    return {
-        userInput: '',
-        loading: false,
-
-        enhancePlan() {
-            // Ensure the Lightning Out bridge is ready
-            if (!window.reviewTrainingPlanWithAI) {
-                console.error('reviewTrainingPlanWithAI is not available yet.');
-                alert('AI review is still loading. Please try again in a few seconds.');
-                return;
-            }
-
-            // Require that a plan has been generated
-            if (
-                !window.currentTrainingPlan ||
-                !Array.isArray(window.currentTrainingPlan) ||
-                window.currentTrainingPlan.length === 0
-            ) {
-                alert('Please generate a training plan before asking the AI for a review.');
-                return;
-            }
-
-            this.loading = true;
-
-            try {
-                const question =
-                    this.userInput && this.userInput.trim().length > 0
-                        ? this.userInput.trim()
-                        : 'Please review this training plan and suggest improvements.';
-
-                const runnerContext = window.currentRunnerContext || {};
-
-                // Call into the Lightning Out bridge (LWC) to perform the review.
-                window.reviewTrainingPlanWithAI(
-                    window.currentTrainingPlan,
-                    question,
-                    runnerContext
-                );
-            } finally {
-                this.loading = false;
-            }
-        }
-    };
-}
-
 function exportToCSV(events) {
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
@@ -318,6 +272,10 @@ function convertPaceToDecimal(pace) {
     return minutes + (seconds / 60);
 }
 
+function getMonthName(dateString) {
+    const date = new Date(dateString);
+    return MONTH_NAMES[date.getMonth()];
+}
 
 var myChart;
 
@@ -425,45 +383,45 @@ function getPeakWeekIndex(chart) {
 function setupBarChart(workoutEvents) {
     if (!workoutEvents || workoutEvents.length === 0) return;
 
-    // If the chart canvas isn't in the DOM yet (e.g., on the Calendar tab), just bail.
-    const canvas = document.getElementById("myChart");
-    if (!canvas) return;
-
     workoutEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const firstEventDate = new Date(workoutEvents[0].date);
     const startOfWeek1 = getPreviousMonday(firstEventDate);
 
     let aggregatedData = {};
-    let weekToMonthMap = {};
+    let weekToMonthMap = {}; // Store week-to-month mapping
 
     workoutEvents.forEach(w => {
         const eventDate = new Date(w.date);
         const weekNumber = getWeekNumber(startOfWeek1, eventDate);
-        const monthLabel = getMonthName(eventDate);
+        const monthLabel = getMonthName(eventDate); // Get month name (e.g., "January")
 
         if (!aggregatedData[weekNumber]) {
             aggregatedData[weekNumber] = { "Easy Run": 0, "Speed Workout": 0, "Long Run": 0 };
         }
         if (!weekToMonthMap[weekNumber]) {
-            weekToMonthMap[weekNumber] = monthLabel;
+            weekToMonthMap[weekNumber] = monthLabel; // Assign month for each week
         }
 
         aggregatedData[weekNumber][w.event_type] += w.event_distance;
     });
 
+    // remove the last week for now
     const keys = Object.keys(aggregatedData);
     const lastKey = keys[keys.length - 1];
     delete aggregatedData[lastKey];
 
     const weekLabels = Object.keys(aggregatedData).map(week => `Week ${week}`);
-    const monthLabels = weekLabels.map((_, index) => weekToMonthMap[index + 1] || "");
+    const monthLabels = weekLabels.map((_, index) => weekToMonthMap[index + 1] || ""); // Align with weeks
 
     const totalPerWeek = Object.values(aggregatedData).map(w =>
         w["Easy Run"] + w["Speed Workout"] + w["Long Run"]
     );
 
-    const ctx = canvas.getContext("2d");
+    const peakIndex = totalPerWeek.indexOf(Math.max(...totalPerWeek));
+    const taperStart = totalPerWeek.length - 2;
+
+    const ctx = document.getElementById("myChart").getContext("2d");
     if (myChart) {
         myChart.destroy();
     }
@@ -813,7 +771,11 @@ function sharedState() {
         },
 
         async generatePlan() {
-            this.selectedGoal = window.paceGoal;
+            this.selectedGoal = window.paceGoal?.[0];
+            // to-do, strange bug
+            if (this.selectedGoal === '9') {
+                this.selectedGoal = '9:00 min/mi';
+            }
 
             if (!this.formComplete) {
                 this.showErrorToast = true;
@@ -843,14 +805,6 @@ function sharedState() {
                 this.numOfWeeksInTraining = numberOfWeeksUntilRace;
                 this.average_mileage_weekly = Math.ceil(totalDistance / numberOfWeeksUntilRace);
                 this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
-                // Expose the current plan and runner context for the AI review bridge.
-                window.currentTrainingPlan = this.currentWorkouts;
-                window.currentRunnerContext = {
-                    raceDistance: this.selectedRaceDistance,
-                    raceDate: this.raceDate,
-                    timeframe: this.selectedTimeframe,
-                    weeklyMileage: this.selectedWeeklyMileage
-                };
                 triggerPlanGeneratedCustomEvent();
                 if (this.activeTab === 'analytics') {
                     this.loadAnalyticsCharts();
@@ -1110,6 +1064,31 @@ function sharedState() {
 
             };
         },
+
+        /*trainingAIEnhancer() {
+            return {
+                userInput: '',
+                loading: false,
+                enhancedOutput: '',
+                enhancePlan: async function () {
+                    this.loading = true;
+                    const payload = {
+                        userNotes: this.userInput,
+                        planJson: window.generatedTrainingPlan  // assumes plan is globally available
+                    };
+
+                    const res = await fetch('/api/ai/enhance-plan', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+  
+                    const data = await res.json();
+                    this.enhancedOutput = data.refinedText || 'Something went wrong. Try again.';
+                    this.loading = false;
+                }
+            }
+        },*/
 
         // Safely destroy any existing analytics charts
         destroyAnalyticsCharts() {
