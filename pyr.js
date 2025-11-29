@@ -874,8 +874,6 @@ function sharedState() {
                 return;
             }
 
-            console.log('*** planJson to send to AI Coach:', JSON.stringify(planJson, undefined, 2));
-
             // User question / notes from the textarea
             const userQuestion =
                 this.userInput && this.userInput.trim().length
@@ -889,8 +887,6 @@ function sharedState() {
                 weeklyMileage: this.selectedWeeklyMileage || null
             };
 
-            console.log('*** runnerContext to send to AI Coach:', JSON.stringify(runnerContext, undefined, 2));
-
             // Build the request object expected by the LWC @api reviewPlan(request)
             const request = {
                 userNotes: userQuestion,
@@ -900,6 +896,9 @@ function sharedState() {
                 // We are relying on DOM events (trainingplanreviewed / trainingplanreviewerror)
                 // so we do not pass onResult/onError callbacks here.
             };
+
+            console.log('*** runnerContext to send to AI Coach:', JSON.stringify(request, undefined, 2));
+
 
             try {
                 // Call the LWC @api method with a single request object
