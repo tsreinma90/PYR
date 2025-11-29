@@ -807,6 +807,9 @@ function sharedState() {
                         totalDistance += allRuns[i].event_distance;
                     }
                 }
+                // Expose the current training plan globally for the AI Coach LWC
+                window.currentTrainingPlanJson = this.currentWorkouts;
+
                 this.numOfWeeksInTraining = numberOfWeeksUntilRace;
                 this.average_mileage_weekly = Math.ceil(totalDistance / numberOfWeeksUntilRace);
                 this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
@@ -1027,6 +1030,9 @@ function sharedState() {
                         });
                     }
 
+                    // Keep the global training plan JSON in sync for the AI Coach LWC
+                    window.currentTrainingPlanJson = self.currentWorkouts;
+
                     this.loadWorkouts();
                     this.isModalOpen = false;
                 },
@@ -1069,31 +1075,6 @@ function sharedState() {
 
             };
         },
-
-        /*trainingAIEnhancer() {
-            return {
-                userInput: '',
-                loading: false,
-                enhancedOutput: '',
-                enhancePlan: async function () {
-                    this.loading = true;
-                    const payload = {
-                        userNotes: this.userInput,
-                        planJson: window.generatedTrainingPlan  // assumes plan is globally available
-                    };
-
-                    const res = await fetch('/api/ai/enhance-plan', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-  
-                    const data = await res.json();
-                    this.enhancedOutput = data.refinedText || 'Something went wrong. Try again.';
-                    this.loading = false;
-                }
-            }
-        },*/
 
         // Safely destroy any existing analytics charts
         destroyAnalyticsCharts() {
@@ -1268,6 +1249,88 @@ function sharedState() {
             setTimeout(() => {
                 setupBarChart(this.currentWorkouts);
             }, 0);
+        }
+    };
+}
+
+function trainingAIEnhancer() {
+    return {
+        userInput: "",
+        enhancedOutput: "",
+        loading: false,
+
+        // Alpine lifecycle hook – runs when this x-data instance is initialized
+        init() {
+            // Listen for successful reviews from the LWC bridge
+            window.addEventListener("trainingplanreviewed", (evt) => {
+                this.loading = false;
+                const detail = (evt && evt.detail) || {};
+
+                // Prefer a structured summary if available, otherwise fall back to raw output
+                const summary =
+                    detail.summaryText ||
+                    (detail.rawAgentOutput && String(detail.rawAgentOutput)) ||
+                    "The AI coach did not return a summary.";
+
+                this.enhancedOutput = summary;
+            });
+
+            // Listen for errors from the LWC bridge
+            window.addEventListener("trainingplanreviewerror", (evt) => {
+                this.loading = false;
+                const message =
+                    (evt && evt.detail && evt.detail.message) ||
+                    "There was a problem reviewing your training plan.";
+
+                this.enhancedOutput = `⚠️ ${message}`;
+            });
+        },
+
+        async enhancePlan() {
+            // Clear previous output and show loading state
+            this.loading = true;
+            this.enhancedOutput = "";
+
+            // Ensure the LWC bridge is ready
+            const cmp = window.trainingPlanReviewCmp;
+            if (!cmp || typeof cmp.reviewPlan !== "function") {
+                console.error("trainingPlanReviewCmp is not ready or has no reviewPlan() method.");
+                this.loading = false;
+                this.enhancedOutput = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
+                return;
+            }
+
+            // Ensure we actually have a training plan to send
+            const planJson = window.currentTrainingPlanJson || [];
+            if (!Array.isArray(planJson) || planJson.length === 0) {
+                this.loading = false;
+                this.enhancedOutput = "⚠️ Please generate a training plan first, then ask the AI Coach.";
+                return;
+            }
+
+            // User question / notes from the textarea
+            const userQuestion =
+                this.userInput && this.userInput.trim().length
+                    ? this.userInput.trim()
+                    : "Please review this training plan and suggest practical improvements.";
+
+            // Optional runner context – these globals can be populated in sharedState()
+            const runnerContext = {
+                raceDistance: window.selectedRaceDistance || null,
+                raceDate: window.raceDate || null,
+                weeklyMileage: window.selectedWeeklyMileage || null
+            };
+
+            try {
+                // Call the LWC @api method; it will in turn call Apex and dispatch events
+                await cmp.reviewPlan(planJson, userQuestion, runnerContext);
+                // We do not set enhancedOutput here – it will be set when the
+                // trainingplanreviewed or trainingplanreviewerror event fires.
+            } catch (e) {
+                console.error("Error calling reviewPlan on trainingPlanReviewCmp:", e);
+                this.loading = false;
+                this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
+            }
         }
     };
 }
