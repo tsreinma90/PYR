@@ -681,6 +681,37 @@ function sharedState() {
         // master-list of all workouts
         currentWorkouts: [],
 
+        // --- AI Coach shared state ---
+        userInput: "",
+        enhancedOutput: "",
+        loading: false,
+
+        // Root Alpine init – wires up listeners for the LWC bridge events
+        init() {
+            // Listen for successful reviews from the LWC bridge
+            window.addEventListener("trainingplanreviewed", (evt) => {
+                this.loading = false;
+                const detail = (evt && evt.detail) || {};
+
+                const summary =
+                    detail.summaryText ||
+                    (detail.rawAgentOutput && String(detail.rawAgentOutput)) ||
+                    "The AI coach did not return a summary.";
+
+                this.enhancedOutput = summary;
+            });
+
+            // Listen for errors from the LWC bridge
+            window.addEventListener("trainingplanreviewerror", (evt) => {
+                this.loading = false;
+                const message =
+                    (evt && evt.detail && evt.detail.message) ||
+                    "There was a problem reviewing your training plan.";
+
+                this.enhancedOutput = `⚠️ ${message}`;
+            });
+        },
+
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
 
@@ -817,6 +848,53 @@ function sharedState() {
                 if (this.activeTab === 'analytics') {
                     this.loadAnalyticsCharts();
                 }
+            }
+        },
+
+        async enhancePlan() {
+            // Clear previous output and show loading state
+            this.loading = true;
+            this.enhancedOutput = "";
+
+            // Ensure the LWC bridge is ready
+            const cmp = window.trainingPlanReviewCmp;
+            if (!cmp || typeof cmp.reviewPlan !== "function") {
+                console.error("trainingPlanReviewCmp is not ready or has no reviewPlan() method.");
+                this.loading = false;
+                this.enhancedOutput = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
+                return;
+            }
+
+            // Ensure we actually have a training plan to send
+            const planJson = window.currentTrainingPlanJson || [];
+            if (!Array.isArray(planJson) || planJson.length === 0) {
+                this.loading = false;
+                this.enhancedOutput = "⚠️ Please generate a training plan first, then ask the AI Coach.";
+                return;
+            }
+
+            // User question / notes from the textarea
+            const userQuestion =
+                this.userInput && this.userInput.trim().length
+                    ? this.userInput.trim()
+                    : "Please review this training plan and suggest practical improvements.";
+
+            // Optional runner context – derive from sharedState fields
+            const runnerContext = {
+                raceDistance: this.selectedRaceDistance || null,
+                raceDate: this.raceDate || null,
+                weeklyMileage: this.selectedWeeklyMileage || null
+            };
+
+            try {
+                // Call the LWC @api method; it will in turn call Apex and dispatch events
+                await cmp.reviewPlan(planJson, userQuestion, runnerContext);
+                // Do not set enhancedOutput here; it will be set when the
+                // trainingplanreviewed or trainingplanreviewerror events fire.
+            } catch (e) {
+                console.error("Error calling reviewPlan on trainingPlanReviewCmp:", e);
+                this.loading = false;
+                this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
             }
         },
 
@@ -1249,88 +1327,6 @@ function sharedState() {
             setTimeout(() => {
                 setupBarChart(this.currentWorkouts);
             }, 0);
-        }
-    };
-}
-
-function trainingAIEnhancer() {
-    return {
-        userInput: "",
-        enhancedOutput: "",
-        loading: false,
-
-        // Alpine lifecycle hook – runs when this x-data instance is initialized
-        init() {
-            // Listen for successful reviews from the LWC bridge
-            window.addEventListener("trainingplanreviewed", (evt) => {
-                this.loading = false;
-                const detail = (evt && evt.detail) || {};
-
-                // Prefer a structured summary if available, otherwise fall back to raw output
-                const summary =
-                    detail.summaryText ||
-                    (detail.rawAgentOutput && String(detail.rawAgentOutput)) ||
-                    "The AI coach did not return a summary.";
-
-                this.enhancedOutput = summary;
-            });
-
-            // Listen for errors from the LWC bridge
-            window.addEventListener("trainingplanreviewerror", (evt) => {
-                this.loading = false;
-                const message =
-                    (evt && evt.detail && evt.detail.message) ||
-                    "There was a problem reviewing your training plan.";
-
-                this.enhancedOutput = `⚠️ ${message}`;
-            });
-        },
-
-        async enhancePlan() {
-            // Clear previous output and show loading state
-            this.loading = true;
-            this.enhancedOutput = "";
-
-            // Ensure the LWC bridge is ready
-            const cmp = window.trainingPlanReviewCmp;
-            if (!cmp || typeof cmp.reviewPlan !== "function") {
-                console.error("trainingPlanReviewCmp is not ready or has no reviewPlan() method.");
-                this.loading = false;
-                this.enhancedOutput = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
-                return;
-            }
-
-            // Ensure we actually have a training plan to send
-            const planJson = window.currentTrainingPlanJson || [];
-            if (!Array.isArray(planJson) || planJson.length === 0) {
-                this.loading = false;
-                this.enhancedOutput = "⚠️ Please generate a training plan first, then ask the AI Coach.";
-                return;
-            }
-
-            // User question / notes from the textarea
-            const userQuestion =
-                this.userInput && this.userInput.trim().length
-                    ? this.userInput.trim()
-                    : "Please review this training plan and suggest practical improvements.";
-
-            // Optional runner context – these globals can be populated in sharedState()
-            const runnerContext = {
-                raceDistance: window.selectedRaceDistance || null,
-                raceDate: window.raceDate || null,
-                weeklyMileage: window.selectedWeeklyMileage || null
-            };
-
-            try {
-                // Call the LWC @api method; it will in turn call Apex and dispatch events
-                await cmp.reviewPlan(planJson, userQuestion, runnerContext);
-                // We do not set enhancedOutput here – it will be set when the
-                // trainingplanreviewed or trainingplanreviewerror event fires.
-            } catch (e) {
-                console.error("Error calling reviewPlan on trainingPlanReviewCmp:", e);
-                this.loading = false;
-                this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
-            }
         }
     };
 }
