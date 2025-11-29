@@ -858,6 +858,7 @@ function sharedState() {
 
             // Ensure the LWC bridge is ready
             const cmp = window.trainingPlanReviewCmp;
+            console.log('*** trainingPlanReviewCmp:', cmp);
             if (!cmp || typeof cmp.reviewPlan !== "function") {
                 console.error("trainingPlanReviewCmp is not ready or has no reviewPlan() method.");
                 this.loading = false;
