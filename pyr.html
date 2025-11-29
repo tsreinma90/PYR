@@ -467,6 +467,8 @@
                             "sf-ai-review",
                             function (cmp) {
                                 console.log("Lightning Out component created:", cmp);
+                                // 🔑 Make the component available to pyr.js
+                                window.trainingPlanReviewCmp = cmp;
                             }
                         );
                     },
