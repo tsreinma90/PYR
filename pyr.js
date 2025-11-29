@@ -382,6 +382,13 @@ function getPeakWeekIndex(chart) {
 function setupBarChart(workoutEvents) {
     if (!workoutEvents || workoutEvents.length === 0) return;
 
+    const chartEl = document.getElementById("myChart");
+    if (!chartEl || typeof chartEl.getContext !== "function") {
+        console.warn("myChart canvas not found; skipping bar chart render for now.");
+        return;
+    }
+    const ctx = chartEl.getContext("2d");
+
     workoutEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const firstEventDate = new Date(workoutEvents[0].date);
@@ -420,7 +427,6 @@ function setupBarChart(workoutEvents) {
     const peakIndex = totalPerWeek.indexOf(Math.max(...totalPerWeek));
     const taperStart = totalPerWeek.length - 2;
 
-    const ctx = document.getElementById("myChart").getContext("2d");
     if (myChart) {
         myChart.destroy();
     }
