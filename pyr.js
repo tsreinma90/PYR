@@ -688,6 +688,7 @@ function sharedState() {
 
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
+            console.log('***', 'potato');
             // Listen for successful reviews from the LWC bridge
             window.addEventListener("trainingplanreviewed", (evt) => {
                 this.loading = false;
