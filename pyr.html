@@ -47,6 +47,7 @@
 </head>
 
 <div x-data="sharedState()">
+    <div id="sf-ai-review"></div>
     <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8">
         <div class="mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
 
@@ -434,7 +435,7 @@
                             </template>
                             <template x-if="activeTab === 'ai'">
                                 <div>
-                                    <div id="sf-ai-review"></div>
+                        
                                     <div class="mt-4" x-data="trainingAIEnhancer()">
                                         <!-- User Input -->
                                         <label class="block font-semibold mb-1 text-sm text-gray-700">
