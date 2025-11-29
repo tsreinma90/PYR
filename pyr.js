@@ -887,22 +887,18 @@ function sharedState() {
                 weeklyMileage: this.selectedWeeklyMileage || null
             };
 
-            // Build the request object expected by the LWC @api reviewPlan(request)
-            const request = {
-                userNotes: userQuestion,
-                // IMPORTANT: this key name must match what Apex/LWC expects
-                trainingPlanJson: JSON.stringify(planJson),
-                runnerContext
-                // We are relying on DOM events (trainingplanreviewed / trainingplanreviewerror)
-                // so we do not pass onResult/onError callbacks here.
+            const req = {
+                trainingPlanJson: trainingPlanJsonStr,
+                runnerContext: runnerContextStr,
+                userQuestion: userNotes // <-- map to Apex field name
             };
 
-            console.log('*** runnerContext to send to AI Coach:', JSON.stringify(request, undefined, 2));
+            console.log('*** runnerContext to send to AI Coach:', JSON.stringify(req, undefined, 2));
 
 
             try {
                 // Call the LWC @api method with a single request object
-                await cmp.reviewPlan(request);
+                await cmp.reviewPlan(req);
                 // Do not set enhancedOutput here; it will be set when the
                 // trainingplanreviewed or trainingplanreviewerror events fire.
             } catch (e) {
@@ -917,7 +913,7 @@ function sharedState() {
                 "5k": [15, 40],
                 "10k": [25, 50],
                 "half-marathon": [30, 70],
-                "marathon": [40, 100]
+                "marathon": [40, 100] 
             };
 
             let baseMin = baseMileageRange[raceDistance][0];
