@@ -396,45 +396,28 @@
                                 </div>
                             </template>
                             <template x-if="activeTab === 'ai'">
-                                <div>
-                                    <template x-if="aiLoading">
-                                        <div class="flex justify-center items-center py-10">
-                                            <svg class="animate-spin h-8 w-8 text-white"
-                                                xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                                    stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor"
-                                                    d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                            </svg>
-                                        </div>
-                                    </template>
-                                    <template x-if="!aiLoading">
-                                        <div class="mt-4" x-data="trainingAIEnhancer()">
-                                            <!-- User Input -->
-                                            <label class="block font-semibold mb-1 text-sm text-gray-700">
-                                                Describe anything relevant to your training (e.g., past injuries, goals,
-                                                travel, time limits):
-                                            </label>
-                                            <textarea x-model="userInput" rows="4"
-                                                placeholder="e.g. I’m coming back from injury and can train 3x/week"
-                                                class="w-full mt-2 p-3 rounded-md bg-white text-gray-900 placeholder-gray-400
-           focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
+                                <div class="mt-4">
+                                    <label class="block font-semibold mb-1 text-sm text-gray-700">
+                                        Describe anything relevant to your training (e.g., past injuries, goals, travel,
+                                        time limits):
+                                    </label>
 
-                                            <!-- Action Button -->
-                                            <button @click="enhancePlan()"
-                                                class="mt-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
-                                                :disabled="loading">
-                                                Refine Plan
-                                            </button>
+                                    <textarea x-model="userInput" rows="4"
+                                        placeholder="e.g. I’m coming back from injury and can train 3x/week" class="w-full mt-2 p-3 rounded-md bg-white text-gray-900 placeholder-gray-400
+                   focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
 
-                                            <!-- Output -->
-                                            <template x-if="enhancedOutput">
-                                                <div
-                                                    class="mt-4 p-3 border border-green-200 bg-green-50 rounded-lg text-sm">
-                                                    <p class="font-semibold text-green-800">Refined Description:</p>
-                                                    <p class="mt-1 text-gray-800" x-text="enhancedOutput"></p>
-                                                </div>
-                                            </template>
+                                    <button @click="enhancePlan()"
+                                        class="mt-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded hover:bg-indigo-700"
+                                        :disabled="loading">
+                                        Refine Plan
+                                    </button>
+
+                                    <!-- Show AI summary -->
+                                    <template x-if="enhancedOutput">
+                                        <div class="mt-4 rounded-md bg-green-50 p-3 border border-green-200">
+                                            <p class="font-semibold text-green-800">Refined Description:</p>
+                                            <p class="mt-1 text-gray-800 whitespace-pre-line" x-text="enhancedOutput">
+                                            </p>
                                         </div>
                                     </template>
                                 </div>
