@@ -439,7 +439,9 @@
 
     <script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr/lightning/lightning.out.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        let i = 0;
+        if (i > 0) {
+            document.addEventListener('DOMContentLoaded', function () {
             // TODO: update names below to match your actual Aura app + component
             $Lightning.use(
                 "c:LightningAppContainer",  // Aura app (example name)
@@ -459,6 +461,8 @@
                 "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr" // community base URL (no /s/)
             );
         });
+            i++;
+        }   
     </script>
 
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
