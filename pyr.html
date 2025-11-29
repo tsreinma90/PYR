@@ -140,7 +140,7 @@
                                 class="w-1/3 py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
                                 Analytics
                             </button>
-                            <button @click="activeTab = 'ai'"
+                            <button @click="activeTab = 'ai'; window.initAICoach && window.initAICoach()"
                                 :class="activeTab === 'ai' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
                                 class="w-1/3 py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
                                 Ask the AI Coach
@@ -387,7 +387,7 @@
                             </template>
                             <template x-if="activeTab === 'ai'">
                                 <div>
-                        
+
                                     <div class="mt-4" x-data="trainingAIEnhancer()">
                                         <!-- User Input -->
                                         <label class="block font-semibold mb-1 text-sm text-gray-700">
@@ -439,30 +439,37 @@
 
     <script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr/lightning/lightning.out.js"></script>
     <script>
-        let i = 0;
-        if (i > 0) {
-            document.addEventListener('DOMContentLoaded', function () {
-            // TODO: update names below to match your actual Aura app + component
-            $Lightning.use(
-                "c:LightningAppContainer",  // Aura app (example name)
-                function () {
-                    $Lightning.createComponent(
-                        "c:trainingPlanReviewBridge", // Aura wrapper or LWC wrapper
-                        {
-                            // Pass attributes into your component here, e.g.:
-                            // trainingPlanJson: window.currentTrainingPlanJson
-                        },
-                        "sf-ai-review",  // DOM element id where the component will be injected
-                        function (cmp) {
-                            console.log("Lightning Out component created:", cmp);
-                        }
-                    );
-                },
-                "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr" // community base URL (no /s/)
-            );
-        });
-            i++;
-        }   
+        window.initAICoach = function () {
+            if (typeof $Lightning === 'undefined') {
+                console.error('Lightning Out not available: $Lightning is undefined');
+                return;
+            }
+
+            if (window.__aiCoachInitialized) {
+                // Only create once
+                return;
+            }
+            window.__aiCoachInitialized = true;
+
+            try {
+                $Lightning.use(
+                    "c:LightningAppContainer",
+                    function () {
+                        $Lightning.createComponent(
+                            "c:trainingPlanReviewBridge",
+                            {},
+                            "sf-ai-review",
+                            function (cmp) {
+                                console.log("Lightning Out component created:", cmp);
+                            }
+                        );
+                    },
+                    "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr"
+                );
+            } catch (e) {
+                console.error("Error initializing Lightning Out:", e);
+            }
+        };
     </script>
 
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
