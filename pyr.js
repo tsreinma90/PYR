@@ -688,7 +688,6 @@ function sharedState() {
 
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
-            console.log('***', 'potato');
             // Listen for successful reviews from the LWC bridge
             window.addEventListener("trainingplanreviewed", (evt) => {
                 this.loading = false;
@@ -875,6 +874,8 @@ function sharedState() {
                 return;
             }
 
+            console.log('*** planJson to send to AI Coach:', JSON.stringify(planJson, undefined, 2));
+
             // User question / notes from the textarea
             const userQuestion =
                 this.userInput && this.userInput.trim().length
@@ -887,6 +888,8 @@ function sharedState() {
                 raceDate: this.raceDate || null,
                 weeklyMileage: this.selectedWeeklyMileage || null
             };
+
+            console.log('*** runnerContext to send to AI Coach:', JSON.stringify(runnerContext, undefined, 2));
 
             // Build the request object expected by the LWC @api reviewPlan(request)
             const request = {
