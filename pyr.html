@@ -1,50 +1,3 @@
-
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>Training Plan</title>
-
-    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link rel="stylesheet" href="./dist/nouislider.min.css">
-    <link rel="stylesheet" href="./pyr.css">
-
-    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
-    <script type="text/javascript" src="./pyr.js"></script>
-    <script src="./dist/nouislider.min.js"></script>
-    <script src="sliderOptions.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
-
-    <script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr/lightning/lightning.out.js"></script>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            // TODO: update names below to match your actual Aura app + component
-            $Lightning.use(
-                "c:LightningAppContainer",  // Aura app (example name)
-                function () {
-                    $Lightning.createComponent(
-                        "c:trainingPlanReviewBridge", // Aura wrapper or LWC wrapper
-                        {
-                            // Pass attributes into your component here, e.g.:
-                            // trainingPlanJson: window.currentTrainingPlanJson
-                        },
-                        "sf-ai-review",  // DOM element id where the component will be injected
-                        function (cmp) {
-                            console.log("Lightning Out component created:", cmp);
-                        }
-                    );
-                },
-                "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr" // community base URL (no /s/)
-            );
-        });
-    </script>
-</head>
-
 <div x-data="sharedState()">
     <div id="sf-ai-review"></div>
     <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8">
@@ -471,3 +424,49 @@
         <br /><br />
     </div>
 </div>
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Training Plan</title>
+
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="./dist/nouislider.min.css">
+    <link rel="stylesheet" href="./pyr.css">
+
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script type="text/javascript" src="./pyr.js"></script>
+    <script src="./dist/nouislider.min.js"></script>
+    <script src="sliderOptions.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+
+    <script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr/lightning/lightning.out.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // TODO: update names below to match your actual Aura app + component
+            $Lightning.use(
+                "c:LightningAppContainer",  // Aura app (example name)
+                function () {
+                    $Lightning.createComponent(
+                        "c:trainingPlanReviewBridge", // Aura wrapper or LWC wrapper
+                        {
+                            // Pass attributes into your component here, e.g.:
+                            // trainingPlanJson: window.currentTrainingPlanJson
+                        },
+                        "sf-ai-review",  // DOM element id where the component will be injected
+                        function (cmp) {
+                            console.log("Lightning Out component created:", cmp);
+                        }
+                    );
+                },
+                "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr" // community base URL (no /s/)
+            );
+        });
+    </script>
+</head>
