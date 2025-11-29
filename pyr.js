@@ -887,9 +887,19 @@ function sharedState() {
                 weeklyMileage: this.selectedWeeklyMileage || null
             };
 
+            // Build the request object expected by the LWC @api reviewPlan(request)
+            const request = {
+                userNotes: userQuestion,
+                // IMPORTANT: this key name must match what Apex/LWC expects
+                trainingPlanJson: JSON.stringify(planJson),
+                runnerContext
+                // We are relying on DOM events (trainingplanreviewed / trainingplanreviewerror)
+                // so we do not pass onResult/onError callbacks here.
+            };
+
             try {
-                // Call the LWC @api method; it will in turn call Apex and dispatch events
-                await cmp.reviewPlan(planJson, userQuestion, runnerContext);
+                // Call the LWC @api method with a single request object
+                await cmp.reviewPlan(request);
                 // Do not set enhancedOutput here; it will be set when the
                 // trainingplanreviewed or trainingplanreviewerror events fire.
             } catch (e) {
