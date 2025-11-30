@@ -902,7 +902,26 @@ function sharedState() {
                 // Do not set enhancedOutput here; it will be set when the
                 // trainingplanreviewed or trainingplanreviewerror events fire.
             } catch (e) {
-                console.error("Error calling reviewPlan on trainingPlanReviewCmp:", e);
+                console.error('*** reviewTrainingPlan ERROR raw:', e);
+
+                // LWC / Apex-style errors usually have body.message etc.
+                if (e && e.body) {
+                    console.error('*** error.body:', e.body);
+                    console.error('*** error.body.message:', e.body.message);
+                    console.error('*** error.body.exceptionType:', e.body.exceptionType);
+                    console.error('*** error.body.stackTrace:', e.body.stackTrace);
+                }
+
+                // Some Lightning Out errors show up here instead
+                if (e && e.message) {
+                    console.error('*** error.message:', e.message);
+                }
+
+                try {
+                    console.error('*** error as JSON:', JSON.stringify(e));
+                } catch (jsonErr) {
+                    console.error('*** error could not be stringified:', jsonErr);
+                }
                 this.loading = false;
                 this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
             }
@@ -913,7 +932,7 @@ function sharedState() {
                 "5k": [15, 40],
                 "10k": [25, 50],
                 "half-marathon": [30, 70],
-                "marathon": [40, 100] 
+                "marathon": [40, 100]
             };
 
             let baseMin = baseMileageRange[raceDistance][0];
