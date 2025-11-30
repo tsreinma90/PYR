@@ -41,29 +41,69 @@ const EVENT_COLOR_MAP = new Map([
 function exportToCSV(events) {
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    // Group events by week number
+    // Group events by week start (Monday) and store distance + notes per day
     const grouped = {};
 
     events.forEach(event => {
         const dateObj = new Date(event.event_date);
+        if (isNaN(dateObj)) return;
+
         const monday = getMonday(dateObj);
         const weekKey = monday.toISOString().split('T')[0];
 
         if (!grouped[weekKey]) {
-            grouped[weekKey] = Array(7).fill('');
+            grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '' }));
         }
 
-        const dayIndex = (dateObj.getDay() + 6) % 7; // Convert Sun–Sat => 6–5
-        grouped[weekKey][dayIndex] = event.event_distance || '';
+        // Convert Sun–Sat (0–6) to Mon–Sun (0–6)
+        const dayIndex = (dateObj.getDay() + 6) % 7;
+
+        grouped[weekKey][dayIndex] = {
+            distance: event.event_distance || '',
+            notes: event.event_notes || ''
+        };
     });
 
-    const header = ['Week', ...daysOfWeek, 'Total'];
-    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
-        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
-        return [i + 1, ...distances, total.toFixed(1)];
+    // Build header: Week, Mon, Mon Notes, Tue, Tue Notes, ... , Sun, Sun Notes, Total
+    const header = ['Week'];
+    daysOfWeek.forEach(d => {
+        header.push(d);
+        header.push(`${d} Notes`);
+    });
+    header.push('Total');
+
+    // Build rows
+    const rows = Object.entries(grouped).map(([weekStart, dayData], i) => {
+        let total = 0;
+        const cells = [];
+
+        dayData.forEach(({ distance, notes }) => {
+            const num = parseFloat(distance);
+            if (!isNaN(num)) {
+                total += num;
+            }
+            cells.push(distance);
+            cells.push(notes);
+        });
+
+        const totalStr = total ? total.toFixed(1) : '';
+        return [i + 1, ...cells, totalStr];
     });
 
-    const csvContent = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+    // CSV-encode with quotes and escaping for commas/quotes
+    const allRows = [header, ...rows];
+    const csvContent = allRows
+        .map(row =>
+            row
+                .map(value => {
+                    const v = value == null ? '' : String(value);
+                    const escaped = v.replace(/"/g, '""');
+                    return `"${escaped}"`;
+                })
+                .join(',')
+        )
+        .join('\n');
+
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
 
@@ -87,29 +127,57 @@ function exportToPDF(events) {
     const doc = new jsPDF();
 
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    // Group events by week start (Monday) and store distance + notes per day
     const grouped = {};
 
     events.forEach(event => {
         const dateObj = new Date(event.event_date);
+        if (isNaN(dateObj)) return;
+
         const monday = getMonday(dateObj);
         const weekKey = monday.toISOString().split('T')[0];
 
         if (!grouped[weekKey]) {
-            grouped[weekKey] = Array(7).fill('');
+            grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '' }));
         }
 
-        // Calculate day index: Monday=0, Sunday=6
+        // Convert Sun–Sat (0–6) to Mon–Sun (0–6)
         const dayIndex = (dateObj.getDay() + 6) % 7;
-        grouped[weekKey][dayIndex] = event.event_distance || '';
+
+        grouped[weekKey][dayIndex] = {
+            distance: event.event_distance || '',
+            notes: event.event_notes || ''
+        };
     });
 
-    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
-        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
-        return [i + 1, ...distances, total.toFixed(1)];
+    // Build header: Week, Mon, Mon Notes, Tue, Tue Notes, ... , Sun, Sun Notes, Total
+    const header = ['Week'];
+    daysOfWeek.forEach(d => {
+        header.push(d);
+        header.push(`${d} Notes`);
+    });
+    header.push('Total');
+
+    // Build rows
+    const rows = Object.entries(grouped).map(([weekStart, dayData], i) => {
+        let total = 0;
+        const cells = [];
+
+        dayData.forEach(({ distance, notes }) => {
+            const num = parseFloat(distance);
+            if (!isNaN(num)) {
+                total += num;
+            }
+            cells.push(distance);
+            cells.push(notes);
+        });
+
+        const totalStr = total ? total.toFixed(1) : '';
+        return [i + 1, ...cells, totalStr];
     });
 
-    const header = ['Week', ...daysOfWeek, 'Total'];
-
+    // Use autoTable to render the weekly grid with notes, mirroring the CSV layout
     doc.autoTable({
         head: [header],
         body: rows,
@@ -121,52 +189,17 @@ function exportToPDF(events) {
             halign: 'center'
         },
         styles: {
-            fontSize: 10,
-            cellPadding: 3,
+            fontSize: 8,
+            cellPadding: 2
         },
         columnStyles: {
-            0: { halign: 'center' },
-            8: { fontStyle: 'bold' }
+            0: { halign: 'center' }
         }
     });
 
     doc.save("training_plan.pdf");
 }
 
-function exportToICS(events) {
-    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Your Company//TrainingPlan//EN\r\n";
-
-    events.forEach((event, index) => {
-        const uid = `event-${index}@yourdomain.com`;
-        // Format dates as YYYYMMDD
-        const dtStart = new Date(event.event_date)
-            .toISOString()
-            .slice(0, 10)
-            .replace(/-/g, "");
-        // For simplicity, we set DTEND as the same day.
-        const dtEnd = dtStart;
-        icsContent += "BEGIN:VEVENT\r\n";
-        icsContent += `UID:${uid}\r\n`;
-        icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z\r\n`;
-        icsContent += `DTSTART;VALUE=DATE:${dtStart}\r\n`;
-        icsContent += `DTEND;VALUE=DATE:${dtEnd}\r\n`;
-        icsContent += `SUMMARY:${event.event_title}\r\n`;
-        icsContent += `DESCRIPTION:${event.event_notes}\r\n`;
-        icsContent += "END:VEVENT\r\n";
-    });
-
-    icsContent += "END:VCALENDAR\r\n";
-
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "training_plan.ics");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
 function transformEvent(event) {
     // Map event_workout to event_type
@@ -226,35 +259,6 @@ function exportToICS(events) {
     document.body.removeChild(link);
 }
 
-function exportToPDF(events) {
-    // Using the jsPDF library (ensure it's loaded)
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(12);
-    let y = 10;
-
-    events.forEach((event, index) => {
-        const dateStr = new Date(event.event_date).toLocaleDateString();
-        doc.text(`Date: ${dateStr}`, 10, y);
-        y += 6;
-        doc.text(`Title: ${event.event_title}`, 10, y);
-        y += 6;
-        doc.text(`Workout: ${event.event_workout}`, 10, y);
-        y += 6;
-        doc.text(`Distance: ${event.event_distance} miles`, 10, y);
-        y += 6;
-        doc.text(`Notes: ${event.event_notes}`, 10, y);
-        y += 10;
-
-        // Add a new page if we're near the bottom
-        if (y > 280) {
-            doc.addPage();
-            y = 10;
-        }
-    });
-
-    doc.save("training_plan.pdf");
-}
 
 function triggerPlanGeneratedCustomEvent() {
     const event = new CustomEvent("trainingplangenerated", {
@@ -382,6 +386,12 @@ function getPeakWeekIndex(chart) {
 function setupBarChart(workoutEvents) {
     if (!workoutEvents || workoutEvents.length === 0) return;
 
+    const chartEl = document.getElementById("myChart");
+    if (!chartEl || typeof chartEl.getContext !== "function") {
+        return;
+    }
+    const ctx = chartEl.getContext("2d");
+
     workoutEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const firstEventDate = new Date(workoutEvents[0].date);
@@ -420,7 +430,6 @@ function setupBarChart(workoutEvents) {
     const peakIndex = totalPerWeek.indexOf(Math.max(...totalPerWeek));
     const taperStart = totalPerWeek.length - 2;
 
-    const ctx = document.getElementById("myChart").getContext("2d");
     if (myChart) {
         myChart.destroy();
     }
@@ -675,6 +684,37 @@ function sharedState() {
         // master-list of all workouts
         currentWorkouts: [],
 
+        // --- AI Coach shared state ---
+        userInput: "",
+        enhancedOutput: "",
+        loading: false,
+
+        // Root Alpine init – wires up listeners for the LWC bridge events
+        init() {
+            // Listen for successful reviews from the LWC bridge
+            window.addEventListener("trainingplanreviewed", (evt) => {
+                this.loading = false;
+                const detail = (evt && evt.detail) || {};
+
+                const summary =
+                    detail.summaryText ||
+                    (detail.rawAgentOutput && String(detail.rawAgentOutput)) ||
+                    "The AI coach did not return a summary.";
+
+                this.enhancedOutput = summary;
+            });
+
+            // Listen for errors from the LWC bridge
+            window.addEventListener("trainingplanreviewerror", (evt) => {
+                this.loading = false;
+                const message =
+                    (evt && evt.detail && evt.detail.message) ||
+                    "There was a problem reviewing your training plan.";
+
+                this.enhancedOutput = `⚠️ ${message}`;
+            });
+        },
+
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
 
@@ -794,13 +834,19 @@ function sharedState() {
                     startDate, mileageTarget, this.raceDate, this.selectedGoal, numberOfWeeksUntilRace
                 );
                 this.currentWorkouts = [];
-                let totalDistance = 0
+                let totalDistance = 0;
                 for (let i = 0; i < allRuns.length; i++) {
                     if (allRuns[i].event_distance && allRuns[i].event_workout != 'Rest') {
-                        this.currentWorkouts.push(transformEvent(allRuns[i]));
+                        const transformed = transformEvent(allRuns[i]);
+                        // Assign a stable-ish id so edits/deletes can target a specific event
+                        transformed.id = `${transformed.date}-${i}`;
+                        this.currentWorkouts.push(transformed);
                         totalDistance += allRuns[i].event_distance;
                     }
                 }
+                // Expose the current training plan globally for the AI Coach LWC
+                window.currentTrainingPlanJson = this.currentWorkouts;
+
                 this.numOfWeeksInTraining = numberOfWeeksUntilRace;
                 this.average_mileage_weekly = Math.ceil(totalDistance / numberOfWeeksUntilRace);
                 this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
@@ -808,6 +854,76 @@ function sharedState() {
                 if (this.activeTab === 'analytics') {
                     this.loadAnalyticsCharts();
                 }
+            }
+        },
+
+        async enhancePlan() {
+            // Clear previous output and show loading state
+            this.loading = true;
+            this.enhancedOutput = "";
+
+            // Ensure the LWC bridge is ready
+            const cmp = window.trainingPlanReviewCmp;
+            if (!cmp || typeof cmp.reviewPlan !== "function") {
+                this.loading = false;
+                this.enhancedOutput = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
+                return;
+            }
+
+            // Ensure we actually have a training plan to send
+            const planJson = window.currentTrainingPlanJson || [];
+            if (!Array.isArray(planJson) || planJson.length === 0) {
+                this.loading = false;
+                this.enhancedOutput = "⚠️ Please generate a training plan first, then ask the AI Coach.";
+                return;
+            }
+
+            // User question / notes from the textarea
+            const userQuestion =
+                this.userInput && this.userInput.trim().length
+                    ? this.userInput.trim()
+                    : "Please review this training plan and suggest practical improvements.";
+
+            // Optional runner context – derive from sharedState fields
+            const runnerContext = {
+                raceDistance: this.selectedRaceDistance || null,
+                raceDate: this.raceDate || null,
+                weeklyMileage: this.selectedWeeklyMileage || null
+            };
+
+            // Build request object for the LWC bridge; it will normalize/serialize as needed
+            const req = {
+                trainingPlanJson: planJson,      // array of workout objects
+                runnerContext: runnerContext,    // extra metadata/context
+                userQuestion: userQuestion       // maps to Apex ReviewRequest.userQuestion
+            };
+
+            try {
+                // Call the LWC @api method with a single request object
+                await cmp.reviewPlan(req);
+                // Do not set enhancedOutput here; it will be set when the
+                // trainingplanreviewed or trainingplanreviewerror events fire.
+            } catch (e) {
+                // LWC / Apex-style errors usually have body.message etc.
+                if (e && e.body) {
+                    console.error('*** error.body:', e.body);
+                    console.error('*** error.body.message:', e.body.message);
+                    console.error('*** error.body.exceptionType:', e.body.exceptionType);
+                    console.error('*** error.body.stackTrace:', e.body.stackTrace);
+                }
+
+                // Some Lightning Out errors show up here instead
+                if (e && e.message) {
+                    console.error('*** error.message:', e.message);
+                }
+
+                try {
+                    console.error('*** error as JSON:', JSON.stringify(e));
+                } catch (jsonErr) {
+                    console.error('*** error could not be stringified:', jsonErr);
+                }
+                this.loading = false;
+                this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
             }
         },
 
@@ -910,14 +1026,29 @@ function sharedState() {
                 // Load workouts from `currentWorkouts`
                 loadWorkouts() {
                     this.workouts = [];
-                    this.workouts = self.currentWorkouts.map((workout) => ({
-                        event_date: workout.date,
-                        event_title: workout.title,
-                        event_notes: workout.notes,
-                        event_distance: workout.event_distance,
-                        event_theme: EVENT_COLOR_MAP.get(workout.event_type),
-                        event_type: workout.event_type
-                    }));
+
+                    // Normalize shape from currentWorkouts so we handle any mixed key names
+                    this.workouts = (self.currentWorkouts || []).map((workout) => {
+                        const event_date = workout.event_date || workout.date;
+                        const event_title = workout.event_title || workout.title || "";
+                        const event_notes = workout.event_notes || workout.notes || "";
+                        const event_distance =
+                            workout.event_distance !== undefined && workout.event_distance !== null
+                                ? workout.event_distance
+                                : workout.distance;
+                        const event_type = workout.event_type || workout.event_workout || "";
+
+                        return {
+                            id: workout.id,
+                            event_date,
+                            event_title,
+                            event_notes,
+                            event_distance,
+                            event_theme: EVENT_COLOR_MAP.get(event_type),
+                            event_type
+                        };
+                    });
+
                     if (this.workouts.length) {
                         let startingMonth = new Date(this.workouts[0].event_date).getMonth();
                         const diff = startingMonth - this.month; // should always be either 0 or 1
@@ -994,14 +1125,33 @@ function sharedState() {
                     // Create local date string (avoid UTC conversion)
                     const eventDate = new Date(`${this.eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-CA'); // 'YYYY-MM-DD' format
 
-                    // Normalize comparison dates to avoid drift
-                    const index = self.currentWorkouts.findIndex(
-                        (e) => new Date(`${e.date}T12:00:00`).toLocaleDateString('en-CA') === eventDate
-                    );
+                    let index = -1;
+
+                    // Prefer to match by id when available (most reliable)
+                    if (this.eventToEdit.id) {
+                        index = (self.currentWorkouts || []).findIndex(
+                            (e) => e.id === this.eventToEdit.id
+                        );
+                    }
+
+                    // Fallback: match by date if id is missing
+                    if (index === -1) {
+                        index = (self.currentWorkouts || []).findIndex(
+                            (e) => new Date(`${e.date}T12:00:00`).toLocaleDateString('en-CA') === eventDate
+                        );
+                    }
 
                     if (index !== -1) {
-                        // Update existing event
+                        // Update existing event, preserving its id and any extra fields
+                        const existing = self.currentWorkouts[index] || {};
+                        const effectiveId =
+                            existing.id ||
+                            this.eventToEdit.id ||
+                            `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
                         self.currentWorkouts[index] = {
+                            ...existing,
+                            id: effectiveId,
                             date: eventDate, // Keep in local format
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
@@ -1010,8 +1160,13 @@ function sharedState() {
                             event_distance: this.eventToEdit.event_distance
                         };
                     } else {
-                        // Add new event
+                        // Add new event with a generated id (or reuse any provided id)
+                        const newId =
+                            this.eventToEdit.id ||
+                            `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
                         self.currentWorkouts.push({
+                            id: newId,
                             date: eventDate, // Store in consistent format
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
@@ -1021,8 +1176,37 @@ function sharedState() {
                         });
                     }
 
+                    // Keep the global training plan JSON in sync for the AI Coach LWC
+                    window.currentTrainingPlanJson = self.currentWorkouts;
+
                     this.loadWorkouts();
                     this.isModalOpen = false;
+                },
+
+                deleteEvent() {
+                    if (!this.eventToEdit) {
+                        return;
+                    }
+
+                    // Prefer deleting by id when available
+                    if (this.eventToEdit.id) {
+                        self.currentWorkouts = (self.currentWorkouts || []).filter(
+                            (e) => e.id !== this.eventToEdit.id
+                        );
+                    } else {
+                        // Fallback: delete by date match if no id was present
+                        const eventDate = new Date(`${this.eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-CA');
+                        self.currentWorkouts = (self.currentWorkouts || []).filter(
+                            (e) => new Date(`${e.date}T12:00:00`).toLocaleDateString('en-CA') !== eventDate
+                        );
+                    }
+
+                    // Keep global JSON in sync for the AI Coach LWC
+                    window.currentTrainingPlanJson = self.currentWorkouts;
+
+                    this.loadWorkouts();
+                    this.isModalOpen = false;
+                    this.eventToEdit = null;
                 },
 
                 exportAsCSV() {
@@ -1063,31 +1247,6 @@ function sharedState() {
 
             };
         },
-
-        /*trainingAIEnhancer() {
-            return {
-                userInput: '',
-                loading: false,
-                enhancedOutput: '',
-                enhancePlan: async function () {
-                    this.loading = true;
-                    const payload = {
-                        userNotes: this.userInput,
-                        planJson: window.generatedTrainingPlan  // assumes plan is globally available
-                    };
-
-                    const res = await fetch('/api/ai/enhance-plan', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-  
-                    const data = await res.json();
-                    this.enhancedOutput = data.refinedText || 'Something went wrong. Try again.';
-                    this.loading = false;
-                }
-            }
-        },*/
 
         // Safely destroy any existing analytics charts
         destroyAnalyticsCharts() {
