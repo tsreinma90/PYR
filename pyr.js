@@ -41,29 +41,69 @@ const EVENT_COLOR_MAP = new Map([
 function exportToCSV(events) {
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    // Group events by week number
+    // Group events by week start (Monday) and store distance + notes per day
     const grouped = {};
 
     events.forEach(event => {
         const dateObj = new Date(event.event_date);
+        if (isNaN(dateObj)) return;
+
         const monday = getMonday(dateObj);
         const weekKey = monday.toISOString().split('T')[0];
 
         if (!grouped[weekKey]) {
-            grouped[weekKey] = Array(7).fill('');
+            grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '' }));
         }
 
-        const dayIndex = (dateObj.getDay() + 6) % 7; // Convert Sun–Sat => 6–5
-        grouped[weekKey][dayIndex] = event.event_distance || '';
+        // Convert Sun–Sat (0–6) to Mon–Sun (0–6)
+        const dayIndex = (dateObj.getDay() + 6) % 7;
+
+        grouped[weekKey][dayIndex] = {
+            distance: event.event_distance || '',
+            notes: event.event_notes || ''
+        };
     });
 
-    const header = ['Week', ...daysOfWeek, 'Total'];
-    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
-        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
-        return [i + 1, ...distances, total.toFixed(1)];
+    // Build header: Week, Mon, Mon Notes, Tue, Tue Notes, ... , Sun, Sun Notes, Total
+    const header = ['Week'];
+    daysOfWeek.forEach(d => {
+        header.push(d);
+        header.push(`${d} Notes`);
+    });
+    header.push('Total');
+
+    // Build rows
+    const rows = Object.entries(grouped).map(([weekStart, dayData], i) => {
+        let total = 0;
+        const cells = [];
+
+        dayData.forEach(({ distance, notes }) => {
+            const num = parseFloat(distance);
+            if (!isNaN(num)) {
+                total += num;
+            }
+            cells.push(distance);
+            cells.push(notes);
+        });
+
+        const totalStr = total ? total.toFixed(1) : '';
+        return [i + 1, ...cells, totalStr];
     });
 
-    const csvContent = [header.join(','), ...rows.map(r => r.join(','))].join('\n');
+    // CSV-encode with quotes and escaping for commas/quotes
+    const allRows = [header, ...rows];
+    const csvContent = allRows
+        .map(row =>
+            row
+                .map(value => {
+                    const v = value == null ? '' : String(value);
+                    const escaped = v.replace(/"/g, '""');
+                    return `"${escaped}"`;
+                })
+                .join(',')
+        )
+        .join('\n');
+
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
 
@@ -87,29 +127,57 @@ function exportToPDF(events) {
     const doc = new jsPDF();
 
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+
+    // Group events by week start (Monday) and store distance + notes per day
     const grouped = {};
 
     events.forEach(event => {
         const dateObj = new Date(event.event_date);
+        if (isNaN(dateObj)) return;
+
         const monday = getMonday(dateObj);
         const weekKey = monday.toISOString().split('T')[0];
 
         if (!grouped[weekKey]) {
-            grouped[weekKey] = Array(7).fill('');
+            grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '' }));
         }
 
-        // Calculate day index: Monday=0, Sunday=6
+        // Convert Sun–Sat (0–6) to Mon–Sun (0–6)
         const dayIndex = (dateObj.getDay() + 6) % 7;
-        grouped[weekKey][dayIndex] = event.event_distance || '';
+
+        grouped[weekKey][dayIndex] = {
+            distance: event.event_distance || '',
+            notes: event.event_notes || ''
+        };
     });
 
-    const rows = Object.entries(grouped).map(([weekStart, distances], i) => {
-        const total = distances.reduce((sum, val) => sum + (parseFloat(val) || 0), 0);
-        return [i + 1, ...distances, total.toFixed(1)];
+    // Build header: Week, Mon, Mon Notes, Tue, Tue Notes, ... , Sun, Sun Notes, Total
+    const header = ['Week'];
+    daysOfWeek.forEach(d => {
+        header.push(d);
+        header.push(`${d} Notes`);
+    });
+    header.push('Total');
+
+    // Build rows
+    const rows = Object.entries(grouped).map(([weekStart, dayData], i) => {
+        let total = 0;
+        const cells = [];
+
+        dayData.forEach(({ distance, notes }) => {
+            const num = parseFloat(distance);
+            if (!isNaN(num)) {
+                total += num;
+            }
+            cells.push(distance);
+            cells.push(notes);
+        });
+
+        const totalStr = total ? total.toFixed(1) : '';
+        return [i + 1, ...cells, totalStr];
     });
 
-    const header = ['Week', ...daysOfWeek, 'Total'];
-
+    // Use autoTable to render the weekly grid with notes, mirroring the CSV layout
     doc.autoTable({
         head: [header],
         body: rows,
@@ -121,52 +189,17 @@ function exportToPDF(events) {
             halign: 'center'
         },
         styles: {
-            fontSize: 10,
-            cellPadding: 3,
+            fontSize: 8,
+            cellPadding: 2
         },
         columnStyles: {
-            0: { halign: 'center' },
-            8: { fontStyle: 'bold' }
+            0: { halign: 'center' }
         }
     });
 
     doc.save("training_plan.pdf");
 }
 
-function exportToICS(events) {
-    let icsContent = "BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//Your Company//TrainingPlan//EN\r\n";
-
-    events.forEach((event, index) => {
-        const uid = `event-${index}@yourdomain.com`;
-        // Format dates as YYYYMMDD
-        const dtStart = new Date(event.event_date)
-            .toISOString()
-            .slice(0, 10)
-            .replace(/-/g, "");
-        // For simplicity, we set DTEND as the same day.
-        const dtEnd = dtStart;
-        icsContent += "BEGIN:VEVENT\r\n";
-        icsContent += `UID:${uid}\r\n`;
-        icsContent += `DTSTAMP:${new Date().toISOString().replace(/[-:]/g, "").split(".")[0]}Z\r\n`;
-        icsContent += `DTSTART;VALUE=DATE:${dtStart}\r\n`;
-        icsContent += `DTEND;VALUE=DATE:${dtEnd}\r\n`;
-        icsContent += `SUMMARY:${event.event_title}\r\n`;
-        icsContent += `DESCRIPTION:${event.event_notes}\r\n`;
-        icsContent += "END:VEVENT\r\n";
-    });
-
-    icsContent += "END:VCALENDAR\r\n";
-
-    const blob = new Blob([icsContent], { type: "text/calendar;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.setAttribute("href", url);
-    link.setAttribute("download", "training_plan.ics");
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-}
 
 function transformEvent(event) {
     // Map event_workout to event_type
@@ -226,35 +259,6 @@ function exportToICS(events) {
     document.body.removeChild(link);
 }
 
-function exportToPDF(events) {
-    // Using the jsPDF library (ensure it's loaded)
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
-    doc.setFontSize(12);
-    let y = 10;
-
-    events.forEach((event, index) => {
-        const dateStr = new Date(event.event_date).toLocaleDateString();
-        doc.text(`Date: ${dateStr}`, 10, y);
-        y += 6;
-        doc.text(`Title: ${event.event_title}`, 10, y);
-        y += 6;
-        doc.text(`Workout: ${event.event_workout}`, 10, y);
-        y += 6;
-        doc.text(`Distance: ${event.event_distance} miles`, 10, y);
-        y += 6;
-        doc.text(`Notes: ${event.event_notes}`, 10, y);
-        y += 10;
-
-        // Add a new page if we're near the bottom
-        if (y > 280) {
-            doc.addPage();
-            y = 10;
-        }
-    });
-
-    doc.save("training_plan.pdf");
-}
 
 function triggerPlanGeneratedCustomEvent() {
     const event = new CustomEvent("trainingplangenerated", {
