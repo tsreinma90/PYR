@@ -382,6 +382,13 @@ function getPeakWeekIndex(chart) {
 function setupBarChart(workoutEvents) {
     if (!workoutEvents || workoutEvents.length === 0) return;
 
+    const chartEl = document.getElementById("myChart");
+    if (!chartEl || typeof chartEl.getContext !== "function") {
+        console.warn("myChart canvas not found; skipping bar chart render for now.");
+        return;
+    }
+    const ctx = chartEl.getContext("2d");
+
     workoutEvents.sort((a, b) => new Date(a.date) - new Date(b.date));
 
     const firstEventDate = new Date(workoutEvents[0].date);
@@ -420,7 +427,6 @@ function setupBarChart(workoutEvents) {
     const peakIndex = totalPerWeek.indexOf(Math.max(...totalPerWeek));
     const taperStart = totalPerWeek.length - 2;
 
-    const ctx = document.getElementById("myChart").getContext("2d");
     if (myChart) {
         myChart.destroy();
     }
@@ -675,6 +681,37 @@ function sharedState() {
         // master-list of all workouts
         currentWorkouts: [],
 
+        // --- AI Coach shared state ---
+        userInput: "",
+        enhancedOutput: "",
+        loading: false,
+
+        // Root Alpine init – wires up listeners for the LWC bridge events
+        init() {
+            // Listen for successful reviews from the LWC bridge
+            window.addEventListener("trainingplanreviewed", (evt) => {
+                this.loading = false;
+                const detail = (evt && evt.detail) || {};
+
+                const summary =
+                    detail.summaryText ||
+                    (detail.rawAgentOutput && String(detail.rawAgentOutput)) ||
+                    "The AI coach did not return a summary.";
+
+                this.enhancedOutput = summary;
+            });
+
+            // Listen for errors from the LWC bridge
+            window.addEventListener("trainingplanreviewerror", (evt) => {
+                this.loading = false;
+                const message =
+                    (evt && evt.detail && evt.detail.message) ||
+                    "There was a problem reviewing your training plan.";
+
+                this.enhancedOutput = `⚠️ ${message}`;
+            });
+        },
+
         validateField(fieldName) {
             this.errors[fieldName] = ''; // Clear existing errors
 
@@ -801,6 +838,9 @@ function sharedState() {
                         totalDistance += allRuns[i].event_distance;
                     }
                 }
+                // Expose the current training plan globally for the AI Coach LWC
+                window.currentTrainingPlanJson = this.currentWorkouts;
+
                 this.numOfWeeksInTraining = numberOfWeeksUntilRace;
                 this.average_mileage_weekly = Math.ceil(totalDistance / numberOfWeeksUntilRace);
                 this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
@@ -808,6 +848,82 @@ function sharedState() {
                 if (this.activeTab === 'analytics') {
                     this.loadAnalyticsCharts();
                 }
+            }
+        },
+
+        async enhancePlan() {
+            // Clear previous output and show loading state
+            this.loading = true;
+            this.enhancedOutput = "";
+
+            // Ensure the LWC bridge is ready
+            const cmp = window.trainingPlanReviewCmp;
+            console.log('*** trainingPlanReviewCmp:', cmp);
+            if (!cmp || typeof cmp.reviewPlan !== "function") {
+                console.error("trainingPlanReviewCmp is not ready or has no reviewPlan() method.");
+                this.loading = false;
+                this.enhancedOutput = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
+                return;
+            }
+
+            // Ensure we actually have a training plan to send
+            const planJson = window.currentTrainingPlanJson || [];
+            if (!Array.isArray(planJson) || planJson.length === 0) {
+                this.loading = false;
+                this.enhancedOutput = "⚠️ Please generate a training plan first, then ask the AI Coach.";
+                return;
+            }
+
+            // User question / notes from the textarea
+            const userQuestion =
+                this.userInput && this.userInput.trim().length
+                    ? this.userInput.trim()
+                    : "Please review this training plan and suggest practical improvements.";
+
+            // Optional runner context – derive from sharedState fields
+            const runnerContext = {
+                raceDistance: this.selectedRaceDistance || null,
+                raceDate: this.raceDate || null,
+                weeklyMileage: this.selectedWeeklyMileage || null
+            };
+
+            // Build request object for the LWC bridge; it will normalize/serialize as needed
+            const req = {
+                trainingPlanJson: planJson,      // array of workout objects
+                runnerContext: runnerContext,    // extra metadata/context
+                userQuestion: userQuestion       // maps to Apex ReviewRequest.userQuestion
+            };
+
+            console.log('*** events to review:', req.trainingPlanJson.length);
+
+            try {
+                // Call the LWC @api method with a single request object
+                await cmp.reviewPlan(req);
+                // Do not set enhancedOutput here; it will be set when the
+                // trainingplanreviewed or trainingplanreviewerror events fire.
+            } catch (e) {
+                console.error('*** reviewTrainingPlan ERROR raw:', e);
+
+                // LWC / Apex-style errors usually have body.message etc.
+                if (e && e.body) {
+                    console.error('*** error.body:', e.body);
+                    console.error('*** error.body.message:', e.body.message);
+                    console.error('*** error.body.exceptionType:', e.body.exceptionType);
+                    console.error('*** error.body.stackTrace:', e.body.stackTrace);
+                }
+
+                // Some Lightning Out errors show up here instead
+                if (e && e.message) {
+                    console.error('*** error.message:', e.message);
+                }
+
+                try {
+                    console.error('*** error as JSON:', JSON.stringify(e));
+                } catch (jsonErr) {
+                    console.error('*** error could not be stringified:', jsonErr);
+                }
+                this.loading = false;
+                this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
             }
         },
 
@@ -1021,6 +1137,9 @@ function sharedState() {
                         });
                     }
 
+                    // Keep the global training plan JSON in sync for the AI Coach LWC
+                    window.currentTrainingPlanJson = self.currentWorkouts;
+
                     this.loadWorkouts();
                     this.isModalOpen = false;
                 },
@@ -1063,31 +1182,6 @@ function sharedState() {
 
             };
         },
-
-        /*trainingAIEnhancer() {
-            return {
-                userInput: '',
-                loading: false,
-                enhancedOutput: '',
-                enhancePlan: async function () {
-                    this.loading = true;
-                    const payload = {
-                        userNotes: this.userInput,
-                        planJson: window.generatedTrainingPlan  // assumes plan is globally available
-                    };
-
-                    const res = await fetch('/api/ai/enhance-plan', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    });
-  
-                    const data = await res.json();
-                    this.enhancedOutput = data.refinedText || 'Something went wrong. Try again.';
-                    this.loading = false;
-                }
-            }
-        },*/
 
         // Safely destroy any existing analytics charts
         destroyAnalyticsCharts() {
