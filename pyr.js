@@ -830,10 +830,13 @@ function sharedState() {
                     startDate, mileageTarget, this.raceDate, this.selectedGoal, numberOfWeeksUntilRace
                 );
                 this.currentWorkouts = [];
-                let totalDistance = 0
+                let totalDistance = 0;
                 for (let i = 0; i < allRuns.length; i++) {
                     if (allRuns[i].event_distance && allRuns[i].event_workout != 'Rest') {
-                        this.currentWorkouts.push(transformEvent(allRuns[i]));
+                        const transformed = transformEvent(allRuns[i]);
+                        // Assign a stable-ish id so edits/deletes can target a specific event
+                        transformed.id = `${transformed.date}-${i}`;
+                        this.currentWorkouts.push(transformed);
                         totalDistance += allRuns[i].event_distance;
                     }
                 }
@@ -1019,14 +1022,29 @@ function sharedState() {
                 // Load workouts from `currentWorkouts`
                 loadWorkouts() {
                     this.workouts = [];
-                    this.workouts = self.currentWorkouts.map((workout) => ({
-                        event_date: workout.date,
-                        event_title: workout.title,
-                        event_notes: workout.notes,
-                        event_distance: workout.event_distance,
-                        event_theme: EVENT_COLOR_MAP.get(workout.event_type),
-                        event_type: workout.event_type
-                    }));
+
+                    // Normalize shape from currentWorkouts so we handle any mixed key names
+                    this.workouts = (self.currentWorkouts || []).map((workout) => {
+                        const event_date = workout.event_date || workout.date;
+                        const event_title = workout.event_title || workout.title || "";
+                        const event_notes = workout.event_notes || workout.notes || "";
+                        const event_distance =
+                            workout.event_distance !== undefined && workout.event_distance !== null
+                                ? workout.event_distance
+                                : workout.distance;
+                        const event_type = workout.event_type || workout.event_workout || "";
+
+                        return {
+                            id: workout.id,
+                            event_date,
+                            event_title,
+                            event_notes,
+                            event_distance,
+                            event_theme: EVENT_COLOR_MAP.get(event_type),
+                            event_type
+                        };
+                    });
+
                     if (this.workouts.length) {
                         let startingMonth = new Date(this.workouts[0].event_date).getMonth();
                         const diff = startingMonth - this.month; // should always be either 0 or 1
@@ -1109,8 +1127,10 @@ function sharedState() {
                     );
 
                     if (index !== -1) {
-                        // Update existing event
+                        // Update existing event, preserving its id and any extra fields
+                        const existing = self.currentWorkouts[index];
                         self.currentWorkouts[index] = {
+                            ...existing,
                             date: eventDate, // Keep in local format
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
@@ -1119,8 +1139,10 @@ function sharedState() {
                             event_distance: this.eventToEdit.event_distance
                         };
                     } else {
-                        // Add new event
+                        // Add new event with a generated id
+                        const newId = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
                         self.currentWorkouts.push({
+                            id: newId,
                             date: eventDate, // Store in consistent format
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
@@ -1135,6 +1157,32 @@ function sharedState() {
 
                     this.loadWorkouts();
                     this.isModalOpen = false;
+                },
+
+                deleteEvent() {
+                    if (!this.eventToEdit) {
+                        return;
+                    }
+
+                    // Prefer deleting by id when available
+                    if (this.eventToEdit.id) {
+                        self.currentWorkouts = (self.currentWorkouts || []).filter(
+                            (e) => e.id !== this.eventToEdit.id
+                        );
+                    } else {
+                        // Fallback: delete by date match if no id was present
+                        const eventDate = new Date(`${this.eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-CA');
+                        self.currentWorkouts = (self.currentWorkouts || []).filter(
+                            (e) => new Date(`${e.date}T12:00:00`).toLocaleDateString('en-CA') !== eventDate
+                        );
+                    }
+
+                    // Keep global JSON in sync for the AI Coach LWC
+                    window.currentTrainingPlanJson = self.currentWorkouts;
+
+                    this.loadWorkouts();
+                    this.isModalOpen = false;
+                    this.eventToEdit = null;
                 },
 
                 exportAsCSV() {

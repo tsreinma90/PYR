@@ -8,8 +8,10 @@
                 <div class="rounded-lg bg-gray-800 p-6 shadow-lg ring-1 ring-white/15">
                     <h3 class="text-lg font-semibold text-white">Race Details</h3>
                     <p class="text-sm text-gray-400">
-                        Choose your race distance, race date, and training plan length (4–16 weeks). After you generate a plan, you can view
-                        a visual overview of your training in the Overview tab, explore deeper stats in the Analytics tab, and ask the AI Coach
+                        Choose your race distance, race date, and training plan length (4–16 weeks). After you generate
+                        a plan, you can view
+                        a visual overview of your training in the Overview tab, explore deeper stats in the Analytics
+                        tab, and ask the AI Coach
                         for personalized suggestions in the “Ask the AI Coach” tab.
                     </p>
                     <br />
@@ -322,15 +324,22 @@
                                                     class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2"
                                                     rows="3"></textarea>
                                             </div>
-                                            <div class="mt-6 flex justify-end space-x-4">
-                                                <button @click="isModalOpen = false"
-                                                    class="bg-gray-600 hover:bg-gray-500 text-white px-4 py-2 rounded-lg">
-                                                    Cancel
+                                            <div class="mt-6 flex justify-between">
+                                                <button type="button" @click="deleteEvent()"
+                                                    class="px-4 py-2 rounded-lg border border-red-500 text-red-400 text-sm font-medium hover:bg-red-500/10">
+                                                    Delete
                                                 </button>
-                                                <button @click="saveEvent()"
-                                                    class="bg-indigo-500 hover:bg-indigo-400 text-white px-4 py-2 rounded-lg">
-                                                    Save
-                                                </button>
+
+                                                <div class="space-x-3">
+                                                    <button type="button" @click="isModalOpen = false"
+                                                        class="px-4 py-2 rounded-lg border border-gray-600 text-gray-300 text-sm font-medium hover:bg-gray-700">
+                                                        Cancel
+                                                    </button>
+                                                    <button type="button" @click="saveEvent()"
+                                                        class="px-4 py-2 rounded-lg bg-indigo-500 text-white text-sm font-semibold hover:bg-indigo-400">
+                                                        Save
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -414,7 +423,8 @@
                                     <div class="flex items-center gap-2 text-xs font-medium text-sky-200">
                                         <svg viewBox="0 0 32 32" class="h-5 w-5" aria-hidden="true">
                                             <defs>
-                                                <linearGradient id="sfCloudGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                                                <linearGradient id="sfCloudGradient" x1="0%" y1="0%" x2="100%"
+                                                    y2="100%">
                                                     <stop offset="0%" stop-color="#00A1E0" />
                                                     <stop offset="100%" stop-color="#0176D3" />
                                                 </linearGradient>
