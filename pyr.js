@@ -894,7 +894,7 @@ function sharedState() {
                 userQuestion: userQuestion       // maps to Apex ReviewRequest.userQuestion
             };
 
-            console.log('*** request to AI Coach:', JSON.stringify(req, null, 2));
+            console.log('*** events to review:', req.trainingPlanJson.length);
 
             try {
                 // Call the LWC @api method with a single request object
