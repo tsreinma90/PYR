@@ -1121,16 +1121,33 @@ function sharedState() {
                     // Create local date string (avoid UTC conversion)
                     const eventDate = new Date(`${this.eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-CA'); // 'YYYY-MM-DD' format
 
-                    // Normalize comparison dates to avoid drift
-                    const index = self.currentWorkouts.findIndex(
-                        (e) => new Date(`${e.date}T12:00:00`).toLocaleDateString('en-CA') === eventDate
-                    );
+                    let index = -1;
+
+                    // Prefer to match by id when available (most reliable)
+                    if (this.eventToEdit.id) {
+                        index = (self.currentWorkouts || []).findIndex(
+                            (e) => e.id === this.eventToEdit.id
+                        );
+                    }
+
+                    // Fallback: match by date if id is missing
+                    if (index === -1) {
+                        index = (self.currentWorkouts || []).findIndex(
+                            (e) => new Date(`${e.date}T12:00:00`).toLocaleDateString('en-CA') === eventDate
+                        );
+                    }
 
                     if (index !== -1) {
                         // Update existing event, preserving its id and any extra fields
-                        const existing = self.currentWorkouts[index];
+                        const existing = self.currentWorkouts[index] || {};
+                        const effectiveId =
+                            existing.id ||
+                            this.eventToEdit.id ||
+                            `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
                         self.currentWorkouts[index] = {
                             ...existing,
+                            id: effectiveId,
                             date: eventDate, // Keep in local format
                             title: this.eventToEdit.event_title,
                             notes: this.eventToEdit.event_notes,
@@ -1139,8 +1156,11 @@ function sharedState() {
                             event_distance: this.eventToEdit.event_distance
                         };
                     } else {
-                        // Add new event with a generated id
-                        const newId = `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+                        // Add new event with a generated id (or reuse any provided id)
+                        const newId =
+                            this.eventToEdit.id ||
+                            `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
                         self.currentWorkouts.push({
                             id: newId,
                             date: eventDate, // Store in consistent format
