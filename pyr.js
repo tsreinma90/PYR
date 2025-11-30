@@ -384,7 +384,6 @@ function setupBarChart(workoutEvents) {
 
     const chartEl = document.getElementById("myChart");
     if (!chartEl || typeof chartEl.getContext !== "function") {
-        console.warn("myChart canvas not found; skipping bar chart render for now.");
         return;
     }
     const ctx = chartEl.getContext("2d");
@@ -858,9 +857,7 @@ function sharedState() {
 
             // Ensure the LWC bridge is ready
             const cmp = window.trainingPlanReviewCmp;
-            console.log('*** trainingPlanReviewCmp:', cmp);
             if (!cmp || typeof cmp.reviewPlan !== "function") {
-                console.error("trainingPlanReviewCmp is not ready or has no reviewPlan() method.");
                 this.loading = false;
                 this.enhancedOutput = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
                 return;
@@ -894,16 +891,12 @@ function sharedState() {
                 userQuestion: userQuestion       // maps to Apex ReviewRequest.userQuestion
             };
 
-            console.log('*** events to review:', req.trainingPlanJson.length);
-
             try {
                 // Call the LWC @api method with a single request object
                 await cmp.reviewPlan(req);
                 // Do not set enhancedOutput here; it will be set when the
                 // trainingplanreviewed or trainingplanreviewerror events fire.
             } catch (e) {
-                console.error('*** reviewTrainingPlan ERROR raw:', e);
-
                 // LWC / Apex-style errors usually have body.message etc.
                 if (e && e.body) {
                     console.error('*** error.body:', e.body);
