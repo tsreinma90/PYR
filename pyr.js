@@ -887,14 +887,14 @@ function sharedState() {
                 weeklyMileage: this.selectedWeeklyMileage || null
             };
 
+            // Build request object for the LWC bridge; it will normalize/serialize as needed
             const req = {
-                trainingPlanJson: trainingPlanJsonStr,
-                runnerContext: runnerContextStr,
-                userQuestion: userNotes // <-- map to Apex field name
+                trainingPlanJson: planJson,      // array of workout objects
+                runnerContext: runnerContext,    // extra metadata/context
+                userQuestion: userQuestion       // maps to Apex ReviewRequest.userQuestion
             };
 
-            console.log('*** runnerContext to send to AI Coach:', JSON.stringify(req, undefined, 2));
-
+            console.log('*** request to AI Coach:', JSON.stringify(req, null, 2));
 
             try {
                 // Call the LWC @api method with a single request object
