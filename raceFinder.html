@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -11,46 +12,44 @@
 
     <!-- Define init BEFORE loading lightning.out.js -->
     <script>
-      window.initRaceFinder = function () {
-        if (typeof $Lightning === "undefined") {
-          console.error("Lightning Out not available: $Lightning is undefined");
-          return;
-        }
+        window.initRaceFinder = function () {
+            if (typeof $Lightning === "undefined") {
+                console.error("Lightning Out not available: $Lightning is undefined");
+                return;
+            }
 
-        if (window.__raceFinderInitialized) {
-          return; // only init once
-        }
-        window.__raceFinderInitialized = true;
+            if (window.__raceFinderInitialized) {
+                return; // only init once
+            }
+            window.__raceFinderInitialized = true;
 
-        $Lightning.use(
-          "c:LightningAppContainer",            // Aura app (same one you use for AI coach)
-          function () {
-            $Lightning.createComponent(
-              "c:raceFinder",                   // your LWC
-              {},
-              "raceFinderContainer",            // div below
-              function (cmp) {
-                window.raceFinderCmp = cmp;
-                console.log("*** raceFinder created", cmp);
-              }
+            $Lightning.use(
+                "c:LightningAppContainer",            // Aura app (same one you use for AI coach)
+                function () {
+                    $Lightning.createComponent(
+                        "c:raceFinder",                   // your LWC
+                        {},
+                        "raceFinderContainer",            // div below
+                        function (cmp) {
+                            window.raceFinderCmp = cmp;
+                            console.log("*** raceFinder created", cmp);
+                        }
+                    );
+                },
+                "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr" // Experience Cloud URL
             );
-          },
-          "https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr" // Experience Cloud URL
-        );
-      };
+        };
     </script>
 
     <!-- Lightning Out JS (calls initRaceFinder on load) -->
-    <script
-      src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr/lightning/lightning.out.js"
-      onload="window.initRaceFinder()">
-    </script>
+    <script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr/lightning/lightning.out.js"
+        onload="window.initRaceFinder()">
+        </script>
 </head>
 
-<body class="bg-gray-900 text-white">
-  <div class="min-h-screen w-full flex justify-center items-start py-10 px-4">
+<div class="min-h-screen w-full flex justify-center items-start py-10 px-4">
     <!-- Race finder LWC will render here -->
     <div id="raceFinderContainer" class="w-full max-w-6xl"></div>
-  </div>
-</body>
+</div>
+
 </html>
