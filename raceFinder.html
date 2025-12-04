@@ -40,9 +40,6 @@
             "raceFinderContainer",
             function (cmp) {
               window.raceFinderCmp = cmp;
-              console.log("*** raceFinder created", cmp);
-
-              // Hide the loading spinner once the LWC is ready
               var loader = document.getElementById('raceFinderLoading');
               if (loader) {
                 loader.style.display = 'none';
