@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,11 +11,13 @@
   <link rel="stylesheet" href="./pyr.css">
 
   <style>
-    html, body {
+    html,
+    body {
       margin: 0;
       padding: 0;
       height: 100%;
-      overflow-y: auto; /* allow page to scroll inside iframe */
+      overflow-y: auto;
+      /* allow page to scroll inside iframe */
     }
   </style>
 
@@ -55,18 +58,47 @@
   <!-- Lightning Out JS (calls initRaceFinder on load) -->
   <script src="https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/pyr/lightning/lightning.out.js"
     onload="window.initRaceFinder()">
+    </script>
+  <script>
+    async function pyrDetectZipFromApex() {
+      if (!navigator.geolocation) {
+        console.warn("Geolocation not supported");
+        return;
+      }
+
+      navigator.geolocation.getCurrentPosition(async pos => {
+        const { latitude, longitude } = pos.coords;
+
+        const url =
+          `https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/services/apexrest/geoapifyReverse?lat=${latitude}&lon=${longitude}`;
+
+        const res = await fetch(url, { method: 'GET' });
+        const zip = await res.text();
+
+        console.log("Detected ZIP from Apex:", zip);
+
+        // Send ZIP into Lightning Out LWC inside iframe:
+        // window.raceFinderCmp lives *inside iframe*, not here
+        const iframe = document.querySelector("#yourIframeId").contentWindow;
+
+        iframe.postMessage({ type: "SET_ZIP", zip }, "*");
+      });
+    }
+
   </script>
 </head>
+
 <body class="bg-gray-900">
 
-<div class="min-h-screen w-full flex justify-center items-stretch py-0 px-0 relative">
-  <!-- Loading spinner shown while LWC is initializing -->
-  <div id="raceFinderLoading" class="absolute inset-0 flex items-center justify-center pointer-events-none">
-    <div class="h-10 w-10 border-4 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
-  </div>
+  <div class="min-h-screen w-full flex justify-center items-stretch py-0 px-0 relative">
+    <!-- Loading spinner shown while LWC is initializing -->
+    <div id="raceFinderLoading" class="absolute inset-0 flex items-center justify-center pointer-events-none">
+      <div class="h-10 w-10 border-4 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
 
-  <!-- Race finder LWC will render here -->
-  <div id="raceFinderContainer" class="w-full h-full"></div>
-</div>
+    <!-- Race finder LWC will render here -->
+    <div id="raceFinderContainer" class="w-full h-full"></div>
+  </div>
 </body>
+
 </html>
