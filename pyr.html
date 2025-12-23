@@ -48,6 +48,8 @@
                             class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
                             Training Block
                         </label>
+                        <p class="text-sm text-gray-400">Longer plans spend more time building base fitness before faster workouts begin.</p>
+                        <br/>
                         <select id="timeframe" x-model="selectedTimeframe"
                             class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
                             <option value="" disabled>Select a time block</option>
@@ -402,6 +404,7 @@
 
                                     <canvas id="weeklyMileageTrend"></canvas>
                                     <canvas id="longRunProgression"></canvas>
+                                    <canvas id="paceProgression"></canvas>
                                 </div>
                             </template>
                             <template x-if="activeTab === 'ai'">
