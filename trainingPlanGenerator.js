@@ -50,7 +50,7 @@ function getTrainingPhase(weekNumber, totalWeeks) {
   return "taper";
 }
 
-function resolveWorkoutPace(workoutType, goalPace, trainingPhase) {
+function getRecommendedPace(workoutType, goalPace, trainingPhase) {
   const goalDecimal = convertPaceToDecimal(goalPace);
 
   // Define phase-based offsets (seconds per mile)
@@ -65,33 +65,12 @@ function resolveWorkoutPace(workoutType, goalPace, trainingPhase) {
   const offset = (PACE_OFFSETS[workoutType] && PACE_OFFSETS[workoutType][trainingPhase]) || 0;
 
   const recommendedDecimal = goalDecimal + offset / 60; // convert seconds to minutes
-  return decimalToPace(recommendedDecimal);
+  return {
+    pace: decimalToPace(recommendedDecimal),
+    pace_decimal: recommendedDecimal
+  };
 }
 
-// Helper: compute a recommended pace for a workout type.
-// Adjust these numbers to suit your training philosophy.
-function getRecommendedPace(workoutType, goalPace) {
-  let goalDecimal = convertPaceToDecimal(goalPace);
-  let recommendedDecimal;
-  switch (workoutType) {
-    case "Easy":
-      recommendedDecimal = goalDecimal + 1.0; // 60 sec slower
-      break;
-    case "Tempo":
-      recommendedDecimal = goalDecimal - 0.1; // 6 sec faster
-      break;
-    case "Speed":
-      recommendedDecimal = goalDecimal - 0.2; // 12 sec faster
-      break;
-    case "Long":
-      recommendedDecimal = goalDecimal + 1.5; // 90 sec slower
-      break;
-    default:
-      recommendedDecimal = goalDecimal;
-      break;
-  }
-  return decimalToPace(recommendedDecimal);
-}
 
 function createTrainingPlan(
   startDay,
@@ -409,21 +388,27 @@ function splitRun(numMiles) {
 // Modified createWorkout now adds recommended pace info based on globalGoalPace.
 // For non-Rest and non-Race workouts, it appends "Recommended pace: X per mile" to the event notes.
 function createWorkout(dateOfWorkout, numberOfMiles, workoutType, eventTitle, eventNote = "", trainingPhase = "") {
+  let pace = null;
+  let pace_decimal = null;
   // For applicable workouts, append recommended pace information.
   if (workoutType !== "Rest" && workoutType !== "Race" && globalGoalPace) {
-    const recommended = resolveWorkoutPace(workoutType, globalGoalPace, trainingPhase);
+    const recommended = getRecommendedPace(workoutType, globalGoalPace, trainingPhase);
+    pace = recommended.pace;
+    pace_decimal = recommended.pace_decimal;
     if (eventNote && eventNote.length > 0) {
       eventNote += " | ";
     }
-    eventNote += `Recommended pace: ${recommended} per mile`;
+    eventNote += `Recommended pace: ${pace} per mile`;
   }
-   return {
+  return {
     event_date: dateOfWorkout,
     event_title: eventTitle != null ? eventTitle : `${workoutType} - ${numberOfMiles} miles`,
     event_workout: workoutType,
     event_distance: numberOfMiles,
     event_notes: eventNote,
     event_theme: themeMap.get(workoutType),
+    event_pace: pace,
+    event_pace_decimal: pace_decimal,
     event_phase: trainingPhase
   };
 }

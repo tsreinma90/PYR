@@ -215,11 +215,17 @@ function transformEvent(event) {
     const date = new Date(event.event_date).toISOString().split("T")[0];
 
     return {
-        date: date, // Extract YYYY-MM-DD
+        date: date,
         title: `${event.event_distance} miles ${event.event_workout.toLowerCase()} run`,
         event_distance: event.event_distance,
+
+        // 🔥 preserve subtype + pace for analytics
+        event_workout: event.event_workout,
+        event_pace: event.event_pace,
+        event_pace_decimal: event.event_pace_decimal,
+
         notes: event.event_notes,
-        theme: "", // Leaving this empty as per your request
+        theme: "",
         event_type: workoutTypeMap[event.event_workout],
     };
 }
@@ -268,11 +274,42 @@ function triggerPlanGeneratedCustomEvent() {
 }
 
 function convertPaceToDecimal(pace) {
-    // Trim to the first 4 characters (e.g., "9:05" → "9:0")
-    pace = pace.trim().slice(0, 4);
-
-    let [minutes, seconds] = pace.split(":").map(Number);
+    if (!pace) return NaN;
+    const s = String(pace).trim();
+    const m = s.match(/(\d{1,2}):(\d{2})/);
+    if (!m) return NaN;
+    const minutes = parseInt(m[1], 10);
+    const seconds = parseInt(m[2], 10);
     return minutes + (seconds / 60);
+}
+
+function formatPaceFromDecimal(paceDecimal) {
+    if (paceDecimal == null || isNaN(paceDecimal)) return "";
+    const minutes = Math.floor(paceDecimal);
+    const seconds = Math.round((paceDecimal - minutes) * 60);
+    return `${minutes}:${String(seconds).padStart(2, "0")}`;
+}
+
+function getTrainingPhaseForWeek(weekIndex, totalWeeks) {
+    const progress = totalWeeks > 0 ? (weekIndex / totalWeeks) : 0;
+    if (progress < 0.4) return "base";
+    if (progress < 0.7) return "build";
+    if (progress < 0.9) return "peak";
+    return "taper";
+}
+
+function getTargetPaceDecimal(workoutType, goalPace, trainingPhase) {
+    const goalDecimal = convertPaceToDecimal(goalPace);
+    if (isNaN(goalDecimal)) return null;
+
+    // Keep in sync with trainingPlanGenerator.js phase offsets (seconds per mile)
+    const OFFSETS = {
+        Tempo: { base: 35, build: 25, peak: 15, taper: 10 },
+        Speed: { base: -10, build: -20, peak: -30, taper: -20 }
+    };
+
+    const offsetSec = (OFFSETS[workoutType] && OFFSETS[workoutType][trainingPhase]) || 0;
+    return goalDecimal + (offsetSec / 60);
 }
 
 function getMonthName(dateString) {
@@ -838,6 +875,9 @@ function sharedState() {
                 for (let i = 0; i < allRuns.length; i++) {
                     if (allRuns[i].event_distance && allRuns[i].event_workout != 'Rest') {
                         const transformed = transformEvent(allRuns[i]);
+                        transformed.event_workout = allRuns[i].event_workout;
+                        transformed.event_pace = allRuns[i].event_pace;
+                        transformed.event_pace_decimal = allRuns[i].event_pace_decimal;
                         // Assign a stable-ish id so edits/deletes can target a specific event
                         transformed.id = `${transformed.date}-${i}`;
                         this.currentWorkouts.push(transformed);
@@ -1261,7 +1301,16 @@ function sharedState() {
         _buildAnalyticsData() {
             const workouts = this.currentWorkouts || [];
             if (!workouts.length) {
-                return { labels: [], weekly: [], typeCounts: { 'Easy Run': 0, 'Speed Workout': 0, 'Long Run': 0, 'Race': 0 }, longRun: [] };
+                return {
+                    labels: [],
+                    weekly: [],
+                    typeCounts: { 'Easy Run': 0, 'Speed Workout': 0, 'Long Run': 0, 'Race': 0 },
+                    longRun: [],
+                    tempoPace: [],
+                    speedPace: [],
+                    tempoTarget: [],
+                    speedTarget: []
+                };
             }
 
             // Sort by date and anchor weeks to the Monday of the first workout
@@ -1275,6 +1324,8 @@ function sharedState() {
             const weeklyMileage = [];
             const typeCounts = { 'Easy Run': 0, 'Speed Workout': 0, 'Long Run': 0, 'Race': 0 };
             const longRunByWeek = {};
+            const tempoPacesByWeek = {};
+            const speedPacesByWeek = {};
 
             sorted.forEach(w => {
                 const wk = weekIndex(w.date);
@@ -1284,12 +1335,40 @@ function sharedState() {
                 if (w.event_type === 'Long Run') {
                     longRunByWeek[wk] = Math.max(longRunByWeek[wk] || 0, dist);
                 }
+                const paceDec = parseFloat(w.event_pace_decimal);
+                if (!isNaN(paceDec)) {
+                    if (w.event_workout === 'Tempo') {
+                        (tempoPacesByWeek[wk] = tempoPacesByWeek[wk] || []).push(paceDec);
+                    } else if (w.event_workout === 'Speed') {
+                        (speedPacesByWeek[wk] = speedPacesByWeek[wk] || []).push(paceDec);
+                    }
+                }
             });
 
             const weekCount = Math.max(weeklyMileage.length, parseInt(this.numOfWeeksInTraining || weeklyMileage.length || 0, 10));
             const labels = Array.from({ length: weekCount }, (_, i) => `Week ${i + 1}`);
             const weekly = Array.from({ length: weekCount }, (_, i) => weeklyMileage[i] || 0);
             const longRun = Array.from({ length: weekCount }, (_, i) => longRunByWeek[i] || 0);
+            const avg = (arr) => (arr && arr.length ? arr.reduce((a, b) => a + b, 0) / arr.length : null);
+            const tempoPace = Array.from({ length: weekCount }, (_, i) => avg(tempoPacesByWeek[i]));
+            const speedPace = Array.from({ length: weekCount }, (_, i) => avg(speedPacesByWeek[i]));
+            const longRunPct = Array.from({ length: weekCount }, (_, i) => {
+                const w = weekly[i] || 0;
+                const lr = longRun[i] || 0;
+                return w > 0 ? (lr / w) * 100 : null;
+            });
+
+            const goalPace = this.selectedGoal || window.paceGoal || null;
+
+            const tempoTarget = Array.from({ length: weekCount }, (_, i) => {
+                const phase = getTrainingPhaseForWeek(i, weekCount);
+                return getTargetPaceDecimal("Tempo", goalPace, phase);
+            });
+
+            const speedTarget = Array.from({ length: weekCount }, (_, i) => {
+                const phase = getTrainingPhaseForWeek(i, weekCount);
+                return getTargetPaceDecimal("Speed", goalPace, phase);
+            });
 
             // Summary
             const total = weekly.reduce((a, b) => a + b, 0);
@@ -1306,7 +1385,7 @@ function sharedState() {
             };
             this.analyticsSummary.peakWeekMileage = weekly.reduce((m, v) => Math.max(m, v), 0);
 
-            return { labels, weekly, typeCounts, longRun };
+            return { labels, weekly, typeCounts, longRun, longRunPct, tempoPace, speedPace, tempoTarget, speedTarget };
         },
 
         // Render the Analytics tab charts
@@ -1318,37 +1397,108 @@ function sharedState() {
 
             const render = () => {
                 this.destroyAnalyticsCharts();
-                const { labels, weekly, typeCounts, longRun } = this._buildAnalyticsData();
+                const { labels, weekly, typeCounts, longRun, longRunPct, tempoPace, speedPace, tempoTarget, speedTarget } = this._buildAnalyticsData();
 
-                // Weekly Mileage Trend (line)
+                // Weekly Mileage + Long Run (dual-axis) + Long Run % (line)
                 const t1 = document.getElementById('weeklyMileageTrend');
                 if (t1) {
                     this.analyticsCharts.weeklyTrend = new Chart(t1, {
                         type: 'line',
                         data: {
                             labels,
-                            datasets: [{
-                                label: 'Weekly Mileage',
-                                data: weekly,
-                                borderWidth: 2,
-                                tension: 0.25,
-                                borderColor: '#60a5fa', // blue-400
-                                backgroundColor: 'rgba(96,165,250,0.15)',
-                                pointBackgroundColor: '#93c5fd',
-                                pointBorderColor: '#93c5fd',
-                                pointRadius: 3,
-                                pointHoverRadius: 4
-                            }]
+                            datasets: [
+                                {
+                                    label: 'Weekly Mileage',
+                                    data: weekly,
+                                    yAxisID: 'y',
+                                    borderWidth: 2,
+                                    tension: 0.25,
+                                    borderColor: '#60a5fa', // blue-400
+                                    backgroundColor: 'rgba(96,165,250,0.15)',
+                                    pointBackgroundColor: '#93c5fd',
+                                    pointBorderColor: '#93c5fd',
+                                    pointRadius: 3,
+                                    pointHoverRadius: 4
+                                },
+                                {
+                                    label: 'Long Run (mi)',
+                                    data: longRun,
+                                    yAxisID: 'y1',
+                                    borderWidth: 2,
+                                    tension: 0.25,
+                                    borderColor: '#a78bfa', // violet-300
+                                    backgroundColor: 'rgba(167,139,250,0.18)',
+                                    pointBackgroundColor: '#c4b5fd',
+                                    pointBorderColor: '#c4b5fd',
+                                    pointRadius: 3,
+                                    pointHoverRadius: 4
+                                },
+                                {
+                                    label: 'Long Run % of Week',
+                                    data: longRunPct,
+                                    yAxisID: 'y2',
+                                    borderWidth: 2,
+                                    tension: 0.25,
+                                    spanGaps: true,
+                                    borderColor: '#f472b6', // pink-400
+                                    backgroundColor: 'rgba(244,114,182,0.10)',
+                                    pointBackgroundColor: '#f9a8d4',
+                                    pointBorderColor: '#f9a8d4',
+                                    pointRadius: 2,
+                                    pointHoverRadius: 4,
+                                    borderDash: [6, 6]
+                                }
+                            ]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: true,
                             aspectRatio: 2,
                             scales: {
-                                x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-                                y: { beginAtZero: true, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                                x: {
+                                    ticks: { color: '#cbd5e1' },
+                                    grid: { color: 'rgba(255,255,255,0.06)' }
+                                },
+                                y: {
+                                    beginAtZero: true,
+                                    position: 'left',
+                                    ticks: { color: '#cbd5e1' },
+                                    grid: { color: 'rgba(255,255,255,0.06)' }
+                                },
+                                y1: {
+                                    beginAtZero: true,
+                                    position: 'right',
+                                    ticks: { color: '#cbd5e1' },
+                                    grid: { drawOnChartArea: false }
+                                },
+                                y2: {
+                                    beginAtZero: true,
+                                    position: 'right',
+                                    offset: true,
+                                    ticks: {
+                                        color: '#cbd5e1',
+                                        callback: (v) => `${Math.round(v)}%`
+                                    },
+                                    min: 0,
+                                    max: 100,
+                                    grid: { drawOnChartArea: false }
+                                }
                             },
-                            plugins: { legend: { labels: { color: '#e5e7eb' } } }
+                            plugins: {
+                                legend: { labels: { color: '#e5e7eb' } },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const label = ctx.dataset.label || '';
+                                            const v = ctx.parsed.y;
+                                            if (ctx.dataset.yAxisID === 'y2') {
+                                                return `${label}: ${Math.round(v)}%`;
+                                            }
+                                            return `${label}: ${v}`;
+                                        }
+                                    }
+                                }
+                            }
                         }
                     });
                 }
@@ -1375,35 +1525,103 @@ function sharedState() {
                     });
                 }
 
-                // Long Run Progression (line)
+                // Long Run chart is now combined into the Weekly Mileage chart above
                 const t3 = document.getElementById('longRunProgression');
                 if (t3) {
-                    this.analyticsCharts.longRun = new Chart(t3, {
+                    t3.style.display = 'none';
+                }
+
+                // Pace Progression (Tempo & Speed)
+                const t4 = document.getElementById('paceProgression');
+                if (t4) {
+                    this.analyticsCharts.paceProgression = new Chart(t4, {
                         type: 'line',
                         data: {
                             labels,
-                            datasets: [{
-                                label: 'Long Run (mi)',
-                                data: longRun,
-                                borderWidth: 2,
-                                tension: 0.25,
-                                borderColor: '#a78bfa', // violet-300
-                                backgroundColor: 'rgba(167,139,250,0.18)',
-                                pointBackgroundColor: '#c4b5fd',
-                                pointBorderColor: '#c4b5fd',
-                                pointRadius: 3,
-                                pointHoverRadius: 4
-                            }]
+                            datasets: [
+                                // Tempo target (continuous line)
+                                {
+                                    label: 'Tempo Focus Pace',
+                                    data: tempoTarget,
+                                    borderWidth: 3,
+                                    tension: 0.25,
+                                    spanGaps: true,
+                                    borderColor: '#22d3ee',
+                                    backgroundColor: 'rgba(34,211,238,0.10)',
+                                    pointRadius: 0
+                                },
+                                // Tempo actual (points only)
+                                {
+                                    label: 'Tempo Workout Pace',
+                                    data: tempoPace,
+                                    showLine: false,
+                                    spanGaps: true,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7,
+                                    borderColor: '#67e8f9',
+                                    backgroundColor: 'rgba(103,232,249,0.9)'
+                                },
+
+                                // Speed target (continuous line)
+                                {
+                                    label: 'Speed Focus Pace',
+                                    data: speedTarget,
+                                    borderWidth: 3,
+                                    tension: 0.25,
+                                    spanGaps: true,
+                                    borderColor: '#facc15',
+                                    backgroundColor: 'rgba(250,204,21,0.10)',
+                                    pointRadius: 0
+                                },
+                                // Speed actual (points only)
+                                {
+                                    label: 'Speed Workout Pace',
+                                    data: speedPace,
+                                    showLine: false,
+                                    spanGaps: true,
+                                    pointRadius: 5,
+                                    pointHoverRadius: 7,
+                                    borderColor: '#fde047',
+                                    backgroundColor: 'rgba(253,224,71,0.9)'
+                                }
+                            ]
                         },
                         options: {
                             responsive: true,
                             maintainAspectRatio: true,
                             aspectRatio: 2,
                             scales: {
-                                x: { ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.06)' } },
-                                y: { beginAtZero: true, ticks: { color: '#cbd5e1' }, grid: { color: 'rgba(255,255,255,0.06)' } }
+                                y: {
+                                    reverse: true, // faster pace = higher
+                                    ticks: {
+                                        callback: (v) => formatPaceFromDecimal(v)
+                                    }
+                                }
                             },
-                            plugins: { legend: { labels: { color: '#e5e7eb' } } }
+                            plugins: {
+                                title: {
+                                    display: true,
+                                    text: 'Pace Progression by Training Focus',
+                                    color: '#e5e7eb',
+                                    font: { size: 16, weight: '600' },
+                                    padding: { bottom: 4 }
+                                },
+                                subtitle: {
+                                    display: true,
+                                    text: 'Focus pace shows the intended emphasis for each week. Workout pace appears only when that workout is scheduled.',
+                                    color: '#9ca3af',
+                                    font: { size: 12 },
+                                    padding: { bottom: 12 }
+                                },
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const label = ctx.dataset.label || '';
+                                            return `${label}: ${formatPaceFromDecimal(ctx.parsed.y)} /mi`;
+                                        }
+                                    }
+                                }
+                            }
                         }
                     });
                 }
