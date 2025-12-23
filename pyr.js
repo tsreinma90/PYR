@@ -646,11 +646,17 @@ function sharedState() {
             if (!this.raceDate) {
                 return PLAN_LENGTH_OPTIONS; // Show all options when no race date is selected
             } else {
+                // Compute full weeks until race using date-only UTC math (avoids DST/time-of-day off-by-one)
                 const today = new Date();
-                const raceDay = new Date(this.raceDate);
-                const weeksUntilRace = Math.floor((raceDay - today) / (1000 * 60 * 60 * 24 * 7)); // ms → weeks
+                const todayUTC = Date.UTC(today.getFullYear(), today.getMonth(), today.getDate());
 
-                // Show only plan lengths that fit before race day, capped at 24 weeks (6 months)
+                const [yy, mm, dd] = String(this.raceDate).split('-').map(n => parseInt(n, 10));
+                const raceUTC = Date.UTC(yy, (mm || 1) - 1, dd || 1);
+
+                const msPerDay = 24 * 60 * 60 * 1000;
+                const daysUntilRace = Math.round((raceUTC - todayUTC) / msPerDay);
+                const weeksUntilRace = Math.floor(daysUntilRace / 7);
+
                 const cap = Math.max(4, Math.min(24, weeksUntilRace));
                 return PLAN_LENGTH_OPTIONS.filter(option => option.value <= cap);
             }
@@ -686,7 +692,7 @@ function sharedState() {
             typePercents: { easy: 0, speed: 0, long: 0 },
             peakWeekMileage: 0,
         },
-        analyticsCharts: { weeklyTrend: null, typeBreakdown: null, longRun: null },
+        analyticsCharts: { weeklyTrend: null, typeBreakdown: null, longRun: null, paceProgression: null },
 
         get zonePreferences() {
             return [0.6, 0.12, 0.08, 0.2];
@@ -763,7 +769,7 @@ function sharedState() {
                 } else if (raceDate < minRaceDate) {
                     this.errors.raceDate = `Race date must be at least 4 weeks from today (${minRaceDate.toLocaleDateString()}).`;
                 } else if (raceDate > maxRaceDate) {
-                    this.errors.raceDate = `Race date cannot be more than 20 weeks from today (${maxRaceDate.toLocaleDateString()}).`;
+                    this.errors.raceDate = `Race date cannot be more than 24 weeks from today (${maxRaceDate.toLocaleDateString()}).`;
                 } else {
                     this.raceDate = this.raceDate; // Keep the original date string
                 }
@@ -816,18 +822,10 @@ function sharedState() {
                     this.selectedGoal = null;
                 }
             } else if (fieldName === 'weeklyMileage') {
-                const mileage = parseInt(this.weeklyMileage, 10);
-
-                // Validate mileage input
-                if (!mileage || isNaN(mileage) || mileage <= 0) {
-                    this.errors.weeklyMileage = 'Please enter a valid number greater than 0.';
-                    this.selectedWeeklyMileage = null;
-                } else if (mileage < 10) {
-                    this.errors.weeklyMileage = 'Mileage must be at least 10 miles per week.';
-                    this.selectedWeeklyMileage = null;
-                } else if (mileage > 130) {
-                    this.errors.weeklyMileage = 'Mileage cannot exceed 130 miles per week.';
-                    this.selectedWeeklyMileage = null;
+                // Weekly mileage is selected via radio buttons (selectedWeeklyMileage: low/medium/high).
+                // Do not mutate selectedWeeklyMileage here, or the UI will appear to “deselect” on Generate.
+                if (!this.selectedWeeklyMileage) {
+                    this.errors.weeklyMileage = 'Please select a weekly mileage preference (Low / Medium / High).';
                 }
             }
         },
@@ -838,6 +836,9 @@ function sharedState() {
             if (this.selectedGoal === '9') {
                 this.selectedGoal = '9:00 min/mi';
             }
+
+            // 🔒 FORCE validation before allowing Generate
+            this.validateField('raceDate');
 
             if (!this.formComplete) {
                 this.showErrorToast = true;
@@ -850,6 +851,16 @@ function sharedState() {
                 return;
             } else {
                 const numberOfWeeksUntilRace = this.selectedTimeframe.substring(0, 2).trim();
+                const weeksInt = parseInt(numberOfWeeksUntilRace, 10);
+                const allowed = (this.raceDateOptions || []).some(o => o.value === weeksInt);
+                if (!allowed) {
+                    this.errors.selectedTimeframe = 'Selected plan length does not fit within the chosen race date.';
+                    this.showErrorToast = true;
+                    setTimeout(() => { this.showErrorToast = false; }, 3000);
+                    return;
+                } else if (this.errors.selectedTimeframe) {
+                    this.errors.selectedTimeframe = '';
+                }
                 const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
                 const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
                 const trainingController = await import("./trainingPlanGenerator.js");
@@ -877,9 +888,10 @@ function sharedState() {
                 this.average_mileage_weekly = Math.ceil(totalDistance / numberOfWeeksUntilRace);
                 this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
                 triggerPlanGeneratedCustomEvent();
-                if (this.activeTab === 'analytics') {
-                    this.loadAnalyticsCharts();
-                }
+
+                // Always refresh charts after generating a plan so Overview/Analytics are in sync
+                this.destroyAnalyticsCharts();
+                this.loadAnalyticsCharts();
             }
         },
 
@@ -998,11 +1010,19 @@ function sharedState() {
         },
 
         get formComplete() {
+            const hasErrors =
+                (this.errors && (
+                    !!this.errors.raceDate ||
+                    !!this.errors.raceTime ||
+                    !!this.errors.weeklyMileage
+                ));
+
             return this.selectedRaceDistance &&
                 this.selectedTimeframe &&
                 this.raceDate &&
                 this.selectedGoal &&
-                this.selectedWeeklyMileage;
+                this.selectedWeeklyMileage &&
+                !hasErrors;
         },
 
         getTrainingStartDate(raceDate, weeks) {
@@ -1075,9 +1095,10 @@ function sharedState() {
                     });
 
                     if (this.workouts.length) {
-                        let startingMonth = new Date(this.workouts[0].event_date).getMonth();
-                        const diff = startingMonth - this.month; // should always be either 0 or 1
-                        this.changeMonth(diff);
+                        const firstDate = new Date(this.workouts[0].event_date);
+                        this.month = firstDate.getMonth();
+                        this.year = firstDate.getFullYear();
+                        this.calculateDays();
                     }
                     self.loadBarChart();
                 },
@@ -1279,7 +1300,8 @@ function sharedState() {
             if (c.weeklyTrend && typeof c.weeklyTrend.destroy === 'function') c.weeklyTrend.destroy();
             if (c.typeBreakdown && typeof c.typeBreakdown.destroy === 'function') c.typeBreakdown.destroy();
             if (c.longRun && typeof c.longRun.destroy === 'function') c.longRun.destroy();
-            this.analyticsCharts = { weeklyTrend: null, typeBreakdown: null, longRun: null };
+            if (c.paceProgression && typeof c.paceProgression.destroy === 'function') c.paceProgression.destroy();
+            this.analyticsCharts = { weeklyTrend: null, typeBreakdown: null, longRun: null, paceProgression: null };
         },
 
         // Build analytics data series from currentWorkouts
