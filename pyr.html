@@ -1,4 +1,8 @@
 <div x-data="sharedState()">
+    <!-- Global loading spinner shown while generating a plan -->
+    <div x-show="isGenerating" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70">
+        <div class="h-10 w-10 border-4 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
+    </div>
     <div id="sf-ai-review"></div>
     <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8">
         <div class="mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -48,8 +52,9 @@
                             class="block text-sm font-medium text-gray-300 flex items-center gap-1 mb-2">
                             Training Block
                         </label>
-                        <p class="text-sm text-gray-400">Longer plans spend more time building base fitness before faster workouts begin.</p>
-                        <br/>
+                        <p class="text-sm text-gray-400">Longer plans spend more time building base fitness before
+                            faster workouts begin.</p>
+                        <br />
                         <select id="timeframe" x-model="selectedTimeframe"
                             class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
                             <option value="" disabled>Select a time block</option>

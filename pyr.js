@@ -671,6 +671,7 @@ function sharedState() {
         errors: {},
         weeklyMileage: '',
         raceTime: '',
+        isGenerating: false,
         currentTab: 'Calendar',
         tabs: [
             //{ name: 'Overview' },
@@ -831,25 +832,32 @@ function sharedState() {
         },
 
         async generatePlan() {
-            this.selectedGoal = window.paceGoal?.[0];
-            // to-do, strange bug
-            if (this.selectedGoal === '9') {
-                this.selectedGoal = '9:00 min/mi';
-            }
+            // Show spinner immediately
+            this.isGenerating = true;
 
-            // 🔒 FORCE validation before allowing Generate
-            this.validateField('raceDate');
+            try {
+                this.selectedGoal = window.paceGoal?.[0];
+                // to-do, strange bug
+                if (this.selectedGoal === '9') {
+                    this.selectedGoal = '9:00 min/mi';
+                }
 
-            if (!this.formComplete) {
-                this.showErrorToast = true;
+                // 🔒 FORCE validation before allowing Generate
+                this.validateField('raceDate');
+                this.validateField('raceTime');
+                this.validateField('weeklyMileage');
 
-                // Make sure the toast disappears every time
-                setTimeout(() => {
-                    this.showErrorToast = false;
-                }, 3000);
+                if (!this.formComplete) {
+                    this.showErrorToast = true;
 
-                return;
-            } else {
+                    // Make sure the toast disappears every time
+                    setTimeout(() => {
+                        this.showErrorToast = false;
+                    }, 3000);
+
+                    return;
+                }
+
                 const numberOfWeeksUntilRace = this.selectedTimeframe.substring(0, 2).trim();
                 const weeksInt = parseInt(numberOfWeeksUntilRace, 10);
                 const allowed = (this.raceDateOptions || []).some(o => o.value === weeksInt);
@@ -861,12 +869,14 @@ function sharedState() {
                 } else if (this.errors.selectedTimeframe) {
                     this.errors.selectedTimeframe = '';
                 }
+
                 const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
                 const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
                 const trainingController = await import("./trainingPlanGenerator.js");
                 const allRuns = trainingController.createTrainingPlan(
                     startDate, mileageTarget, this.raceDate, this.selectedGoal, numberOfWeeksUntilRace
                 );
+
                 this.currentWorkouts = [];
                 let totalDistance = 0;
                 for (let i = 0; i < allRuns.length; i++) {
@@ -881,17 +891,22 @@ function sharedState() {
                         totalDistance += allRuns[i].event_distance;
                     }
                 }
+
                 // Expose the current training plan globally for the AI Coach LWC
                 window.currentTrainingPlanJson = this.currentWorkouts;
 
                 this.numOfWeeksInTraining = numberOfWeeksUntilRace;
                 this.average_mileage_weekly = Math.ceil(totalDistance / numberOfWeeksUntilRace);
                 this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
+
                 triggerPlanGeneratedCustomEvent();
 
                 // Always refresh charts after generating a plan so Overview/Analytics are in sync
                 this.destroyAnalyticsCharts();
                 this.loadAnalyticsCharts();
+            } finally {
+                // Always clear spinner even if we early-return on validation
+                this.isGenerating = false;
             }
         },
 
