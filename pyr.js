@@ -28,7 +28,8 @@ const PLAN_LENGTH_OPTIONS = [
     { label: '10 Week Training Plan', value: 10 },
     { label: '12 Week Training Plan', value: 12 },
     { label: '16 Week Training Plan', value: 16 },
-    { label: '20 Week Training Plan', value: 20 }
+    { label: '20 Week Training Plan', value: 20 },
+    { label: '24 Week Training Plan', value: 24 }
 ];
 
 const EVENT_COLOR_MAP = new Map([
@@ -539,7 +540,7 @@ function getPreviousMonday(date) {
 // **Compute week number using Monday as the start**
 function getWeekNumber(startOfWeek1, eventDate) {
     const msPerWeek = 7 * 24 * 60 * 60 * 1000;
-    return Math.min(20, Math.floor((eventDate - startOfWeek1) / msPerWeek) + 1);
+    return Math.min(24, Math.floor((eventDate - startOfWeek1) / msPerWeek) + 1);
 }
 
 // **Helper function to get month name from a date**
@@ -647,26 +648,11 @@ function sharedState() {
             } else {
                 const today = new Date();
                 const raceDay = new Date(this.raceDate);
-                const weeksUntilRace = Math.floor((raceDay - today) / (1000 * 60 * 60 * 24 * 7)); // Convert ms to weeks
+                const weeksUntilRace = Math.floor((raceDay - today) / (1000 * 60 * 60 * 24 * 7)); // ms → weeks
 
-                // New logic
-                if (weeksUntilRace < 6) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value === 4);
-                } else if (weeksUntilRace < 8) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 6);
-                } else if (weeksUntilRace < 10) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 8);
-                } else if (weeksUntilRace < 12) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 10);
-                } else if (weeksUntilRace < 14) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 12);
-                } else if (weeksUntilRace < 16) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 14);
-                } else if (weeksUntilRace <= 20) {
-                    return PLAN_LENGTH_OPTIONS.filter(option => option.value <= 16);
-                } else {
-                    return PLAN_LENGTH_OPTIONS;
-                }
+                // Show only plan lengths that fit before race day, capped at 24 weeks (6 months)
+                const cap = Math.max(4, Math.min(24, weeksUntilRace));
+                return PLAN_LENGTH_OPTIONS.filter(option => option.value <= cap);
             }
         },
 
@@ -769,7 +755,7 @@ function sharedState() {
                 minRaceDate.setDate(today.getDate() + 28); // 4 weeks
 
                 const maxRaceDate = new Date(today);
-                maxRaceDate.setDate(today.getDate() + 140); // 20 weeks
+                maxRaceDate.setDate(today.getDate() + 168); // 24 weeks
 
                 // Validate race date
                 if (isNaN(raceDate.getTime())) {
@@ -1026,8 +1012,7 @@ function sharedState() {
                 throw new Error("Invalid race date provided.");
             }
 
-            // Ensure weeks is a valid number (8, 10, 12, 14, or 16)
-            const validWeeks = ['4', '6', '8', '10', '12', '14', '16'];
+            const validWeeks = ['4', '6', '8', '10', '12', '14', '16', '20', '24'];
             if (!validWeeks.includes(weeks)) {
                 throw new Error("Invalid weeks provided. Must be one of: " + validWeeks.join(", "));
             }
