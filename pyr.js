@@ -844,8 +844,6 @@ function sharedState() {
 
                 // 🔒 FORCE validation before allowing Generate
                 this.validateField('raceDate');
-                this.validateField('raceTime');
-                this.validateField('weeklyMileage');
 
                 if (!this.formComplete) {
                     this.showErrorToast = true;
