@@ -552,8 +552,8 @@ window.addEventListener("load", function () {
     Chart.register(monthLabelPlugin);
     Chart.register(trainingPhasePlugin);
     setTimeout(function () {
-        configureSlider();
-        window.paceGoal = '9:00 min/mi';
+        // noUiSlider removed; premium goal pace slider is driven by Alpine sharedState
+        window.paceGoal = ['9:00 min/mi'];
         setupBarChart(null);
     });
 });
@@ -638,6 +638,66 @@ function preventRightClickOnPage() {
 
 function sharedState() {
     return {
+        goalPacePercent: 50,
+        goalPaceSeconds: null,
+        goalPaceLabel: '—',
+        goalPaceMinLabel: '',
+        goalPaceMaxLabel: '',
+
+        // Pace ranges used by the premium goal pace slider
+        timeLimits: {
+            '5k': { min: '5:00', max: '9:00' },
+            '10k': { min: '5:30', max: '9:30' },
+            'half-marathon': { min: '6:00', max: '10:00' },
+            'marathon': { min: '6:30', max: '11:00' }
+        },
+
+        parsePaceToSeconds(paceStr) {
+            if (!paceStr || typeof paceStr !== 'string' || !paceStr.includes(':')) return null;
+            const [m, s] = paceStr.split(':').map(v => parseInt(v, 10));
+            if (Number.isNaN(m) || Number.isNaN(s)) return null;
+            return (m * 60) + s;
+        },
+
+        secondsToPace(seconds) {
+            if (seconds == null || !Number.isFinite(seconds)) return '—';
+            const m = Math.floor(seconds / 60);
+            const s = Math.round(seconds % 60);
+            return `${m}:${String(s).padStart(2, '0')}/mi`;
+        },
+
+        secondsToMinMi(seconds) {
+            if (seconds == null || !Number.isFinite(seconds)) return '';
+            const m = Math.floor(seconds / 60);
+            const s = Math.round(seconds % 60);
+            return `${m}:${String(s).padStart(2, '0')} min/mi`;
+        },
+
+        updateGoalPaceFromPercent() {
+            const dist = this.selectedRaceDistance;
+            const limits = (dist && this.timeLimits) ? this.timeLimits[dist] : null;
+
+            const minStr = limits?.min || '6:00';
+            const maxStr = limits?.max || '10:00';
+
+            const minSec = this.parsePaceToSeconds(minStr) ?? 360;
+            const maxSec = this.parsePaceToSeconds(maxStr) ?? 600;
+
+            const lo = Math.min(minSec, maxSec);
+            const hi = Math.max(minSec, maxSec);
+
+            const p = Math.max(0, Math.min(100, Number(this.goalPacePercent) || 0));
+            const sec = lo + ((hi - lo) * (p / 100));
+
+            this.goalPaceSeconds = Math.round(sec);
+            this.goalPaceLabel = this.secondsToPace(sec);
+            this.goalPaceMinLabel = `${minStr}/mi`;
+            this.goalPaceMaxLabel = `${maxStr}/mi`;
+
+            const el = document.getElementById('goalPaceRange');
+            if (el) el.style.setProperty('--p', `${p}%`);
+        },
+
         // Constants
         daysOfWeek: DAYS_OF_WEEK,
         raceDistanceOptions: DISTANCE_OPTIONS,
@@ -721,6 +781,7 @@ function sharedState() {
 
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
+            this.updateGoalPaceFromPercent();
             // Listen for successful reviews from the LWC bridge
             window.addEventListener("trainingplanreviewed", (evt) => {
                 this.loading = false;
@@ -834,13 +895,23 @@ function sharedState() {
         async generatePlan() {
             // Show spinner immediately
             this.isGenerating = true;
+            this.showErrorToast = false;
 
             try {
-                this.selectedGoal = window.paceGoal?.[0];
-                // to-do, strange bug
-                if (this.selectedGoal === '9') {
+                // Sync goal pace from the premium slider
+                this.updateGoalPaceFromPercent();
+
+                if (this.goalPaceSeconds && Number.isFinite(this.goalPaceSeconds)) {
+                    this.selectedGoal = this.secondsToMinMi(this.goalPaceSeconds);
+                } else if (this.goalPaceLabel && this.goalPaceLabel.includes('/mi')) {
+                    // fallback to label string if seconds missing
+                    this.selectedGoal = String(this.goalPaceLabel).replace('/mi', ' min/mi');
+                } else {
                     this.selectedGoal = '9:00 min/mi';
                 }
+
+                // Keep legacy global in sync (some code still reads paceGoal?.[0])
+                window.paceGoal = [this.selectedGoal];
 
                 // 🔒 FORCE validation before allowing Generate
                 this.validateField('raceDate');
@@ -853,7 +924,7 @@ function sharedState() {
                         this.showErrorToast = false;
                     }, 3000);
 
-                    return;
+                    return false;
                 }
 
                 const numberOfWeeksUntilRace = this.selectedTimeframe.substring(0, 2).trim();
@@ -863,7 +934,7 @@ function sharedState() {
                     this.errors.selectedTimeframe = 'Selected plan length does not fit within the chosen race date.';
                     this.showErrorToast = true;
                     setTimeout(() => { this.showErrorToast = false; }, 3000);
-                    return;
+                    return false;
                 } else if (this.errors.selectedTimeframe) {
                     this.errors.selectedTimeframe = '';
                 }
@@ -902,6 +973,9 @@ function sharedState() {
                 // Always refresh charts after generating a plan so Overview/Analytics are in sync
                 this.destroyAnalyticsCharts();
                 this.loadAnalyticsCharts();
+                return true;
+            } catch (e) {
+                return false;
             } finally {
                 // Always clear spinner even if we early-return on validation
                 this.isGenerating = false;
