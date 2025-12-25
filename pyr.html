@@ -12,6 +12,10 @@
             <details class="controls-details" x-ref="controlsDetails" open>
                 <summary class="controls-summary">Training Preferences</summary>
                 <div class="w-full rounded-lg bg-gray-800 p-4 shadow-lg ring-1 ring-white/15 controls-panel">
+                    <p class="text-sm text-gray-300 mb-4">
+                        Choose your race distance, race date, training block, weekly mileage, and goal pace.
+                        Then click <span class="font-semibold text-gray-300">Generate</span> to build your plan.
+                    </p>
                     <!-- Controls (use horizontal space) -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
@@ -19,7 +23,8 @@
                         <div>
                             <label for="raceDistance" class="block text-sm font-medium text-gray-300 mb-1">Race
                                 Distance</label>
-                            <select id="raceDistance" x-model="selectedRaceDistance" @change="updateGoalPaceFromPercent()"
+                            <select id="raceDistance" x-model="selectedRaceDistance"
+                                @change="updateGoalPaceFromPercent()"
                                 class="w-full text-white bg-gray-700 p-2 rounded focus:outline-none focus:ring focus:ring-indigo-500">
                                 <option value="" disabled>Select a distance</option>
                                 <template x-for="option in raceDistanceOptions" :key="option.value">
@@ -108,7 +113,8 @@
                                         <div id="weeklyMileageSlider"></div>
                                     </div>-->
                                     <div class="py-1">
-                                        <div id="weeklyMileageSlider" class="premium-slider" x-effect="updateGoalPaceFromPercent()">
+                                        <div id="weeklyMileageSlider" class="premium-slider"
+                                            x-effect="updateGoalPaceFromPercent()">
                                             <div class="premium-slider-row">
                                                 <input id="goalPaceRange" type="range" min="0" max="100" step="1"
                                                     x-model.number="goalPacePercent"
