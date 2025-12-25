@@ -1,9 +1,29 @@
 /* Alpine.js: hide elements until Alpine has initialized */
-[x-cloak] { display: none !important; }
+[x-cloak] {
+    display: none !important;
+}
 
+/* Prevent accidental horizontal overflow on desktop */
+html,
+body {
+    overflow-x: hidden;
+}
+
+/* Make sizing predictable so columns don't push past viewport */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+/* Calendar should scroll vertically within its panel without forcing page overflow */
 .calendar-container {
-    max-height: calc(100vh - some-offset);
+    max-height: calc(100vh - 220px);
+    /* adjust if your header/tabs height differs */
     overflow-y: auto;
+    overflow-x: hidden;
+    min-width: 0;
+    /* critical when inside flex/grid */
 }
 
 .slider {
@@ -38,14 +58,10 @@
     cursor: pointer;
 }
 
-/* Change the filled part of the slider */
-/* Change the slider track color */
-#weeklyMileageSlider .noUi-base {
-    background: #ccc; /* Change this to any color you want */
-}
 
 #weeklyMileageSlider .noUi-connect {
-    background: #2e5bc4 !important; /* Green color, change as needed */
+    background: #2e5bc4 !important;
+    /* Green color, change as needed */
 }
 
 .c-1-color {
@@ -105,6 +121,11 @@
     /* Adjust the margin as needed */
 }
 
+/* Prevent background bleed/white flash within the left column */
+.left-panel {
+    background: rgba(10, 14, 22, 1);
+}
+
 .centered-title {
     text-align: center;
     margin-top: 50px;
@@ -118,7 +139,8 @@
 }
 
 .daily-workouts-container {
-    gap: 16px; /* Spacing between days */
+    gap: 16px;
+    /* Spacing between days */
     overflow-x: auto;
 }
 
@@ -139,14 +161,16 @@
     justify-content: center;
     width: 36px;
     height: 36px;
-    background-color: #2563eb; /* Tailwind's blue-600 */
+    background-color: #2563eb;
+    /* Tailwind's blue-600 */
     border-radius: 50%;
     color: white;
     transition: background-color 0.2s ease;
 }
 
 .icon-button:hover {
-    background-color: #1d4ed8; /* Tailwind's blue-700 */
+    background-color: #1d4ed8;
+    /* Tailwind's blue-700 */
 }
 
 .icon-button svg {
@@ -157,5 +181,425 @@
 .input-container {
     display: flex;
     align-items: center;
-    gap: 8px; /* Add spacing between input and button */
+    gap: 8px;
+    /* Add spacing between input and button */
+}
+
+/* Make sure the left column is a bounded scroll area on desktop */
+@media (min-width: 1024px) {
+    .left-panel {
+        max-height: calc(100vh - 120px); /* adjust for your top nav height */
+        height: calc(100vh - 120px);
+        display: flex;
+        flex-direction: column;
+    }
+
+    .left-panel-content {
+        flex: 1;
+        overflow: auto;
+        padding-bottom: 4px; /* small breathing room above the footer */
+    }
+
+    .sticky-generate {
+        position: relative;
+
+        /* more breathing room above the button */
+        margin-top: 12px;
+        padding: 22px 0 16px;
+
+        background: rgba(10, 14, 22, 0.94);
+        backdrop-filter: blur(6px);
+        z-index: 30;
+        border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .sticky-hint {
+        margin-top: 8px;
+        font-size: 12px;
+        opacity: 0.8;
+    }
+}
+
+/* --- Desktop layout: ensure right panel can shrink and never clips off-screen --- */
+@media (min-width: 1024px) {
+
+    /* If your main wrapper uses these class names, this prevents the right panel from overflowing */
+    .main-layout {
+        display: grid;
+        grid-template-columns: minmax(340px, 460px) minmax(0, 1fr);
+        gap: 18px;
+    }
+
+    /* Most common overflow culprit: flex/grid children have implicit min-width:auto */
+    .right-panel,
+    .calendar-panel,
+    .tab-panel,
+    .panel-right {
+        min-width: 0;
+    }
+
+    /* If you have a generic panel/card wrapper around the calendar */
+    .calendar-card,
+    .calendar-wrapper,
+    .calendar-panel {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* --- Accordion styles (for <details>/<summary>) --- */
+.accordion {
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    padding: 12px 14px;
+    margin-bottom: 8px;
+    color: #fff;
+}
+
+.accordion-summary {
+    cursor: pointer;
+    user-select: none;
+    font-weight: 600;
+    list-style: none;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* Chevron indicator for details/summary */
+.accordion-summary::after {
+    content: "▾";
+    opacity: 0.8;
+    font-size: 14px;
+    transform: translateY(-1px);
+}
+
+.accordion[open] .accordion-summary::after {
+    content: "▴";
+}
+
+/* Ensure accordion body inherits readable text color */
+.accordion-body {
+    margin-top: 12px;
+    color: #fff;
+}
+
+/* Optional: a subtle divider line under the summary when open */
+.accordion[open] .accordion-summary {
+    padding-bottom: 10px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.accordion[open] .accordion-body {
+    padding-top: 6px;
+}
+
+/* Tailwind col-span containers can overflow unless min-width is explicitly allowed to shrink */
+@media (min-width: 1024px) {
+    .lg\\:col-span-2 {
+        min-width: 0;
+    }
+
+    /* Make sure the calendar area never exceeds its container */
+    .calendar-container {
+        width: 100%;
+        max-width: 100%;
+    }
+}
+
+/* --- Compact top controls panel --- */
+.controls-panel {
+  --controls-font-sm: 13px;
+  --controls-font-xs: 11px;
+  --controls-height: 38px;
+}
+
+/* Tighten typography inside the controls panel */
+.controls-panel .text-sm { font-size: var(--controls-font-sm); line-height: 1.25; }
+.controls-panel .text-xs,
+.controls-panel .text-\[11px\] { font-size: var(--controls-font-xs); line-height: 1.2; }
+
+/* Make labels + helpers tighter */
+.controls-panel label { line-height: 1.2; }
+
+/* Make selects/inputs shorter */
+.controls-panel select,
+.controls-panel input[type="date"],
+.controls-panel input[type="text"],
+.controls-panel input[type="number"] {
+  height: var(--controls-height);
+  padding-top: 6px;
+  padding-bottom: 6px;
+}
+
+/* Your date wrapper has inline height: 40px; override it */
+.controls-panel .input-container {
+  height: var(--controls-height) !important;
+}
+
+/* Compact radio controls slightly */
+.controls-panel input[type="radio"] {
+  transform: scale(0.9);
+  transform-origin: left center;
+}
+
+/* Slider row feels less tall */
+
+
+/* Keep Generate button height consistent */
+.controls-panel button#generateBtn {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+/* --- Collapsible controls panel (details/summary) --- */
+.controls-details {
+  border-radius: 12px;
+}
+
+.controls-summary {
+  cursor: pointer;
+  user-select: none;
+  color: #e5e7eb;
+  font-weight: 600;
+  padding: 10px 14px;
+  margin: 0 0 8px 0;
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 12px;
+  background: rgba(17,24,39,0.7);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.controls-summary::after {
+  content: "▾";
+  opacity: 0.8;
+  font-size: 14px;
+}
+
+.controls-details[open] .controls-summary::after {
+  content: "▴";
+}
+
+.controls-details summary::-webkit-details-marker { display: none; }
+
+/* --- Info icon tooltip (for Training Block label) --- */
+.info-tooltip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.info-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.9);
+  border: 1px solid rgba(255,255,255,0.18);
+  background: rgba(55,65,81,0.7);
+}
+
+.info-bubble {
+  position: absolute;
+  left: 0;
+  top: 24px;
+  min-width: 220px;
+  max-width: 320px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(17,24,39,0.95);
+  border: 1px solid rgba(255,255,255,0.12);
+  color: #e5e7eb;
+  font-size: 12px;
+  line-height: 1.25;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.35);
+  opacity: 0;
+  transform: translateY(-4px);
+  pointer-events: none;
+  transition: opacity 120ms ease, transform 120ms ease;
+  z-index: 60;
+}
+
+.info-tooltip:hover .info-bubble,
+.info-tooltip:focus .info-bubble {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Keep tooltip readable on very narrow widths */
+@media (max-width: 640px) {
+  .info-bubble {
+    min-width: 180px;
+    max-width: 260px;
+  }
+}
+
+/* --- noUiSlider compact styling inside the controls panel --- */
+.controls-panel #weeklyMileageSlider {
+  margin-top: 2px;
+}
+
+/* Remove border/background artifacts on the actual target and draw our own track */
+.controls-panel #weeklyMileageSlider .noUi-target {
+  position: relative;
+  height: 10px;
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+/* Draw the track using a pseudo-element to avoid sub-pixel/border “strip” artifacts */
+.controls-panel #weeklyMileageSlider .noUi-target::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.10);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+/* Prevent internal layers from painting anything behind the track */
+.controls-panel #weeklyMileageSlider .noUi-connects,
+.controls-panel #weeklyMileageSlider .noUi-base,
+.controls-panel #weeklyMileageSlider .noUi-origin {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Ensure connect/fill stays aligned and rounded */
+.controls-panel #weeklyMileageSlider .noUi-base,
+.controls-panel #weeklyMileageSlider .noUi-connects {
+  height: 10px;
+}
+
+.controls-panel #weeklyMileageSlider .noUi-connect {
+  height: 10px;
+  border-radius: 8px;
+}
+
+/* Stack connect/handles above the pseudo track */
+.controls-panel #weeklyMileageSlider .noUi-connects {
+  position: relative;
+  z-index: 1;
+}
+
+.controls-panel #weeklyMileageSlider .noUi-handle {
+  width: 18px;
+  height: 18px;
+  right: -9px; /* half of width */
+  top: -5px;   /* center on 10px track */
+  border-radius: 6px;
+  z-index: 2;
+}
+
+/* If handles have pseudo elements, keep them subtle */
+.controls-panel #weeklyMileageSlider .noUi-handle:before,
+.controls-panel #weeklyMileageSlider .noUi-handle:after {
+  height: 10px;
+  top: 3px;
+}
+
+/* Tooltip from noUiSlider */
+.controls-panel #weeklyMileageSlider .noUi-tooltip {
+  font-size: 12px;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transform: translate(-50%, -6px);
+  z-index: 3;
+}
+
+/* --- Premium slider (native range) --- */
+.premium-slider { width: 100%; }
+
+.premium-slider-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 10px;
+  align-items: center;
+}
+
+.premium-pill {
+  min-width: 72px;
+  text-align: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: rgba(255,255,255,0.92);
+  border: 1px solid rgba(255,255,255,0.14);
+  background: rgba(17,24,39,0.75);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+}
+
+.premium-slider-scale {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 6px;
+  font-size: 11px;
+  color: rgba(229,231,235,0.75);
+}
+
+/* Range styling */
+.premium-range {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  outline: none;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(
+    90deg,
+    rgba(59,130,246,0.95) var(--p, 50%),
+    rgba(255,255,255,0.10) var(--p, 50%)
+  );
+}
+
+.premium-range::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.92);
+  border: 3px solid rgba(59,130,246,0.95);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+  cursor: pointer;
+}
+
+.premium-range::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.92);
+  border: 3px solid rgba(59,130,246,0.95);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.35);
+  cursor: pointer;
+}
+
+.premium-range::-moz-range-track {
+  height: 10px;
+  border-radius: 999px;
+  background: transparent;
+}
+
+/* If noUiSlider is still included, hide its visuals inside this container */
+.controls-panel #weeklyMileageSlider .noUi-target,
+.controls-panel #weeklyMileageSlider .noUi-base,
+.controls-panel #weeklyMileageSlider .noUi-connects,
+.controls-panel #weeklyMileageSlider .noUi-origin,
+.controls-panel #weeklyMileageSlider .noUi-connect,
+.controls-panel #weeklyMileageSlider .noUi-handle,
+.controls-panel #weeklyMileageSlider .noUi-tooltip {
+  display: none !important;
 }
