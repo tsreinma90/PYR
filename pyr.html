@@ -290,7 +290,7 @@
                                                     <div style="height: 80px;" class="overflow-y-auto mt-1"
                                                         x-show="workouts.length > 0">
                                                         <template
-                                                            x-for="event in workouts.filter(e => new Date(e.event_date).toDateString() ===  new Date(year, month, date).toDateString() )">
+                                                            x-for="event in workouts.filter(e => (e.event_date_key || localDateKey(e.event_date)) === localDateKeyFromDate(new Date(year, month, date, 12, 0, 0, 0)))">
                                                             <div @click="showEventModal(date, dateIndex, event.event_title)"
                                                                 class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
                                                                 :class="{

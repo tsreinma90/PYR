@@ -1,3 +1,36 @@
+// --- LOCAL DATE HELPERS ---
+function pad2(n) {
+    return String(n).padStart(2, '0');
+}
+
+// Parse a YYYY-MM-DD string as a LOCAL date at noon (DST-safe)
+function parseYmdLocalNoon(ymd) {
+    if (!ymd) return new Date(NaN);
+    if (ymd instanceof Date) {
+        return new Date(ymd.getFullYear(), ymd.getMonth(), ymd.getDate(), 12, 0, 0, 0);
+    }
+    const s = String(ymd);
+    const m = s.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (!m) {
+        // Fallback: try native parse then normalize
+        const d = new Date(s);
+        return new Date(d.getFullYear(), d.getMonth(), d.getDate(), 12, 0, 0, 0);
+    }
+    const y = Number(m[1]);
+    const mo = Number(m[2]) - 1;
+    const d = Number(m[3]);
+    return new Date(y, mo, d, 12, 0, 0, 0);
+}
+
+function localDateKeyFromDate(date) {
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+function localDateKey(ymdOrDate) {
+    const d = parseYmdLocalNoon(ymdOrDate);
+    if (isNaN(d)) return '';
+    return localDateKeyFromDate(d);
+}
 const MONTH_NAMES = [
     "January", "February", "March", "April", "May", "June",
     "July", "August", "September", "October", "November", "December"
@@ -46,11 +79,11 @@ function exportToCSV(events) {
     const grouped = {};
 
     events.forEach(event => {
-        const dateObj = new Date(event.event_date);
+        const dateObj = parseYmdLocalNoon(event.event_date);
         if (isNaN(dateObj)) return;
 
         const monday = getMonday(dateObj);
-        const weekKey = monday.toISOString().split('T')[0];
+        const weekKey = localDateKeyFromDate(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate(), 12, 0, 0, 0));
 
         if (!grouped[weekKey]) {
             grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '' }));
@@ -133,11 +166,11 @@ function exportToPDF(events) {
     const grouped = {};
 
     events.forEach(event => {
-        const dateObj = new Date(event.event_date);
+        const dateObj = parseYmdLocalNoon(event.event_date);
         if (isNaN(dateObj)) return;
 
         const monday = getMonday(dateObj);
-        const weekKey = monday.toISOString().split('T')[0];
+        const weekKey = localDateKeyFromDate(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate(), 12, 0, 0, 0));
 
         if (!grouped[weekKey]) {
             grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '' }));
@@ -212,8 +245,8 @@ function transformEvent(event) {
         "Race": "Race"
     };
 
-    // Ensure event_date is properly formatted
-    const date = new Date(event.event_date).toISOString().split("T")[0];
+    // Ensure event_date is properly formatted (LOCAL date key; avoids UTC/DST shifting)
+    const date = event.event_date_key || localDateKey(event.event_date);
 
     return {
         date: date,
@@ -1128,7 +1161,8 @@ function sharedState() {
             let startDate = new Date(raceDay);
             startDate.setDate(raceDay.getDate() - weeks * 7);
 
-            return startDate.toISOString().split('T')[0]; // Return in YYYY-MM-DD format
+            // Return in YYYY-MM-DD format using LOCAL components (avoid UTC/DST shift)
+            return localDateKeyFromDate(new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 12, 0, 0, 0));
         },
 
         calendarComponent() {
@@ -1169,10 +1203,12 @@ function sharedState() {
                                 ? workout.event_distance
                                 : workout.distance;
                         const event_type = workout.event_type || workout.event_workout || "";
+                        const event_date_key = workout.event_date_key || localDateKey(event_date);
 
                         return {
                             id: workout.id,
                             event_date,
+                            event_date_key,
                             event_title,
                             event_notes,
                             event_distance,
@@ -1182,7 +1218,7 @@ function sharedState() {
                     });
 
                     if (this.workouts.length) {
-                        const firstDate = new Date(this.workouts[0].event_date);
+                        const firstDate = parseYmdLocalNoon(this.workouts[0].event_date_key || this.workouts[0].event_date);
                         this.month = firstDate.getMonth();
                         this.year = firstDate.getFullYear();
                         this.calculateDays();
@@ -1216,7 +1252,7 @@ function sharedState() {
                 // Check if Today
                 isToday(date) {
                     const today = new Date();
-                    const currentDay = new Date(this.year, this.month, date);
+                    const currentDay = new Date(this.year, this.month, date, 12, 0, 0, 0);
                     return today.toDateString() === currentDay.toDateString();
                 },
 
@@ -1227,11 +1263,8 @@ function sharedState() {
                 },
 
                 showEventModal(date) {
-                    const existingEvent = this.workouts.find(
-                        (e) =>
-                            new Date(e.event_date).toDateString() ===
-                            new Date(this.year, this.month, date).toDateString()
-                    );
+                    const cellKey = localDateKeyFromDate(new Date(this.year, this.month, date, 12, 0, 0, 0));
+                    const existingEvent = this.workouts.find((e) => (e.event_date_key || localDateKey(e.event_date)) === cellKey);
 
                     if (existingEvent) {
                         // Edit existing event
@@ -1256,7 +1289,7 @@ function sharedState() {
 
                 saveEvent() {
                     // Create local date string (avoid UTC conversion)
-                    const eventDate = new Date(`${this.eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-CA'); // 'YYYY-MM-DD' format
+                    const eventDate = localDateKey(this.eventToEdit.event_date);
 
                     let index = -1;
 
@@ -1270,7 +1303,7 @@ function sharedState() {
                     // Fallback: match by date if id is missing
                     if (index === -1) {
                         index = (self.currentWorkouts || []).findIndex(
-                            (e) => new Date(`${e.date}T12:00:00`).toLocaleDateString('en-CA') === eventDate
+                            (e) => localDateKey(e.date) === eventDate
                         );
                     }
 
