@@ -20,10 +20,46 @@ let globalGoalPace = ""; // New global to store the goal pace
   themeMap.set("Race", "gold");
 })();
 
+
+// Helper to pad numbers to 2 digits
+function pad2(n) {
+  return String(n).padStart(2, "0");
+}
+
+// Always use a stable local date (set to noon) to avoid DST boundary issues.
+function normalizeLocalNoon(date) {
+  return new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12, 0, 0, 0);
+}
+
+// Parse inputs like "YYYY-MM-DD" as a LOCAL date (not UTC) and normalize to noon.
+function parseLocalDate(input) {
+  if (input instanceof Date) {
+    return normalizeLocalNoon(input);
+  }
+  if (typeof input === "string") {
+    // Prefer YYYY-MM-DD if present.
+    const m = input.match(/(\d{4})-(\d{2})-(\d{2})/);
+    if (m) {
+      const y = Number(m[1]);
+      const mo = Number(m[2]) - 1;
+      const d = Number(m[3]);
+      return new Date(y, mo, d, 12, 0, 0, 0);
+    }
+  }
+  // Fallback: let Date parse, then normalize.
+  return normalizeLocalNoon(new Date(input));
+}
+
+function formatLocalDateKey(date) {
+  const y = date.getFullYear();
+  const m = pad2(date.getMonth() + 1);
+  const d = pad2(date.getDate());
+  return `${y}-${m}-${d}`;
+}
+
 Date.prototype.addDays = function (days) {
-  let date = new Date(this.valueOf());
-  date.setDate(date.getDate() + days);
-  return date;
+  // Construct a new local date at noon to prevent DST from shifting the calendar day.
+  return new Date(this.getFullYear(), this.getMonth(), this.getDate() + days, 12, 0, 0, 0);
 };
 
 function convertPaceToDecimal(pace) {
@@ -79,8 +115,8 @@ function createTrainingPlan(
   goalPace,
   numWeeksUntilRace
 ) {
-  nextRun = new Date(startDay);
-  raceDate = new Date(raceDate); // Ensure raceDate is a Date object
+  nextRun = parseLocalDate(startDay);
+  raceDate = parseLocalDate(raceDate);
   globalGoalPace = goalPace; // Save the goal pace globally
 
   const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal);
@@ -252,12 +288,21 @@ function generateRuns(
     for (let x = 0; x < 7; x++) {
       // When we reach race day, schedule a dedicated race event and stop further run generation.
       if (nextRun.getTime() === raceDate.getTime()) {
-        let raceEvent = createWorkout(nextRun, 3, "Race", "Race Day!", "", trainingPhase);
+        const meta = {
+          week_index: week,
+          day_index: nextRun.getDay(),
+          day_name: weekdayMap.get(nextRun.getDay()),
+          order_in_day: 1,
+          date_key: formatLocalDateKey(nextRun)
+        };
+        let raceEvent = createWorkout(nextRun, 3, "Race", "Race Day!", "", trainingPhase, meta);
         allRuns.push(raceEvent);
         return allRuns;
       }
 
       let dayOfWeek = weekdayMap.get(nextRun.getDay());
+      const dayIndex = nextRun.getDay();
+      const dateKey = formatLocalDateKey(nextRun);
       // In final week, only schedule runs on Tuesday and Thursday.
       if (week === milesPerWeek.length - 1) {
         const allowedDays = ["Tuesday", "Thursday"];
@@ -285,7 +330,14 @@ function generateRuns(
               workoutType,
               `Morning ${workoutType} - ${result[0]} miles`,
               note,
-              trainingPhase
+              trainingPhase,
+              {
+                week_index: week,
+                day_index: dayIndex,
+                day_name: dayOfWeek,
+                order_in_day: 1,
+                date_key: dateKey
+              }
             );
             let eveningRun = createWorkout(
               nextRun,
@@ -293,16 +345,35 @@ function generateRuns(
               workoutType,
               `Evening ${workoutType} - ${result[1]} miles`,
               note,
-              trainingPhase
+              trainingPhase,
+              {
+                week_index: week,
+                day_index: dayIndex,
+                day_name: dayOfWeek,
+                order_in_day: 2,
+                date_key: dateKey
+              }
             );
             allRuns.push(morningRun);
             allRuns.push(eveningRun);
           } else {
-            let workout = createWorkout(nextRun, numMiles, workoutType, null, note, trainingPhase);
+            let workout = createWorkout(nextRun, numMiles, workoutType, null, note, trainingPhase, {
+              week_index: week,
+              day_index: dayIndex,
+              day_name: dayOfWeek,
+              order_in_day: 1,
+              date_key: dateKey
+            });
             allRuns.push(workout);
           }
         } else {
-          let workout = createWorkout(nextRun, numMiles, workoutType, null, note, trainingPhase);
+          let workout = createWorkout(nextRun, numMiles, workoutType, null, note, trainingPhase, {
+            week_index: week,
+            day_index: dayIndex,
+            day_name: dayOfWeek,
+            order_in_day: 1,
+            date_key: dateKey
+          });
           allRuns.push(workout);
         }
       }
@@ -387,7 +458,15 @@ function splitRun(numMiles) {
 
 // Modified createWorkout now adds recommended pace info based on globalGoalPace.
 // For non-Rest and non-Race workouts, it appends "Recommended pace: X per mile" to the event notes.
-function createWorkout(dateOfWorkout, numberOfMiles, workoutType, eventTitle, eventNote = "", trainingPhase = "") {
+function createWorkout(
+  dateOfWorkout,
+  numberOfMiles,
+  workoutType,
+  eventTitle,
+  eventNote = "",
+  trainingPhase = "",
+  meta = {}
+) {
   let pace = null;
   let pace_decimal = null;
   // For applicable workouts, append recommended pace information.
@@ -400,8 +479,20 @@ function createWorkout(dateOfWorkout, numberOfMiles, workoutType, eventTitle, ev
     }
     eventNote += `Recommended pace: ${pace} per mile`;
   }
+  // Attach stable placement metadata so the UI can render multiple runs on the same day
+  // without shifting subsequent workouts by array index.
+  const dayIndex = meta.day_index != null ? meta.day_index : dateOfWorkout.getDay();
+  const dayName = meta.day_name != null ? meta.day_name : weekdayMap.get(dayIndex);
+  const dateKey = meta.date_key != null ? meta.date_key : formatLocalDateKey(dateOfWorkout);
+  const orderInDay = meta.order_in_day != null ? meta.order_in_day : 1;
+  const weekIndex = meta.week_index != null ? meta.week_index : null;
   return {
     event_date: dateOfWorkout,
+    event_date_key: dateKey,
+    event_day_index: dayIndex,
+    event_day_name: dayName,
+    event_order_in_day: orderInDay,
+    event_week_index: weekIndex,
     event_title: eventTitle != null ? eventTitle : `${workoutType} - ${numberOfMiles} miles`,
     event_workout: workoutType,
     event_distance: numberOfMiles,
