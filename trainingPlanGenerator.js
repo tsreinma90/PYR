@@ -1,3 +1,11 @@
+import {
+  WORKOUT_CATALOG,
+  getWorkoutTypeById,
+  getQualityDays,
+  isBackToBackHardDays,
+  createWorkoutInstance
+} from "./workoutsCatalog.js";
+
 const weekdayMap = new Map();
 const themeMap = new Map();
 
@@ -202,7 +210,7 @@ function calculateWorkoutPercentiles(workoutMap) {
   createWeeklyWorkoutMap now:
   - In non-final weeks, assigns workouts with variation.
   - In the final week, only light, easy runs (max 10 miles overall) are scheduled.
-  - Alternates quality days week over week to avoid back-to-back similar workouts.
+  - Schedules quality days on Tuesday + Thursday (spreads intensity; avoids Tue/Wed back-to-back quality).
 */
 function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks) {
   let map = new Map();
@@ -218,14 +226,10 @@ function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks) {
   const restDayOptions = ["Friday", "Wednesday", "Monday"];
   const restDay = restDayOptions[weekNumber % restDayOptions.length];
   const longRunDay = "Saturday";
-  const easyDays = ["Monday", "Thursday", "Sunday"];
-  // Vary quality days: even weeks get Tuesday & Wednesday; odd weeks get Tuesday & Thursday.
-  let qualityDays;
-  if (weekNumber % 2 === 0) {
-    qualityDays = ["Tuesday", "Wednesday"];
-  } else {
-    qualityDays = ["Tuesday", "Thursday"];
-  }
+
+  // Step 1 fix: always spread quality workouts across Tuesday + Thursday.
+  // This prevents back-to-back quality sessions on Tue/Wed.
+  const qualityDays = ["Tuesday", "Thursday"];
 
   let qualityTypes;
   if (experienceLevel === "beginner") {
@@ -236,7 +240,7 @@ function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks) {
   const tempoVariations = ["Steady state", "Progression", "Cruise intervals"];
   const speedVariations = ["400m repeats", "800m intervals", "Fartlek", "Hill repeats"];
 
-  // Helper: weighted selection favoring Tempo (75% Tempo, 25% Speed)
+  // Helper: weighted selection favoring Tempo (75% Tempo, 25% Speed) on quality days (Tue/Thu).
   function chooseQualityWorkout() {
     if (qualityTypes.length === 1) return qualityTypes[0];
     return Math.random() < 0.75 ? "Tempo" : "Speed";
@@ -246,22 +250,29 @@ function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks) {
     const dayName = weekdayMap.get(i);
     if (dayName === restDay) {
       map.set(dayName, { type: "Rest", note: "" });
-    } else if (dayName === longRunDay) {
+      continue;
+    }
+
+    if (dayName === longRunDay) {
       map.set(dayName, { type: "Long", note: "" });
-    } else if (easyDays.includes(dayName)) {
-      map.set(dayName, { type: "Easy", note: "" });
-    } else if (qualityDays.includes(dayName)) {
+      continue;
+    }
+
+    // Quality days (Tue/Thu). In taper weeks, keep these easy.
+    if (qualityDays.includes(dayName)) {
       if (isTaper) {
         map.set(dayName, { type: "Easy", note: "Taper: Recovery run" });
       } else {
-        let chosenType = chooseQualityWorkout();
+        const chosenType = chooseQualityWorkout();
         const notePool = chosenType === "Tempo" ? tempoVariations : speedVariations;
-        let note = notePool[Math.floor(Math.random() * notePool.length)];
-        map.set(dayName, { type: chosenType, note: note });
+        const note = notePool[Math.floor(Math.random() * notePool.length)];
+        map.set(dayName, { type: chosenType, note });
       }
-    } else {
-      map.set(dayName, { type: "Easy", note: "" });
+      continue;
     }
+
+    // Default: easy day
+    map.set(dayName, { type: "Easy", note: "" });
   }
   return map;
 }

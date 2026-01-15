@@ -975,8 +975,17 @@ function sharedState() {
                 const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
                 const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
                 const trainingController = await import("./trainingPlanGenerator.js");
+                // Hard-coded workout library selection for now; will be replaced by Advanced Configuration modal
+                const selectedWorkoutTypeIds = ["tempo", "intervals", "progression", "long_run"];
                 const allRuns = trainingController.createTrainingPlan(
-                    startDate, mileageTarget, this.raceDate, this.selectedGoal, numberOfWeeksUntilRace
+                    startDate,
+                    mileageTarget,
+                    this.raceDate,
+                    this.selectedGoal,
+                    numberOfWeeksUntilRace,
+                    {
+                        selectedWorkoutTypeIds
+                    }
                 );
 
                 this.currentWorkouts = [];
