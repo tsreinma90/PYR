@@ -138,15 +138,160 @@
 
                     <!-- Generate button row -->
                     <div class="mt-3 flex flex-col items-center gap-2">
-                        <button id="generateBtn"
-                            class="w-full sm:w-auto rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
-                            @click="updateGoalPaceFromPercent(); window.paceGoal = [String(goalPaceLabel || '').replace('/mi',' min/mi')]; generatePlan(); setTimeout(() => { 
-                                if ($refs.controlsDetails && !showErrorToast) { 
-                                    $refs.controlsDetails.open = false; 
-                                } 
-                                }, 50)">
-                            Generate
-                        </button>
+                        <div class="flex flex-col sm:flex-row items-center gap-2 w-full sm:w-auto">
+                            <button id="generateBtn"
+                                class="w-full sm:w-auto rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
+                                @click="updateGoalPaceFromPercent(); window.paceGoal = [String(goalPaceLabel || '').replace('/mi',' min/mi')]; generatePlan(); setTimeout(() => { 
+                                    if ($refs.controlsDetails && !showErrorToast) { 
+                                        $refs.controlsDetails.open = false; 
+                                    } 
+                                    }, 50)">
+                                Generate
+                            </button>
+
+                            <button type="button"
+                                class="w-full sm:w-auto rounded-md bg-gray-700 px-6 py-2 text-white hover:bg-gray-600"
+                                @click="openAdvancedConfig()">
+                                Advanced Configuration
+                            </button>
+                        </div>
+
+                        <!-- Quick summary of selected workouts -->
+                        <div class="text-xs text-gray-300" x-show="selectedWorkoutTypeIds && selectedWorkoutTypeIds.length">
+                            <span class="text-gray-400">Selected workouts:</span>
+                            <span x-text="(selectedWorkoutTypeIds || []).join(', ')"></span>
+                        </div>
+                    </div>
+
+                    <!-- Advanced Configuration Modal -->
+                    <div
+                        x-show="advancedConfigOpen"
+                        x-transition.opacity
+                        x-cloak
+                        class="fixed inset-0 z-50 flex items-center justify-center"
+                        @keydown.escape.window="closeAdvancedConfig()"
+                        style="display:none;">
+
+                        <!-- Backdrop -->
+                        <div class="absolute inset-0 bg-black/70" @click="closeAdvancedConfig()"></div>
+
+                        <!-- Modal Panel -->
+                        <div class="relative w-full max-w-3xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700">
+                            <div class="flex items-start justify-between px-5 py-4 border-b border-gray-700">
+                                <div>
+                                    <div class="text-lg font-semibold">Advanced Configuration</div>
+                                    <div class="text-sm text-gray-400">
+                                        Choose which workout types can appear in your plan. (Quality workouts are scheduled on Tue/Thu.)
+                                    </div>
+                                </div>
+                                <button class="text-gray-400 hover:text-gray-200" @click="closeAdvancedConfig()">✕</button>
+                            </div>
+
+                            <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Library -->
+                                <div class="bg-gray-950/40 rounded-lg border border-gray-800 p-4">
+                                    <div class="font-semibold mb-2">Workout Library</div>
+
+                                    <template x-if="!workoutCatalog || workoutCatalog.length === 0">
+                                        <div class="text-sm text-gray-400">Loading workout catalog…</div>
+                                    </template>
+
+                                    <!-- Quality -->
+                                    <div class="mt-3" x-show="workoutLibraryGroups && workoutLibraryGroups.quality">
+                                        <div class="text-xs uppercase tracking-wide text-gray-400 mb-2">Quality</div>
+                                        <template x-for="w in (workoutLibraryGroups.quality || [])" :key="w.id">
+                                            <label class="flex items-start gap-3 py-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    class="mt-1"
+                                                    :checked="isWorkoutSelected(w.id)"
+                                                    @change="toggleWorkoutType(w.id)"
+                                                />
+                                                <div>
+                                                    <div class="font-medium" x-text="w.name"></div>
+                                                    <div class="text-xs text-gray-400">
+                                                        Intensity <span x-text="w.intensity"></span>
+                                                        <span class="mx-1">•</span>
+                                                        Prefers <span x-text="(w.placement && w.placement.dayPreference) ? w.placement.dayPreference.join(', ') : 'Any day'"></span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </template>
+                                    </div>
+
+                                    <!-- Long -->
+                                    <div class="mt-4" x-show="workoutLibraryGroups && workoutLibraryGroups.long">
+                                        <div class="text-xs uppercase tracking-wide text-gray-400 mb-2">Long</div>
+                                        <template x-for="w in (workoutLibraryGroups.long || [])" :key="w.id">
+                                            <label class="flex items-start gap-3 py-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    class="mt-1"
+                                                    :checked="isWorkoutSelected(w.id)"
+                                                    @change="toggleWorkoutType(w.id)"
+                                                />
+                                                <div>
+                                                    <div class="font-medium" x-text="w.name"></div>
+                                                    <div class="text-xs text-gray-400">Usually scheduled on weekends</div>
+                                                </div>
+                                            </label>
+                                        </template>
+                                    </div>
+
+                                    <!-- Easy -->
+                                    <div class="mt-4" x-show="workoutLibraryGroups && workoutLibraryGroups.easy">
+                                        <div class="text-xs uppercase tracking-wide text-gray-400 mb-2">Easy</div>
+                                        <template x-for="w in (workoutLibraryGroups.easy || [])" :key="w.id">
+                                            <label class="flex items-start gap-3 py-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    class="mt-1"
+                                                    :checked="isWorkoutSelected(w.id)"
+                                                    @change="toggleWorkoutType(w.id)"
+                                                />
+                                                <div>
+                                                    <div class="font-medium" x-text="w.name"></div>
+                                                    <div class="text-xs text-gray-400">Fills remaining days</div>
+                                                </div>
+                                            </label>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Selected -->
+                                <div class="bg-gray-950/40 rounded-lg border border-gray-800 p-4">
+                                    <div class="font-semibold mb-2">Selected</div>
+                                    <div class="text-sm text-gray-400 mb-3">
+                                        These workout types are allowed to appear in your generated plan.
+                                    </div>
+
+                                    <template x-if="!selectedWorkoutTypeIds || selectedWorkoutTypeIds.length === 0">
+                                        <div class="text-sm text-red-300">Select at least one workout type.</div>
+                                    </template>
+
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="id in (selectedWorkoutTypeIds || [])" :key="id">
+                                            <span class="px-2 py-1 rounded bg-gray-800 text-xs border border-gray-700">
+                                                <span x-text="(workoutCatalog.find(w => w.id === id) || {name:id}).name"></span>
+                                            </span>
+                                        </template>
+                                    </div>
+
+                                    <div class="mt-4 text-xs text-gray-400">
+                                        Tip: Click <span class="text-gray-200 font-semibold">Generate</span> to rebuild your plan using this selection.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-700">
+                                <button
+                                    type="button"
+                                    class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
+                                    @click="closeAdvancedConfig()">
+                                    Done
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </details>

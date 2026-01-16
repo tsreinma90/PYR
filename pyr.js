@@ -250,7 +250,38 @@ function transformEvent(event) {
 
     return {
         date: date,
-        title: `${event.event_distance} miles ${event.event_workout.toLowerCase()} run`,
+        // Build a richer title that surfaces the specific session (400s, hills, cruise intervals, etc.)
+        // without forcing the user to open the details modal.
+        title: (() => {
+            const base = `${event.event_distance} miles ${String(event.event_workout || '').toLowerCase()} run`;
+
+            // Only append session detail for quality workouts (Tempo/Speed). Easy/Long/Race stays clean.
+            const isQuality = event.event_workout === "Tempo" || event.event_workout === "Speed";
+            const rawNotes = (event.event_notes || '').trim();
+            if (!isQuality || !rawNotes) return base;
+
+            // Prefer the first clause, and keep it short.
+            // Also strip common boilerplate like WU/CD.
+            let detail = rawNotes
+                .split('|')[0]
+                .split('. ')[0]
+                .replace(/\(WU\/CD\)/gi, '')
+                .replace(/WU\s*\d+[^)]*\/?\s*CD\s*\d+[^)]*/gi, '')
+                .trim();
+
+            // Guard: if stripping made it empty, fall back to the raw first clause
+            if (!detail) {
+                detail = rawNotes.split('|')[0].trim();
+            }
+
+            // Truncate to avoid ugly wrapping in the calendar grid
+            const maxLen = 70;
+            if (detail.length > maxLen) {
+                detail = detail.slice(0, maxLen - 1).trimEnd() + '…';
+            }
+
+            return `${base} — ${detail}`;
+        })(),
         event_distance: event.event_distance,
 
         // 🔥 preserve subtype + pace for analytics
@@ -258,7 +289,26 @@ function transformEvent(event) {
         event_pace: event.event_pace,
         event_pace_decimal: event.event_pace_decimal,
 
-        notes: event.event_notes,
+        // Surface full structured workout description in the UI
+        notes: (() => {
+            const raw = (event.event_notes || '').trim();
+
+            // If notes already contain WU/CD or recovery detail, keep as-is
+            if (/warm[- ]?up|cool[- ]?down|WU|CD|recovery|rest/i.test(raw)) {
+                return raw;
+            }
+
+            // Otherwise append standard guidance for quality workouts
+            if (event.event_workout === 'Tempo' || event.event_workout === 'Speed') {
+                return [
+                    raw,
+                    'Warm-up 10–15 min easy + drills/strides.',
+                    'Cool-down 10 min easy jog.'
+                ].filter(Boolean).join(' ');
+            }
+
+            return raw;
+        })(),
         theme: "",
         event_type: workoutTypeMap[event.event_workout],
     };
@@ -807,6 +857,123 @@ function sharedState() {
         // master-list of all workouts
         currentWorkouts: [],
 
+        // -----------------------------------------------------------------
+        // Advanced Configuration (Workout Library Selection)
+        // -----------------------------------------------------------------
+
+        // Controls whether the advanced config modal is open
+        advancedConfigOpen: false,
+
+        // Catalog loaded from workoutsCatalog.js (array of workout types)
+        workoutCatalog: [],
+
+        // User-selected workout type ids (this will be edited by the modal)
+        // Defaults match our generator defaults, but now live in UI state.
+        selectedWorkoutTypeIds: ["tempo", "intervals", "progression", "long_run"],
+
+        // Tracks whether the user has manually changed the selection.
+        // If false, we can safely apply smarter defaults based on experience level.
+        hasCustomizedWorkoutSelection: false,
+
+        // Loaded from workoutsCatalog.js (DEFAULT_WORKOUT_SELECTION_BY_LEVEL)
+        defaultWorkoutSelectionByLevel: {},
+
+        // Load catalog once so the modal can render a library
+        async loadWorkoutCatalog() {
+            try {
+                const mod = await import("./workoutsCatalog.js");
+                this.workoutCatalog = Array.isArray(mod.WORKOUT_CATALOG) ? mod.WORKOUT_CATALOG : [];
+                this.defaultWorkoutSelectionByLevel = (mod.DEFAULT_WORKOUT_SELECTION_BY_LEVEL && typeof mod.DEFAULT_WORKOUT_SELECTION_BY_LEVEL === 'object')
+                    ? mod.DEFAULT_WORKOUT_SELECTION_BY_LEVEL
+                    : {};
+            } catch (e) {
+                console.error("Failed to load workoutsCatalog.js", e);
+                this.workoutCatalog = [];
+                this.defaultWorkoutSelectionByLevel = {};
+            }
+        },
+        // Infer experience level using mileage target (simple heuristic).
+        // Keeps UI defaults in sync with generator behavior without importing generator internals.
+        inferExperienceLevelFromMileageTarget(mileageTarget) {
+            const m = parseInt(mileageTarget, 10);
+            if (!Number.isFinite(m) || m <= 0) return 'beginner';
+            if (m <= 35) return 'beginner';
+            if (m <= 60) return 'intermediate';
+            return 'advanced';
+        },
+
+        // Apply default selection by level IF the user has not customized.
+        applyDefaultWorkoutSelection() {
+            if (this.hasCustomizedWorkoutSelection) return;
+
+            // Only apply if we have enough inputs to infer a reasonable level
+            if (!this.selectedRaceDistance || !this.selectedWeeklyMileage) return;
+
+            // Ensure selectedGoal is populated so mileage target is consistent
+            if (!this.selectedGoal) {
+                if (this.goalPaceSeconds && Number.isFinite(this.goalPaceSeconds)) {
+                    this.selectedGoal = this.secondsToMinMi(this.goalPaceSeconds);
+                } else if (this.goalPaceLabel && this.goalPaceLabel.includes('/mi')) {
+                    this.selectedGoal = String(this.goalPaceLabel).replace('/mi', ' min/mi');
+                }
+            }
+
+            const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
+            const level = this.inferExperienceLevelFromMileageTarget(mileageTarget);
+            const defaults = this.defaultWorkoutSelectionByLevel && this.defaultWorkoutSelectionByLevel[level];
+
+            if (Array.isArray(defaults) && defaults.length) {
+                this.selectedWorkoutTypeIds = [...defaults];
+            }
+        },
+
+        // Open/close modal helpers
+        openAdvancedConfig() {
+            // If the user hasn't customized yet, apply defaults before showing the modal
+            this.applyDefaultWorkoutSelection();
+            this.advancedConfigOpen = true;
+        },
+        closeAdvancedConfig() {
+            this.advancedConfigOpen = false;
+        },
+
+        // Toggle selection from the modal UI
+        toggleWorkoutType(workoutId) {
+            if (!workoutId) return;
+
+            // Easy runs are foundational and always included (not configurable)
+            if (workoutId === "easy") return;
+
+            this.hasCustomizedWorkoutSelection = true;
+            const current = Array.isArray(this.selectedWorkoutTypeIds) ? this.selectedWorkoutTypeIds : [];
+            const idx = current.indexOf(workoutId);
+            if (idx >= 0) {
+                current.splice(idx, 1);
+            } else {
+                current.push(workoutId);
+            }
+            // Keep it stable (no duplicates)
+            this.selectedWorkoutTypeIds = Array.from(new Set(current));
+        },
+
+        // Helper for checkbox binding in Alpine
+        isWorkoutSelected(workoutId) {
+            // Easy runs are always included
+            if (workoutId === "easy") return true;
+            return Array.isArray(this.selectedWorkoutTypeIds) && this.selectedWorkoutTypeIds.includes(workoutId);
+        },
+
+        // Computed: catalog entries grouped for display
+        get workoutLibraryGroups() {
+            const groups = { quality: [], long: [], easy: [], strength: [], mobility: [] };
+            (this.workoutCatalog || []).forEach((w) => {
+                if (!w || !w.category) return;
+                if (!groups[w.category]) groups[w.category] = [];
+                groups[w.category].push(w);
+            });
+            return groups;
+        },
+
         // --- AI Coach shared state ---
         userInput: "",
         enhancedOutput: "",
@@ -815,6 +982,8 @@ function sharedState() {
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
             this.updateGoalPaceFromPercent();
+            // Load workout catalog for the Advanced Configuration modal
+            this.loadWorkoutCatalog();
             // Listen for successful reviews from the LWC bridge
             window.addEventListener("trainingplanreviewed", (evt) => {
                 this.loading = false;
@@ -974,9 +1143,17 @@ function sharedState() {
 
                 const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
                 const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
+                // Apply smart defaults (e.g., include hills for intermediate/advanced) unless the user has customized
+                this.applyDefaultWorkoutSelection();
                 const trainingController = await import("./trainingPlanGenerator.js");
-                // Hard-coded workout library selection for now; will be replaced by Advanced Configuration modal
-                const selectedWorkoutTypeIds = ["tempo", "intervals", "progression", "long_run"];
+                // Workout library selection (controlled by Advanced Configuration modal)
+                const fallbackDefaults = (this.defaultWorkoutSelectionByLevel && this.defaultWorkoutSelectionByLevel.beginner)
+                    ? this.defaultWorkoutSelectionByLevel.beginner
+                    : ["tempo", "long_run"];
+
+                const selectedWorkoutTypeIds = Array.isArray(this.selectedWorkoutTypeIds)
+                    ? this.selectedWorkoutTypeIds
+                    : fallbackDefaults;
                 const allRuns = trainingController.createTrainingPlan(
                     startDate,
                     mileageTarget,
