@@ -118,6 +118,22 @@ export function createWorkoutInstance(workoutType, ctx) {
         ? "Warm-up 10–15 min easy + drills/strides; Cool-down 10 min easy"
         : "";
 
+    // Create a short title detail for calendar tiles (keeps the name clean but adds the workout prescription)
+    function toTitleDetail(s) {
+        if (!s) return "";
+        return String(s)
+            .replace(/\(WU\s*[^)]*\)/gi, "")
+            .replace(/\(WU\/CD\)/gi, "")
+            .replace(/WU\s*\d+[^)]*\/?\s*CD\s*\d+[^)]*/gi, "")
+            .trim();
+    }
+
+    // If a session string includes recoveries/rest, keep it; otherwise we’ll add generic recovery guidance in notes.
+    function sessionHasRecovery(s) {
+        if (!s) return false;
+        return /(w\/|recovery|recoveries|rest|jog|walk down)/i.test(String(s));
+    }
+
     switch (workoutType.id) {
         case "tempo":
             description = session
@@ -132,7 +148,9 @@ export function createWorkoutInstance(workoutType, ctx) {
                     : "Intervals: hard reps w/ jog recoveries");
             break;
         case "progression":
-            description = minutes ? `Progression ${minutes} min (finish fast)` : "Progression run";
+            description = session
+                ? session
+                : (minutes ? `Progression ${minutes} min (finish steady)` : "Progression run");
             break;
         case "hills":
             description = session
@@ -140,7 +158,9 @@ export function createWorkoutInstance(workoutType, ctx) {
                 : (reps ? `${reps} x short hill reps` : "Hill repeats");
             break;
         case "long_run":
-            description = "Long run (easy to steady)";
+            description = session
+                ? session
+                : "Long run (easy to steady)";
             break;
         case "easy":
             description = "Easy run";
@@ -150,12 +170,22 @@ export function createWorkoutInstance(workoutType, ctx) {
             break;
     }
 
-    const notes = [wuCdText, note]
+    const recoveryGuidance = (workoutType.category === "quality" && !sessionHasRecovery(description))
+        ? "Recovery: jog easy between reps; keep recoveries truly easy"
+        : "";
+
+    const fuelingGuidance = (workoutType.id === "long_run")
+        ? "Fueling: bring water; consider carbs every 30–40 min on longer runs"
+        : "";
+
+    const notes = [wuCdText, recoveryGuidance, fuelingGuidance, note]
         .filter(Boolean)
         .join(". ");
 
     return {
         title: workoutType.name,
+        // UI can show: `${title} — ${titleDetail}`
+        titleDetail: toTitleDetail(description),
         category: workoutType.category,
         intensity: recipe.intensity ?? workoutType.intensity,
         description,
@@ -341,9 +371,36 @@ export const WORKOUT_CATALOG = [
         orderWeight: 55,
         placement: { dayPreference: ["Thu", "Sat"] },
         variantsByLevel: {
-            beginner: { label: "Progression", minutes: [20, 25, 30] },
-            intermediate: { label: "Progression", minutes: [30, 40, 45] },
-            advanced: { label: "Progression", minutes: [40, 50, 60] }
+            beginner: {
+                label: "Progression",
+                sessions: [
+                    "Progression: 20 min easy → last 5 min steady",
+                    "Progression: 25 min easy → last 8 min steady",
+                    "Progression: 30 min easy → last 10 min steady"
+                ],
+                notes: ["Start relaxed; finish controlled (no sprinting)."],
+                includeWarmupCooldown: false
+            },
+            intermediate: {
+                label: "Progression",
+                sessions: [
+                    "Progression: 35 min easy → last 10 min steady",
+                    "Progression: 40 min easy → last 12 min steady",
+                    "Progression: 45 min easy → last 15 min steady (near tempo)"
+                ],
+                notes: ["Smooth build—aim for a strong, aerobic finish."],
+                includeWarmupCooldown: false
+            },
+            advanced: {
+                label: "Progression",
+                sessions: [
+                    "Progression: 45 min easy → last 15 min steady",
+                    "Progression: 50 min easy → last 15 min steady (near tempo)",
+                    "Progression: 60 min easy → last 20 min steady"
+                ],
+                notes: ["Finish strong but controlled; keep form tall."],
+                includeWarmupCooldown: false
+            }
         }
     },
     {
@@ -354,9 +411,36 @@ export const WORKOUT_CATALOG = [
         orderWeight: 70,
         placement: { dayPreference: ["Sun"] },
         variantsByLevel: {
-            beginner: { label: "Long", notes: ["Easy effort"] },
-            intermediate: { label: "Long", notes: ["Fuel & hydrate"] },
-            advanced: { label: "Long", notes: ["Mostly easy"] }
+            beginner: {
+                label: "Long",
+                sessions: [
+                    "Long run: easy effort (conversational)",
+                    "Long run: easy effort + 5 min steady finish",
+                    "Long run: easy effort (stay relaxed)"
+                ],
+                notes: ["Keep it easy; walk breaks are fine."],
+                includeWarmupCooldown: false
+            },
+            intermediate: {
+                label: "Long",
+                sessions: [
+                    "Long run: easy effort (conversational)",
+                    "Long run: easy → last 10–15 min steady",
+                    "Long run: easy effort (practice fueling)"
+                ],
+                notes: ["Fuel & hydrate; keep most of it easy."],
+                includeWarmupCooldown: false
+            },
+            advanced: {
+                label: "Long",
+                sessions: [
+                    "Long run: easy effort (conversational)",
+                    "Long run: easy → last 20 min steady",
+                    "Long run: easy effort w/ steady finish (practice fueling)"
+                ],
+                notes: ["Mostly easy; steady finish occasionally."],
+                includeWarmupCooldown: false
+            }
         }
     }
 ];
