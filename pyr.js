@@ -1361,6 +1361,112 @@ function sharedState() {
                 no_of_days: [],
                 isModalOpen: false,
                 eventToEdit: null,
+                // -----------------------------
+                // Mobile Mode (safe, grid-preserving)
+                // -----------------------------
+                selectedDayKey: '',
+
+                // Build YYYY-MM-DD key for a date number in the current month
+                dayKey(date) {
+                    return localDateKeyFromDate(new Date(this.year, this.month, date, 12, 0, 0, 0));
+                },
+
+                // Called when a day cell is tapped (mobile)
+                setSelectedDay(date) {
+                    this.selectedDayKey = this.dayKey(date);
+                },
+
+                // All events for a given day number
+                dayEvents(date) {
+                    const key = this.dayKey(date);
+                    const list = Array.isArray(this.workouts) ? this.workouts : [];
+                    return list.filter(e => (e.event_date_key || localDateKey(e.event_date)) === key);
+                },
+
+                // Compact count used in the grid on mobile
+                dayEventCount(date) {
+                    return this.dayEvents(date).length;
+                },
+
+                isMobile: window.innerWidth < 768,
+
+                updateIsMobile() {
+                    this.isMobile = window.innerWidth < 768;
+                },
+
+                // Label shown above the mobile agenda panel
+                get selectedDayLabel() {
+                    if (!this.selectedDayKey) return '';
+                    const d = new Date(`${this.selectedDayKey}T12:00:00`);
+                    if (isNaN(d.getTime())) return '';
+                    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                },
+
+                // Date number (1–31) used when opening the modal from agenda panel
+                get selectedDayDateNumber() {
+                    if (!this.selectedDayKey) return null;
+                    const d = new Date(`${this.selectedDayKey}T12:00:00`);
+                    if (isNaN(d.getTime())) return null;
+                    return d.getDate();
+                },
+
+                // Events rendered in the mobile agenda panel
+                get selectedDayEvents() {
+                    if (!this.selectedDayKey) return [];
+                    const list = Array.isArray(this.workouts) ? this.workouts : [];
+                    return list.filter(e => (e.event_date_key || localDateKey(e.event_date)) === this.selectedDayKey);
+                },
+
+                // Mobile Agenda/List view: group workouts by date for the currently viewed month
+                // Must never throw (Alpine will stop rendering if this errors).
+                get mobileAgendaGroups() {
+                    try {
+                        const list = Array.isArray(this.workouts)
+                            ? this.workouts
+                            : (Array.isArray(window.workouts) ? window.workouts : []);
+
+                        const byKey = {};
+
+                        for (const e of list) {
+                            if (!e || !e.event_date) continue;
+
+                            const key = e.event_date_key
+                                ? String(e.event_date_key)
+                                : String(e.event_date).slice(0, 10);
+
+                            if (!key || key.length < 10) continue;
+
+                            // Local noon avoids timezone shifting
+                            const d = new Date(`${key}T12:00:00`);
+                            if (isNaN(d.getTime())) continue;
+
+                            // Only include workouts in the currently viewed month/year
+                            if (d.getFullYear() !== this.year || d.getMonth() !== this.month) continue;
+
+                            if (!byKey[key]) {
+                                byKey[key] = {
+                                    dateKey: key,
+                                    day: d.getDate(),
+                                    label: d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }),
+                                    events: []
+                                };
+                            }
+                            byKey[key].events.push(e);
+                        }
+
+                        return Object.values(byKey)
+                            .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
+                            .map(g => {
+                                g.events = g.events
+                                    .slice()
+                                    .sort((x, y) => String(x.event_title || "").localeCompare(String(y.event_title || "")));
+                                return g;
+                            });
+                    } catch (err) {
+                        console.warn("[PYR] mobileAgendaGroups failed (non-blocking):", err);
+                        return [];
+                    }
+                },
 
                 MONTH_NAMES,
                 DAYS,
@@ -1369,6 +1475,9 @@ function sharedState() {
                 init() {
                     this.loadWorkouts();
                     this.calculateDays();
+
+                    this.updateIsMobile();
+                    window.addEventListener('resize', () => this.updateIsMobile());
 
                     document.addEventListener("trainingplangenerated", (event) => {
                         this.loadWorkouts();
@@ -1402,6 +1511,20 @@ function sharedState() {
                             event_type
                         };
                     });
+
+                    // Default selected day for mobile: today if visible, else first of month
+                    if (!this.selectedDayKey) {
+                        const today = new Date();
+                        if (today.getFullYear() === this.year && today.getMonth() === this.month) {
+                            this.selectedDayKey = localDateKeyFromDate(
+                                new Date(this.year, this.month, today.getDate(), 12, 0, 0, 0)
+                            );
+                        } else {
+                            this.selectedDayKey = localDateKeyFromDate(
+                                new Date(this.year, this.month, 1, 12, 0, 0, 0)
+                            );
+                        }
+                    }
 
                     if (this.workouts.length) {
                         const firstDate = parseYmdLocalNoon(this.workouts[0].event_date_key || this.workouts[0].event_date);

@@ -409,6 +409,35 @@
                                         </div>
                                     </div>
 
+                                    <!-- Mobile: Agenda/List view (calendar grid hidden on small screens) -->
+                                    <div x-show="isMobile">
+                                        <template x-if="!mobileAgendaGroups || mobileAgendaGroups.length === 0">
+                                            <div class="text-sm text-gray-400 mt-2">No workouts scheduled for this month.</div>
+                                        </template>
+
+                                        <div class="space-y-4 mt-2">
+                                            <template x-for="group in mobileAgendaGroups" :key="group.dateKey">
+                                                <div class="rounded-xl border border-gray-700 bg-gray-800">
+                                                    <div class="px-4 py-2 border-b border-gray-700 text-sm font-semibold text-gray-200">
+                                                        <span x-text="group.label"></span>
+                                                    </div>
+
+                                                    <div class="divide-y divide-gray-700">
+                                                        <template x-for="event in group.events" :key="(event.event_title || '') + '|' + (event.event_date || '')">
+                                                            <div class="px-4 py-3 cursor-pointer hover:bg-gray-700/40"
+                                                                @click="showEventModal(group.day, null, event.event_title)">
+                                                                <div class="text-sm font-medium" x-text="event.event_title"></div>
+                                                                <div class="text-xs text-gray-400 mt-1" x-text="event.event_notes"></div>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Desktop month grid -->
+                                    <div x-show="!isMobile">
                                     <!-- Weekdays -->
                                     <div class="grid grid-cols-7 gap-1">
                                         <template x-for="day in DAYS" :key="day">
@@ -427,16 +456,17 @@
                                             </template>
                                             <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
                                                 <div style="width: 14.28%; height: 120px"
-                                                    class="px-4 pt-2 border-r border-b relative">
-                                                    <div @click="showEventModal(date, dateIndex, null)" x-text="date"
+                                                    class="px-4 pt-2 border-r border-b relative"
+                                                    @click="setSelectedDay(date)">
+                                                    <div @click.stop="setSelectedDay(date); showEventModal(date, dateIndex, null)" x-text="date"
                                                         class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
                                                         :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
                                                     </div>
                                                     <div style="height: 80px;" class="overflow-y-auto mt-1"
-                                                        x-show="workouts.length > 0">
-                                                        <template
-                                                            x-for="event in workouts.filter(e => (e.event_date_key || localDateKey(e.event_date)) === localDateKeyFromDate(new Date(year, month, date, 12, 0, 0, 0)))">
-                                                            <div @click="showEventModal(date, dateIndex, event.event_title)"
+                                                        x-show="dayEventCount(date) > 0">
+                                                        <template x-for="event in dayEvents(date)"
+                                                            :key="(event.event_title || '') + '|' + (event.event_date_key || event.event_date || '')">
+                                                            <div @click.stop="showEventModal(date, dateIndex, event.event_title)"
                                                                 class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
                                                                 :class="{
                                                                                     'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
@@ -456,6 +486,7 @@
                                                 </div>
                                             </template>
                                         </div>
+                                    </div>
                                     </div>
 
                                     <!-- Event Modal -->
