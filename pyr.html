@@ -1,4 +1,4 @@
-<div x-data="sharedState()">
+<div x-data="sharedState()" x-init="init()">
     <!-- Global loading spinner shown while generating a plan -->
     <div x-show="isGenerating" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70">
         <div class="h-10 w-10 border-4 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
@@ -11,11 +11,19 @@
             <!-- Top Controls Panel (full width) -->
             <details class="controls-details" x-ref="controlsDetails" open>
                 <summary class="controls-summary">Training Preferences</summary>
-                <div class="w-full rounded-lg bg-gray-800 p-4 shadow-lg ring-1 ring-white/15 controls-panel">
+                <div class="w-full rounded-lg bg-gray-800 p-4 shadow-lg ring-1 ring-white/15 controls-panel relative">
                     <p class="text-sm text-gray-300 mb-4">
                         Choose your race distance, race date, training block, weekly mileage, and goal pace.
                         Then click <span class="font-semibold text-gray-300">Generate</span> to build your plan.
                     </p>
+                    <!-- Desktop: Advanced Configuration (top-right of panel) -->
+                    <div class="absolute top-4 right-4 z-20" x-show="!isMobile" x-cloak>
+                      <button type="button"
+                        class="rounded-md bg-gray-700 px-4 py-2 text-sm text-white hover:bg-gray-600"
+                        @click="openAdvancedConfig()">
+                        Advanced
+                      </button>
+                    </div>
                     <!-- Controls (use horizontal space) -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
 
@@ -137,16 +145,163 @@
                     </div>
 
                     <!-- Generate button row -->
-                    <div class="mt-3 flex flex-col items-center gap-2">
+                    <div class="mt-3">
+                      <div class="w-full relative flex flex-col items-center gap-2">
+                        <!-- Primary action -->
                         <button id="generateBtn"
-                            class="w-full sm:w-auto rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
-                            @click="updateGoalPaceFromPercent(); window.paceGoal = [String(goalPaceLabel || '').replace('/mi',' min/mi')]; generatePlan(); setTimeout(() => { 
-                                if ($refs.controlsDetails && !showErrorToast) { 
-                                    $refs.controlsDetails.open = false; 
-                                } 
-                                }, 50)">
-                            Generate
+                          class="w-full sm:w-auto rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
+                          @click="updateGoalPaceFromPercent(); window.paceGoal = [String(goalPaceLabel || '').replace('/mi',' min/mi')]; generatePlan(); setTimeout(() => { 
+                            if ($refs.controlsDetails && !showErrorToast) { 
+                              $refs.controlsDetails.open = false; 
+                            } 
+                          }, 50)">
+                          Generate
                         </button>
+
+                        <!-- Mobile: Advanced Config as a subtle link below Generate -->
+                        <button type="button"
+                          class="sm:hidden text-xs text-gray-300 hover:text-white underline underline-offset-4"
+                          @click="openAdvancedConfig()">
+                          Advanced Configuration
+                        </button>
+                      </div>
+
+                      <!-- Quick summary of selected workouts -->
+                      <div class="text-xs text-gray-300" x-show="selectedWorkoutTypeIds && selectedWorkoutTypeIds.length">
+                        <span class="text-gray-400">Selected workouts:</span>
+                        <span x-text="(selectedWorkoutTypeIds || []).join(', ')"></span>
+                      </div>
+                    </div>
+
+                    <!-- Advanced Configuration Modal -->
+                    <div
+                        x-show="advancedConfigOpen"
+                        x-transition.opacity
+                        x-cloak
+                        class="fixed inset-0 z-50 flex items-center justify-center"
+                        @keydown.escape.window="closeAdvancedConfig()"
+                        style="display:none;">
+
+                        <!-- Backdrop -->
+                        <div class="absolute inset-0 bg-black/70" @click="closeAdvancedConfig()"></div>
+
+                        <!-- Modal Panel -->
+                        <div class="relative w-full max-w-3xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 max-h-[85vh] flex flex-col">
+                            <div class="flex items-start justify-between px-5 py-4 border-b border-gray-700">
+                                <div>
+                                    <div class="text-lg font-semibold">Advanced Configuration</div>
+                                    <div class="text-sm text-gray-400">
+                                        Choose which workout types can appear in your plan. (Quality workouts are scheduled on Tue/Thu.)
+                                    </div>
+                                </div>
+                                <button class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800" @click="closeAdvancedConfig()" aria-label="Close">✕</button>
+                            </div>
+
+                            <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto">
+                                <!-- Library -->
+                                <div class="bg-gray-950/40 rounded-lg border border-gray-800 p-4">
+                                    <div class="font-semibold mb-2">Workout Library</div>
+
+                                    <template x-if="!workoutCatalog || workoutCatalog.length === 0">
+                                        <div class="text-sm text-gray-400">Loading workout catalog…</div>
+                                    </template>
+
+                                    <!-- Quality -->
+                                    <div class="mt-3" x-show="workoutLibraryGroups && workoutLibraryGroups.quality">
+                                        <div class="text-xs uppercase tracking-wide text-gray-400 mb-2">Quality</div>
+                                        <template x-for="w in (workoutLibraryGroups.quality || [])" :key="w.id">
+                                            <label class="flex items-start gap-3 py-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    class="mt-1"
+                                                    :checked="isWorkoutSelected(w.id)"
+                                                    @change="toggleWorkoutType(w.id)"
+                                                />
+                                                <div>
+                                                    <div class="font-medium" x-text="w.name"></div>
+                                                    <div class="text-xs text-gray-400">
+                                                        Intensity <span x-text="w.intensity"></span>
+                                                        <span class="mx-1">•</span>
+                                                        Prefers <span x-text="(w.placement && w.placement.dayPreference) ? w.placement.dayPreference.join(', ') : 'Any day'"></span>
+                                                    </div>
+                                                </div>
+                                            </label>
+                                        </template>
+                                    </div>
+
+                                    <!-- Long -->
+                                    <div class="mt-4" x-show="workoutLibraryGroups && workoutLibraryGroups.long">
+                                        <div class="text-xs uppercase tracking-wide text-gray-400 mb-2">Long</div>
+                                        <template x-for="w in (workoutLibraryGroups.long || [])" :key="w.id">
+                                            <label class="flex items-start gap-3 py-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    class="mt-1"
+                                                    :checked="isWorkoutSelected(w.id)"
+                                                    @change="toggleWorkoutType(w.id)"
+                                                />
+                                                <div>
+                                                    <div class="font-medium" x-text="w.name"></div>
+                                                    <div class="text-xs text-gray-400">Usually scheduled on weekends</div>
+                                                </div>
+                                            </label>
+                                        </template>
+                                    </div>
+
+                                    <!-- Easy -->
+                                    <div class="mt-4" x-show="workoutLibraryGroups && workoutLibraryGroups.easy">
+                                        <div class="text-xs uppercase tracking-wide text-gray-400 mb-2">Easy</div>
+                                        <template x-for="w in (workoutLibraryGroups.easy || [])" :key="w.id">
+                                            <label class="flex items-start gap-3 py-2 cursor-pointer">
+                                                <input
+                                                    type="checkbox"
+                                                    class="mt-1"
+                                                    :checked="isWorkoutSelected(w.id)"
+                                                    @change="toggleWorkoutType(w.id)"
+                                                />
+                                                <div>
+                                                    <div class="font-medium" x-text="w.name"></div>
+                                                    <div class="text-xs text-gray-400">Fills remaining days</div>
+                                                </div>
+                                            </label>
+                                        </template>
+                                    </div>
+                                </div>
+
+                                <!-- Selected -->
+                                <div class="bg-gray-950/40 rounded-lg border border-gray-800 p-4">
+                                    <div class="font-semibold mb-2">Selected</div>
+                                    <div class="text-sm text-gray-400 mb-3">
+                                        These workout types are allowed to appear in your generated plan.
+                                    </div>
+
+                                    <template x-if="!selectedWorkoutTypeIds || selectedWorkoutTypeIds.length === 0">
+                                        <div class="text-sm text-red-300">Select at least one workout type.</div>
+                                    </template>
+
+                                    <div class="flex flex-wrap gap-2">
+                                        <template x-for="id in (selectedWorkoutTypeIds || [])" :key="id">
+                                            <span class="px-2 py-1 rounded bg-gray-800 text-xs border border-gray-700">
+                                                <span x-text="(workoutCatalog.find(w => w.id === id) || {name:id}).name"></span>
+                                            </span>
+                                        </template>
+                                    </div>
+
+                                    <div class="mt-4 text-xs text-gray-400">
+                                        Tip: Click <span class="text-gray-200 font-semibold">Generate</span> to rebuild your plan using this selection.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-700">
+                                <button
+                                    type="button"
+                                    class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
+                                    @click="closeAdvancedConfig()">
+                                    Done
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </details>
@@ -264,6 +419,35 @@
                                         </div>
                                     </div>
 
+                                    <!-- Mobile: Agenda/List view (calendar grid hidden on small screens) -->
+                                    <div x-show="isMobile">
+                                        <template x-if="!mobileAgendaGroups || mobileAgendaGroups.length === 0">
+                                            <div class="text-sm text-gray-400 mt-2">No workouts scheduled for this month.</div>
+                                        </template>
+
+                                        <div class="space-y-4 mt-2">
+                                            <template x-for="group in mobileAgendaGroups" :key="group.dateKey">
+                                                <div class="rounded-xl border border-gray-700 bg-gray-800">
+                                                    <div class="px-4 py-2 border-b border-gray-700 text-sm font-semibold text-gray-200">
+                                                        <span x-text="group.label"></span>
+                                                    </div>
+
+                                                    <div class="divide-y divide-gray-700">
+                                                        <template x-for="event in group.events" :key="(event.event_title || '') + '|' + (event.event_date || '')">
+                                                            <div class="px-4 py-3 cursor-pointer hover:bg-gray-700/40"
+                                                                @click="showEventModal(group.day, null, event.event_title)">
+                                                                <div class="text-sm font-medium" x-text="event.event_title"></div>
+                                                                <div class="text-xs text-gray-400 mt-1" x-text="event.event_notes"></div>
+                                                            </div>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </template>
+                                        </div>
+                                    </div>
+
+                                    <!-- Desktop month grid -->
+                                    <div x-show="!isMobile">
                                     <!-- Weekdays -->
                                     <div class="grid grid-cols-7 gap-1">
                                         <template x-for="day in DAYS" :key="day">
@@ -282,16 +466,17 @@
                                             </template>
                                             <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
                                                 <div style="width: 14.28%; height: 120px"
-                                                    class="px-4 pt-2 border-r border-b relative">
-                                                    <div @click="showEventModal(date, dateIndex, null)" x-text="date"
+                                                    class="px-4 pt-2 border-r border-b relative"
+                                                    @click="setSelectedDay(date)">
+                                                    <div @click.stop="setSelectedDay(date); showEventModal(date, dateIndex, null)" x-text="date"
                                                         class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
                                                         :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
                                                     </div>
                                                     <div style="height: 80px;" class="overflow-y-auto mt-1"
-                                                        x-show="workouts.length > 0">
-                                                        <template
-                                                            x-for="event in workouts.filter(e => (e.event_date_key || localDateKey(e.event_date)) === localDateKeyFromDate(new Date(year, month, date, 12, 0, 0, 0)))">
-                                                            <div @click="showEventModal(date, dateIndex, event.event_title)"
+                                                        x-show="dayEventCount(date) > 0">
+                                                        <template x-for="event in dayEvents(date)"
+                                                            :key="(event.event_title || '') + '|' + (event.event_date_key || event.event_date || '')">
+                                                            <div @click.stop="showEventModal(date, dateIndex, event.event_title)"
                                                                 class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
                                                                 :class="{
                                                                                     'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
@@ -311,6 +496,7 @@
                                                 </div>
                                             </template>
                                         </div>
+                                    </div>
                                     </div>
 
                                     <!-- Event Modal -->
@@ -439,9 +625,68 @@
                                         </div>
                                     </div>
 
-                                    <canvas id="weeklyMileageTrend"></canvas>
-                                    <canvas id="longRunProgression"></canvas>
-                                    <canvas id="paceProgression"></canvas>
+                                    <!-- Desktop: inline charts -->
+                                    <template x-if="!isMobile">
+                                      <div class="space-y-6">
+                                        <canvas id="weeklyMileageTrend"></canvas>
+                                        <canvas id="longRunProgression"></canvas>
+                                        <canvas id="paceProgression"></canvas>
+                                      </div>
+                                    </template>
+
+                                    <!-- Mobile: charts in full-screen modal -->
+                                    <template x-if="isMobile">
+                                      <div class="pt-2">
+                                        <button type="button"
+                                          class="w-full rounded-md bg-gray-700 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-600"
+                                          @click="openChartsModal()">
+                                          View charts
+                                        </button>
+                                        <div class="mt-2 text-xs text-gray-400">
+                                          Tip: Charts are easier to read in full-screen.
+                                        </div>
+                                      </div>
+                                    </template>
+
+                                    <!-- Mobile Charts Modal -->
+                                    <template x-if="chartsModalOpen">
+                                      <div class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="closeChartsModal()">
+                                        <div class="absolute inset-0 bg-black/70" @click="closeChartsModal()"></div>
+
+                                        <div class="relative w-full h-[92vh] mx-3 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 flex flex-col">
+                                          <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+                                            <div>
+                                              <div class="text-base font-semibold">Charts</div>
+                                              <div class="text-xs text-gray-400">Scroll to view charts</div>
+                                            </div>
+                                            <button class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
+                                              @click="closeChartsModal()" aria-label="Close">✕</button>
+                                          </div>
+
+                                          <div class="p-4 space-y-6 overflow-y-auto">
+                                            <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
+                                              <div class="text-sm font-semibold mb-2">Weekly mileage</div>
+                                              <canvas id="weeklyMileageTrend"></canvas>
+                                            </div>
+
+                                            <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
+                                              <div class="text-sm font-semibold mb-2">Long run progression</div>
+                                              <canvas id="longRunProgression"></canvas>
+                                            </div>
+
+                                            <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
+                                              <div class="text-sm font-semibold mb-2">Pace progression</div>
+                                              <canvas id="paceProgression"></canvas>
+                                            </div>
+                                          </div>
+
+                                          <div class="px-4 py-3 border-t border-gray-700 flex justify-end">
+                                            <button type="button" class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
+                                              @click="closeChartsModal()">Done</button>
+                                          </div>
+                                        </div>
+                                      </div>
+                                    </template>
                                 </div>
                             </template>
                             <template x-if="activeTab === 'ai'">

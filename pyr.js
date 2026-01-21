@@ -250,7 +250,38 @@ function transformEvent(event) {
 
     return {
         date: date,
-        title: `${event.event_distance} miles ${event.event_workout.toLowerCase()} run`,
+        // Build a richer title that surfaces the specific session (400s, hills, cruise intervals, etc.)
+        // without forcing the user to open the details modal.
+        title: (() => {
+            const base = `${event.event_distance} miles ${String(event.event_workout || '').toLowerCase()} run`;
+
+            // Only append session detail for quality workouts (Tempo/Speed). Easy/Long/Race stays clean.
+            const isQuality = event.event_workout === "Tempo" || event.event_workout === "Speed";
+            const rawNotes = (event.event_notes || '').trim();
+            if (!isQuality || !rawNotes) return base;
+
+            // Prefer the first clause, and keep it short.
+            // Also strip common boilerplate like WU/CD.
+            let detail = rawNotes
+                .split('|')[0]
+                .split('. ')[0]
+                .replace(/\(WU\/CD\)/gi, '')
+                .replace(/WU\s*\d+[^)]*\/?\s*CD\s*\d+[^)]*/gi, '')
+                .trim();
+
+            // Guard: if stripping made it empty, fall back to the raw first clause
+            if (!detail) {
+                detail = rawNotes.split('|')[0].trim();
+            }
+
+            // Truncate to avoid ugly wrapping in the calendar grid
+            const maxLen = 70;
+            if (detail.length > maxLen) {
+                detail = detail.slice(0, maxLen - 1).trimEnd() + '…';
+            }
+
+            return `${base} — ${detail}`;
+        })(),
         event_distance: event.event_distance,
 
         // 🔥 preserve subtype + pace for analytics
@@ -258,7 +289,26 @@ function transformEvent(event) {
         event_pace: event.event_pace,
         event_pace_decimal: event.event_pace_decimal,
 
-        notes: event.event_notes,
+        // Surface full structured workout description in the UI
+        notes: (() => {
+            const raw = (event.event_notes || '').trim();
+
+            // If notes already contain WU/CD or recovery detail, keep as-is
+            if (/warm[- ]?up|cool[- ]?down|WU|CD|recovery|rest/i.test(raw)) {
+                return raw;
+            }
+
+            // Otherwise append standard guidance for quality workouts
+            if (event.event_workout === 'Tempo' || event.event_workout === 'Speed') {
+                return [
+                    raw,
+                    'Warm-up 10–15 min easy + drills/strides.',
+                    'Cool-down 10 min easy jog.'
+                ].filter(Boolean).join(' ');
+            }
+
+            return raw;
+        })(),
         theme: "",
         event_type: workoutTypeMap[event.event_workout],
     };
@@ -776,6 +826,13 @@ function sharedState() {
         // Track the active tab for the new tab state
         activeTab: 'calendar',
 
+        // Viewport flag used by top controls (avoids relying on Tailwind breakpoints)
+        isMobile: window.innerWidth < 768,
+
+        updateIsMobile() {
+            this.isMobile = window.innerWidth < 768;
+        },
+
         average_mileage_weekly: 0,
         average_mileage_daily: 0,
         numOfWeeksInTraining: 0,
@@ -807,6 +864,212 @@ function sharedState() {
         // master-list of all workouts
         currentWorkouts: [],
 
+        // -----------------------------------------------------------------
+        // Advanced Configuration (Workout Library Selection)
+        // -----------------------------------------------------------------
+
+        // Controls whether the advanced config modal is open
+        advancedConfigOpen: false,
+
+        // Catalog loaded from workoutsCatalog.js (array of workout types)
+        workoutCatalog: [],
+
+        // User-selected workout type ids (this will be edited by the modal)
+        // Defaults match our generator defaults, but now live in UI state.
+        selectedWorkoutTypeIds: ["tempo", "intervals", "progression", "long_run"],
+
+        // Tracks whether the user has manually changed the selection.
+        // If false, we can safely apply smarter defaults based on experience level.
+        hasCustomizedWorkoutSelection: false,
+
+        // Loaded from workoutsCatalog.js (DEFAULT_WORKOUT_SELECTION_BY_LEVEL)
+        defaultWorkoutSelectionByLevel: {},
+
+        // Load catalog once so the modal can render a library
+        async loadWorkoutCatalog() {
+            try {
+                const mod = await import("./workoutsCatalog.js");
+                this.workoutCatalog = Array.isArray(mod.WORKOUT_CATALOG) ? mod.WORKOUT_CATALOG : [];
+                this.defaultWorkoutSelectionByLevel = (mod.DEFAULT_WORKOUT_SELECTION_BY_LEVEL && typeof mod.DEFAULT_WORKOUT_SELECTION_BY_LEVEL === 'object')
+                    ? mod.DEFAULT_WORKOUT_SELECTION_BY_LEVEL
+                    : {};
+            } catch (e) {
+                console.error("Failed to load workoutsCatalog.js", e);
+                this.workoutCatalog = [];
+                this.defaultWorkoutSelectionByLevel = {};
+            }
+        },
+        // Infer experience level using mileage target (simple heuristic).
+        // Keeps UI defaults in sync with generator behavior without importing generator internals.
+        inferExperienceLevelFromMileageTarget(mileageTarget) {
+            const m = parseInt(mileageTarget, 10);
+            if (!Number.isFinite(m) || m <= 0) return 'beginner';
+            if (m <= 35) return 'beginner';
+            if (m <= 60) return 'intermediate';
+            return 'advanced';
+        },
+
+        // Apply default selection by level IF the user has not customized.
+        applyDefaultWorkoutSelection() {
+            if (this.hasCustomizedWorkoutSelection) return;
+
+            // Only apply if we have enough inputs to infer a reasonable level
+            if (!this.selectedRaceDistance || !this.selectedWeeklyMileage) return;
+
+            // Ensure selectedGoal is populated so mileage target is consistent
+            if (!this.selectedGoal) {
+                if (this.goalPaceSeconds && Number.isFinite(this.goalPaceSeconds)) {
+                    this.selectedGoal = this.secondsToMinMi(this.goalPaceSeconds);
+                } else if (this.goalPaceLabel && this.goalPaceLabel.includes('/mi')) {
+                    this.selectedGoal = String(this.goalPaceLabel).replace('/mi', ' min/mi');
+                }
+            }
+
+            const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
+            const level = this.inferExperienceLevelFromMileageTarget(mileageTarget);
+            const defaults = this.defaultWorkoutSelectionByLevel && this.defaultWorkoutSelectionByLevel[level];
+
+            if (Array.isArray(defaults) && defaults.length) {
+                this.selectedWorkoutTypeIds = [...defaults];
+            }
+        },
+
+        // Open/close modal helpers
+        openAdvancedConfig() {
+            // If the user hasn't customized yet, apply defaults before showing the modal
+            this.applyDefaultWorkoutSelection();
+            this.advancedConfigOpen = true;
+        },
+        closeAdvancedConfig() {
+            this.advancedConfigOpen = false;
+        },
+
+        // --- Mobile charts modal ---
+        chartsModalOpen: false,
+        // --- Mobile Overview chart modal ---
+        overviewChartModalOpen: false,
+
+        openChartsModal() {
+            this.chartsModalOpen = true;
+
+            // Defer chart rendering until modal DOM is visible AND measurable
+            this.$nextTick(() => {
+                this.destroyAnalyticsCharts();
+
+                // 1st frame: modal content mounts
+                requestAnimationFrame(() => {
+                    this.loadAnalyticsCharts({ forceMobileSizing: true, retryIfMissing: true });
+
+                    // 2nd frame: after any CSS transitions, force Chart.js resize
+                    requestAnimationFrame(() => {
+                        const c = this.analyticsCharts || {};
+                        if (c.weeklyTrend && typeof c.weeklyTrend.resize === "function") c.weeklyTrend.resize();
+                        if (c.typeBreakdown && typeof c.typeBreakdown.resize === "function") c.typeBreakdown.resize();
+                        if (c.longRun && typeof c.longRun.resize === "function") c.longRun.resize();
+                        if (c.paceProgression && typeof c.paceProgression.resize === "function") c.paceProgression.resize();
+                    });
+                });
+            });
+        },
+
+        closeChartsModal() {
+            this.chartsModalOpen = false;
+
+            this.$nextTick(() => {
+                this.destroyAnalyticsCharts();
+                this._chartsRetryCount = 0;
+            });
+        },
+
+        openOverviewChartModal() {
+            this.overviewChartModalOpen = true;
+
+            // Defer chart rendering until modal DOM is visible AND measurable
+            this.$nextTick(() => {
+                // Destroy any existing global chart instance (overview uses global `myChart`)
+                try {
+                    if (typeof myChart !== 'undefined' && myChart && typeof myChart.destroy === 'function') {
+                        myChart.destroy();
+                    }
+                } catch (e) {
+                    // no-op
+                }
+
+                // 1st frame: modal content mounts
+                requestAnimationFrame(() => {
+                    // Re-render the Overview bar chart (setupBarChart safely no-ops if canvas isn't present)
+                    try {
+                        setupBarChart(this.currentWorkouts || []);
+                    } catch (e) {
+                        // no-op
+                    }
+
+                    // 2nd frame: force resize after any transitions (Safari/iOS)
+                    requestAnimationFrame(() => {
+                        try {
+                            if (typeof myChart !== 'undefined' && myChart && typeof myChart.resize === 'function') {
+                                myChart.resize();
+                            }
+                        } catch (e) {
+                            // no-op
+                        }
+                    });
+                });
+            });
+        },
+
+        closeOverviewChartModal() {
+            this.overviewChartModalOpen = false;
+
+            // Optional: clean up the chart instance when closing the modal
+            this.$nextTick(() => {
+                try {
+                    if (typeof myChart !== 'undefined' && myChart && typeof myChart.destroy === 'function') {
+                        myChart.destroy();
+                    }
+                } catch (e) {
+                    // no-op
+                }
+            });
+        },
+
+        // Toggle selection from the modal UI
+        toggleWorkoutType(workoutId) {
+            if (!workoutId) return;
+
+            // Easy runs are foundational and always included (not configurable)
+            if (workoutId === "easy") return;
+
+            this.hasCustomizedWorkoutSelection = true;
+            const current = Array.isArray(this.selectedWorkoutTypeIds) ? this.selectedWorkoutTypeIds : [];
+            const idx = current.indexOf(workoutId);
+            if (idx >= 0) {
+                current.splice(idx, 1);
+            } else {
+                current.push(workoutId);
+            }
+            // Keep it stable (no duplicates)
+            this.selectedWorkoutTypeIds = Array.from(new Set(current));
+        },
+
+        // Helper for checkbox binding in Alpine
+        isWorkoutSelected(workoutId) {
+            // Easy runs are always included
+            if (workoutId === "easy") return true;
+            return Array.isArray(this.selectedWorkoutTypeIds) && this.selectedWorkoutTypeIds.includes(workoutId);
+        },
+
+        // Computed: catalog entries grouped for display
+        get workoutLibraryGroups() {
+            const groups = { quality: [], long: [], easy: [], strength: [], mobility: [] };
+            (this.workoutCatalog || []).forEach((w) => {
+                if (!w || !w.category) return;
+                if (!groups[w.category]) groups[w.category] = [];
+                groups[w.category].push(w);
+            });
+            return groups;
+        },
+
         // --- AI Coach shared state ---
         userInput: "",
         enhancedOutput: "",
@@ -814,7 +1077,12 @@ function sharedState() {
 
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
+            this.updateIsMobile();
+            window.addEventListener('resize', () => this.updateIsMobile())
+
             this.updateGoalPaceFromPercent();
+            // Load workout catalog for the Advanced Configuration modal
+            this.loadWorkoutCatalog();
             // Listen for successful reviews from the LWC bridge
             window.addEventListener("trainingplanreviewed", (evt) => {
                 this.loading = false;
@@ -974,9 +1242,26 @@ function sharedState() {
 
                 const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
                 const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
+                // Apply smart defaults (e.g., include hills for intermediate/advanced) unless the user has customized
+                this.applyDefaultWorkoutSelection();
                 const trainingController = await import("./trainingPlanGenerator.js");
+                // Workout library selection (controlled by Advanced Configuration modal)
+                const fallbackDefaults = (this.defaultWorkoutSelectionByLevel && this.defaultWorkoutSelectionByLevel.beginner)
+                    ? this.defaultWorkoutSelectionByLevel.beginner
+                    : ["tempo", "long_run"];
+
+                const selectedWorkoutTypeIds = Array.isArray(this.selectedWorkoutTypeIds)
+                    ? this.selectedWorkoutTypeIds
+                    : fallbackDefaults;
                 const allRuns = trainingController.createTrainingPlan(
-                    startDate, mileageTarget, this.raceDate, this.selectedGoal, numberOfWeeksUntilRace
+                    startDate,
+                    mileageTarget,
+                    this.raceDate,
+                    this.selectedGoal,
+                    numberOfWeeksUntilRace,
+                    {
+                        selectedWorkoutTypeIds
+                    }
                 );
 
                 this.currentWorkouts = [];
@@ -1175,6 +1460,112 @@ function sharedState() {
                 no_of_days: [],
                 isModalOpen: false,
                 eventToEdit: null,
+                // -----------------------------
+                // Mobile Mode (safe, grid-preserving)
+                // -----------------------------
+                selectedDayKey: '',
+
+                // Build YYYY-MM-DD key for a date number in the current month
+                dayKey(date) {
+                    return localDateKeyFromDate(new Date(this.year, this.month, date, 12, 0, 0, 0));
+                },
+
+                // Called when a day cell is tapped (mobile)
+                setSelectedDay(date) {
+                    this.selectedDayKey = this.dayKey(date);
+                },
+
+                // All events for a given day number
+                dayEvents(date) {
+                    const key = this.dayKey(date);
+                    const list = Array.isArray(this.workouts) ? this.workouts : [];
+                    return list.filter(e => (e.event_date_key || localDateKey(e.event_date)) === key);
+                },
+
+                // Compact count used in the grid on mobile
+                dayEventCount(date) {
+                    return this.dayEvents(date).length;
+                },
+
+                isMobile: window.innerWidth < 768,
+
+                updateIsMobile() {
+                    this.isMobile = window.innerWidth < 768;
+                },
+
+                // Label shown above the mobile agenda panel
+                get selectedDayLabel() {
+                    if (!this.selectedDayKey) return '';
+                    const d = new Date(`${this.selectedDayKey}T12:00:00`);
+                    if (isNaN(d.getTime())) return '';
+                    return d.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' });
+                },
+
+                // Date number (1–31) used when opening the modal from agenda panel
+                get selectedDayDateNumber() {
+                    if (!this.selectedDayKey) return null;
+                    const d = new Date(`${this.selectedDayKey}T12:00:00`);
+                    if (isNaN(d.getTime())) return null;
+                    return d.getDate();
+                },
+
+                // Events rendered in the mobile agenda panel
+                get selectedDayEvents() {
+                    if (!this.selectedDayKey) return [];
+                    const list = Array.isArray(this.workouts) ? this.workouts : [];
+                    return list.filter(e => (e.event_date_key || localDateKey(e.event_date)) === this.selectedDayKey);
+                },
+
+                // Mobile Agenda/List view: group workouts by date for the currently viewed month
+                // Must never throw (Alpine will stop rendering if this errors).
+                get mobileAgendaGroups() {
+                    try {
+                        const list = Array.isArray(this.workouts)
+                            ? this.workouts
+                            : (Array.isArray(window.workouts) ? window.workouts : []);
+
+                        const byKey = {};
+
+                        for (const e of list) {
+                            if (!e || !e.event_date) continue;
+
+                            const key = e.event_date_key
+                                ? String(e.event_date_key)
+                                : String(e.event_date).slice(0, 10);
+
+                            if (!key || key.length < 10) continue;
+
+                            // Local noon avoids timezone shifting
+                            const d = new Date(`${key}T12:00:00`);
+                            if (isNaN(d.getTime())) continue;
+
+                            // Only include workouts in the currently viewed month/year
+                            if (d.getFullYear() !== this.year || d.getMonth() !== this.month) continue;
+
+                            if (!byKey[key]) {
+                                byKey[key] = {
+                                    dateKey: key,
+                                    day: d.getDate(),
+                                    label: d.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" }),
+                                    events: []
+                                };
+                            }
+                            byKey[key].events.push(e);
+                        }
+
+                        return Object.values(byKey)
+                            .sort((a, b) => a.dateKey.localeCompare(b.dateKey))
+                            .map(g => {
+                                g.events = g.events
+                                    .slice()
+                                    .sort((x, y) => String(x.event_title || "").localeCompare(String(y.event_title || "")));
+                                return g;
+                            });
+                    } catch (err) {
+                        console.warn("[PYR] mobileAgendaGroups failed (non-blocking):", err);
+                        return [];
+                    }
+                },
 
                 MONTH_NAMES,
                 DAYS,
@@ -1183,6 +1574,9 @@ function sharedState() {
                 init() {
                     this.loadWorkouts();
                     this.calculateDays();
+
+                    this.updateIsMobile();
+                    window.addEventListener('resize', () => this.updateIsMobile());
 
                     document.addEventListener("trainingplangenerated", (event) => {
                         this.loadWorkouts();
@@ -1216,6 +1610,20 @@ function sharedState() {
                             event_type
                         };
                     });
+
+                    // Default selected day for mobile: today if visible, else first of month
+                    if (!this.selectedDayKey) {
+                        const today = new Date();
+                        if (today.getFullYear() === this.year && today.getMonth() === this.month) {
+                            this.selectedDayKey = localDateKeyFromDate(
+                                new Date(this.year, this.month, today.getDate(), 12, 0, 0, 0)
+                            );
+                        } else {
+                            this.selectedDayKey = localDateKeyFromDate(
+                                new Date(this.year, this.month, 1, 12, 0, 0, 0)
+                            );
+                        }
+                    }
 
                     if (this.workouts.length) {
                         const firstDate = parseYmdLocalNoon(this.workouts[0].event_date_key || this.workouts[0].event_date);
@@ -1424,6 +1832,43 @@ function sharedState() {
             this.analyticsCharts = { weeklyTrend: null, typeBreakdown: null, longRun: null, paceProgression: null };
         },
 
+        // Internal: used to retry chart rendering when canvases are not yet in the DOM (mobile modal)
+        _chartsRetryCount: 0,
+
+        // Internal: sizing defaults that work both inline and inside the mobile charts modal
+        _getChartSizingOptions(forceMobileSizing) {
+            const mobile = !!forceMobileSizing || !!this.isMobile || !!this.chartsModalOpen;
+
+            return {
+                responsive: true,
+                // In modals, maintainAspectRatio often makes charts tiny.
+                maintainAspectRatio: !mobile,
+                // Only meaningful when maintainAspectRatio is true
+                aspectRatio: mobile ? 1.1 : 2,
+                plugins: {
+                    legend: {
+                        labels: { color: "#e5e7eb" },
+                        position: mobile ? "bottom" : "top"
+                    }
+                }
+            };
+        },
+
+        // Internal: if a canvas is missing (DOM not ready), retry a few times
+        _retryChartsIfMissing(opts) {
+            const retryIfMissing = !!(opts && opts.retryIfMissing);
+            if (!retryIfMissing) return false;
+
+            this._chartsRetryCount = (this._chartsRetryCount || 0) + 1;
+            if (this._chartsRetryCount > 6) return false;
+
+            setTimeout(() => {
+                this.loadAnalyticsCharts({ ...(opts || {}), retryIfMissing: true });
+            }, 60);
+
+            return true;
+        },
+
         // Build analytics data series from currentWorkouts
         _buildAnalyticsData() {
             const workouts = this.currentWorkouts || [];
@@ -1516,19 +1961,34 @@ function sharedState() {
         },
 
         // Render the Analytics tab charts
-        loadAnalyticsCharts() {
+        loadAnalyticsCharts(opts = {}) {
             if (!this.currentWorkouts || this.currentWorkouts.length === 0) {
                 this.destroyAnalyticsCharts();
+                this._chartsRetryCount = 0;
                 return;
             }
 
             const render = () => {
                 this.destroyAnalyticsCharts();
-                const { labels, weekly, typeCounts, longRun, longRunPct, tempoPace, speedPace, tempoTarget, speedTarget } = this._buildAnalyticsData();
+                const {
+                    labels,
+                    weekly,
+                    typeCounts,
+                    longRun,
+                    longRunPct,
+                    tempoPace,
+                    speedPace,
+                    tempoTarget,
+                    speedTarget
+                } = this._buildAnalyticsData();
+
+                const sizing = this._getChartSizingOptions(opts.forceMobileSizing);
 
                 // Weekly Mileage + Long Run (dual-axis) + Long Run % (line)
                 const t1 = document.getElementById('weeklyMileageTrend');
-                if (t1) {
+                if (!t1) {
+                    if (this._retryChartsIfMissing(opts)) return;
+                } else {
                     this.analyticsCharts.weeklyTrend = new Chart(t1, {
                         type: 'line',
                         data: {
@@ -1578,9 +2038,7 @@ function sharedState() {
                             ]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            aspectRatio: 2,
+                            ...sizing,
                             scales: {
                                 x: {
                                     ticks: { color: '#cbd5e1' },
@@ -1612,7 +2070,7 @@ function sharedState() {
                                 }
                             },
                             plugins: {
-                                legend: { labels: { color: '#e5e7eb' } },
+                                ...(sizing.plugins || {}),
                                 tooltip: {
                                     callbacks: {
                                         label: (ctx) => {
@@ -1644,10 +2102,12 @@ function sharedState() {
                             }]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            aspectRatio: 1.6,
-                            plugins: { legend: { labels: { color: '#e5e7eb' } } }
+                            ...sizing,
+                            // Doughnut looks better with a squarer aspect on desktop; mobile sizing handled by maintainAspectRatio=false
+                            aspectRatio: sizing.maintainAspectRatio ? 1.6 : undefined,
+                            plugins: {
+                                ...(sizing.plugins || {})
+                            }
                         }
                     });
                 }
@@ -1688,7 +2148,6 @@ function sharedState() {
                                     borderColor: '#67e8f9',
                                     backgroundColor: 'rgba(103,232,249,0.9)'
                                 },
-
                                 // Speed target (continuous line)
                                 {
                                     label: 'Speed Focus Pace',
@@ -1714,18 +2173,19 @@ function sharedState() {
                             ]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            aspectRatio: 2,
+                            ...sizing,
+                            // Desktop can keep wider; mobile modal sizing uses maintainAspectRatio=false
+                            aspectRatio: sizing.maintainAspectRatio ? 2 : undefined,
                             scales: {
                                 y: {
-                                    reverse: true, // faster pace = higher
+                                    reverse: true,
                                     ticks: {
                                         callback: (v) => formatPaceFromDecimal(v)
                                     }
                                 }
                             },
                             plugins: {
+                                ...(sizing.plugins || {}),
                                 title: {
                                     display: true,
                                     text: 'Pace Progression by Training Focus',
@@ -1752,13 +2212,19 @@ function sharedState() {
                         }
                     });
                 }
+
+                // Successful render; clear retry counter
+                this._chartsRetryCount = 0;
             };
 
             // Ensure canvases exist (tab just switched). Use Alpine's nextTick if available.
             if (typeof this.$nextTick === 'function') {
-                this.$nextTick(render);
+                this.$nextTick(() => {
+                    requestAnimationFrame(render);
+                });
             } else {
-                setTimeout(render, 0);
+                // Fallback: allow the DOM to paint, then render next frame
+                setTimeout(() => requestAnimationFrame(render), 0);
             }
         },
 
