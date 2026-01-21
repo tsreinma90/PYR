@@ -944,6 +944,95 @@ function sharedState() {
             this.advancedConfigOpen = false;
         },
 
+        // --- Mobile charts modal ---
+        chartsModalOpen: false,
+        // --- Mobile Overview chart modal ---
+        overviewChartModalOpen: false,
+
+        openChartsModal() {
+            this.chartsModalOpen = true;
+
+            // Defer chart rendering until modal DOM is visible AND measurable
+            this.$nextTick(() => {
+                this.destroyAnalyticsCharts();
+
+                // 1st frame: modal content mounts
+                requestAnimationFrame(() => {
+                    this.loadAnalyticsCharts({ forceMobileSizing: true, retryIfMissing: true });
+
+                    // 2nd frame: after any CSS transitions, force Chart.js resize
+                    requestAnimationFrame(() => {
+                        const c = this.analyticsCharts || {};
+                        if (c.weeklyTrend && typeof c.weeklyTrend.resize === "function") c.weeklyTrend.resize();
+                        if (c.typeBreakdown && typeof c.typeBreakdown.resize === "function") c.typeBreakdown.resize();
+                        if (c.longRun && typeof c.longRun.resize === "function") c.longRun.resize();
+                        if (c.paceProgression && typeof c.paceProgression.resize === "function") c.paceProgression.resize();
+                    });
+                });
+            });
+        },
+
+        closeChartsModal() {
+            this.chartsModalOpen = false;
+
+            this.$nextTick(() => {
+                this.destroyAnalyticsCharts();
+                this._chartsRetryCount = 0;
+            });
+        },
+
+        openOverviewChartModal() {
+            this.overviewChartModalOpen = true;
+
+            // Defer chart rendering until modal DOM is visible AND measurable
+            this.$nextTick(() => {
+                // Destroy any existing global chart instance (overview uses global `myChart`)
+                try {
+                    if (typeof myChart !== 'undefined' && myChart && typeof myChart.destroy === 'function') {
+                        myChart.destroy();
+                    }
+                } catch (e) {
+                    // no-op
+                }
+
+                // 1st frame: modal content mounts
+                requestAnimationFrame(() => {
+                    // Re-render the Overview bar chart (setupBarChart safely no-ops if canvas isn't present)
+                    try {
+                        setupBarChart(this.currentWorkouts || []);
+                    } catch (e) {
+                        // no-op
+                    }
+
+                    // 2nd frame: force resize after any transitions (Safari/iOS)
+                    requestAnimationFrame(() => {
+                        try {
+                            if (typeof myChart !== 'undefined' && myChart && typeof myChart.resize === 'function') {
+                                myChart.resize();
+                            }
+                        } catch (e) {
+                            // no-op
+                        }
+                    });
+                });
+            });
+        },
+
+        closeOverviewChartModal() {
+            this.overviewChartModalOpen = false;
+
+            // Optional: clean up the chart instance when closing the modal
+            this.$nextTick(() => {
+                try {
+                    if (typeof myChart !== 'undefined' && myChart && typeof myChart.destroy === 'function') {
+                        myChart.destroy();
+                    }
+                } catch (e) {
+                    // no-op
+                }
+            });
+        },
+
         // Toggle selection from the modal UI
         toggleWorkoutType(workoutId) {
             if (!workoutId) return;
@@ -990,7 +1079,7 @@ function sharedState() {
         init() {
             this.updateIsMobile();
             window.addEventListener('resize', () => this.updateIsMobile())
-            
+
             this.updateGoalPaceFromPercent();
             // Load workout catalog for the Advanced Configuration modal
             this.loadWorkoutCatalog();
@@ -1743,6 +1832,43 @@ function sharedState() {
             this.analyticsCharts = { weeklyTrend: null, typeBreakdown: null, longRun: null, paceProgression: null };
         },
 
+        // Internal: used to retry chart rendering when canvases are not yet in the DOM (mobile modal)
+        _chartsRetryCount: 0,
+
+        // Internal: sizing defaults that work both inline and inside the mobile charts modal
+        _getChartSizingOptions(forceMobileSizing) {
+            const mobile = !!forceMobileSizing || !!this.isMobile || !!this.chartsModalOpen;
+
+            return {
+                responsive: true,
+                // In modals, maintainAspectRatio often makes charts tiny.
+                maintainAspectRatio: !mobile,
+                // Only meaningful when maintainAspectRatio is true
+                aspectRatio: mobile ? 1.1 : 2,
+                plugins: {
+                    legend: {
+                        labels: { color: "#e5e7eb" },
+                        position: mobile ? "bottom" : "top"
+                    }
+                }
+            };
+        },
+
+        // Internal: if a canvas is missing (DOM not ready), retry a few times
+        _retryChartsIfMissing(opts) {
+            const retryIfMissing = !!(opts && opts.retryIfMissing);
+            if (!retryIfMissing) return false;
+
+            this._chartsRetryCount = (this._chartsRetryCount || 0) + 1;
+            if (this._chartsRetryCount > 6) return false;
+
+            setTimeout(() => {
+                this.loadAnalyticsCharts({ ...(opts || {}), retryIfMissing: true });
+            }, 60);
+
+            return true;
+        },
+
         // Build analytics data series from currentWorkouts
         _buildAnalyticsData() {
             const workouts = this.currentWorkouts || [];
@@ -1835,19 +1961,34 @@ function sharedState() {
         },
 
         // Render the Analytics tab charts
-        loadAnalyticsCharts() {
+        loadAnalyticsCharts(opts = {}) {
             if (!this.currentWorkouts || this.currentWorkouts.length === 0) {
                 this.destroyAnalyticsCharts();
+                this._chartsRetryCount = 0;
                 return;
             }
 
             const render = () => {
                 this.destroyAnalyticsCharts();
-                const { labels, weekly, typeCounts, longRun, longRunPct, tempoPace, speedPace, tempoTarget, speedTarget } = this._buildAnalyticsData();
+                const {
+                    labels,
+                    weekly,
+                    typeCounts,
+                    longRun,
+                    longRunPct,
+                    tempoPace,
+                    speedPace,
+                    tempoTarget,
+                    speedTarget
+                } = this._buildAnalyticsData();
+
+                const sizing = this._getChartSizingOptions(opts.forceMobileSizing);
 
                 // Weekly Mileage + Long Run (dual-axis) + Long Run % (line)
                 const t1 = document.getElementById('weeklyMileageTrend');
-                if (t1) {
+                if (!t1) {
+                    if (this._retryChartsIfMissing(opts)) return;
+                } else {
                     this.analyticsCharts.weeklyTrend = new Chart(t1, {
                         type: 'line',
                         data: {
@@ -1897,9 +2038,7 @@ function sharedState() {
                             ]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            aspectRatio: 2,
+                            ...sizing,
                             scales: {
                                 x: {
                                     ticks: { color: '#cbd5e1' },
@@ -1931,7 +2070,7 @@ function sharedState() {
                                 }
                             },
                             plugins: {
-                                legend: { labels: { color: '#e5e7eb' } },
+                                ...(sizing.plugins || {}),
                                 tooltip: {
                                     callbacks: {
                                         label: (ctx) => {
@@ -1963,10 +2102,12 @@ function sharedState() {
                             }]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            aspectRatio: 1.6,
-                            plugins: { legend: { labels: { color: '#e5e7eb' } } }
+                            ...sizing,
+                            // Doughnut looks better with a squarer aspect on desktop; mobile sizing handled by maintainAspectRatio=false
+                            aspectRatio: sizing.maintainAspectRatio ? 1.6 : undefined,
+                            plugins: {
+                                ...(sizing.plugins || {})
+                            }
                         }
                     });
                 }
@@ -2007,7 +2148,6 @@ function sharedState() {
                                     borderColor: '#67e8f9',
                                     backgroundColor: 'rgba(103,232,249,0.9)'
                                 },
-
                                 // Speed target (continuous line)
                                 {
                                     label: 'Speed Focus Pace',
@@ -2033,18 +2173,19 @@ function sharedState() {
                             ]
                         },
                         options: {
-                            responsive: true,
-                            maintainAspectRatio: true,
-                            aspectRatio: 2,
+                            ...sizing,
+                            // Desktop can keep wider; mobile modal sizing uses maintainAspectRatio=false
+                            aspectRatio: sizing.maintainAspectRatio ? 2 : undefined,
                             scales: {
                                 y: {
-                                    reverse: true, // faster pace = higher
+                                    reverse: true,
                                     ticks: {
                                         callback: (v) => formatPaceFromDecimal(v)
                                     }
                                 }
                             },
                             plugins: {
+                                ...(sizing.plugins || {}),
                                 title: {
                                     display: true,
                                     text: 'Pace Progression by Training Focus',
@@ -2071,13 +2212,19 @@ function sharedState() {
                         }
                     });
                 }
+
+                // Successful render; clear retry counter
+                this._chartsRetryCount = 0;
             };
 
             // Ensure canvases exist (tab just switched). Use Alpine's nextTick if available.
             if (typeof this.$nextTick === 'function') {
-                this.$nextTick(render);
+                this.$nextTick(() => {
+                    requestAnimationFrame(render);
+                });
             } else {
-                setTimeout(render, 0);
+                // Fallback: allow the DOM to paint, then render next frame
+                setTimeout(() => requestAnimationFrame(render), 0);
             }
         },
 
