@@ -826,6 +826,13 @@ function sharedState() {
         // Track the active tab for the new tab state
         activeTab: 'calendar',
 
+        // Viewport flag used by top controls (avoids relying on Tailwind breakpoints)
+        isMobile: window.innerWidth < 768,
+
+        updateIsMobile() {
+            this.isMobile = window.innerWidth < 768;
+        },
+
         average_mileage_weekly: 0,
         average_mileage_daily: 0,
         numOfWeeksInTraining: 0,
@@ -981,6 +988,9 @@ function sharedState() {
 
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
+            this.updateIsMobile();
+            window.addEventListener('resize', () => this.updateIsMobile())
+            
             this.updateGoalPaceFromPercent();
             // Load workout catalog for the Advanced Configuration modal
             this.loadWorkoutCatalog();
