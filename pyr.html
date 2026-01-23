@@ -528,21 +528,38 @@
                                                         x-show="dayEventCount(date) > 0">
                                                         <template x-for="event in dayEvents(date)"
                                                             :key="(event.event_title || '') + '|' + (event.event_date_key || event.event_date || '')">
-                                                            <div @click.stop="showEventModal(date, dateIndex, event.event_title)"
-                                                                class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
-                                                                :class="{
-                                                                                    'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
-                                                                                    'border-red-200 text-red-800 bg-red-100': event.event_theme === 'red',
-                                                                                    'border-yellow-200 text-yellow-800 bg-yellow-100': event.event_theme === 'yellow',
-                                                                                    'border-green-200 text-green-800 bg-green-100': event.event_theme === 'green',
-                                                                                    'border-purple-200 text-purple-800 bg-purple-100': event.event_theme === 'purple'
-                                                                                }">
-                                                                <p x-text="event.event_title"
-                                                                    class="text-sm truncate leading-tight">
-                                                                    <p x-text="event.event_notes" class="text-sm"
-                                                                        style="zoom: 85%;" />
-                                                                </p>
-                                                            </div>
+                                                            <div
+  @click.stop="showEventModal(date, dateIndex, event.event_title)"
+  class="cursor-pointer mt-1 overflow-hidden border border-gray-700 rounded-lg border-l-4 px-2 py-1"
+  :class="{
+    'border-l-blue-400 bg-blue-900/15': event.event_theme === 'blue',
+    'border-l-red-400 bg-red-900/15': event.event_theme === 'red',
+    'border-l-yellow-400 bg-yellow-900/15': event.event_theme === 'yellow',
+    'border-l-green-400 bg-green-900/15': event.event_theme === 'green',
+    'border-l-purple-400 bg-purple-900/15': event.event_theme === 'purple',
+    'border-l-gray-600': !event.event_theme
+  }"
+>
+  <div class="flex items-start justify-between gap-2">
+    <div class="min-w-0">
+      <div class="text-xs font-medium text-gray-100 truncate" x-text="event.event_title"></div>
+      <div class="text-[0.7rem] text-gray-400 truncate" x-text="event.event_notes"></div>
+    </div>
+
+    <!-- Small color dot (matches mobile agenda) -->
+    <div
+      class="mt-0.5 h-2 w-2 rounded-full flex-none"
+      :class="{
+        'bg-blue-400': event.event_theme === 'blue',
+        'bg-red-400': event.event_theme === 'red',
+        'bg-yellow-400': event.event_theme === 'yellow',
+        'bg-green-400': event.event_theme === 'green',
+        'bg-purple-400': event.event_theme === 'purple',
+        'bg-gray-500': !event.event_theme
+      }"
+    ></div>
+  </div>
+</div>
                                                         </template>
                                                     </div>
                                                 </div>
