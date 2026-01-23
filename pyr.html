@@ -12,17 +12,32 @@
             <details class="controls-details" x-ref="controlsDetails" open>
                 <summary class="controls-summary">Training Preferences</summary>
                 <div class="w-full rounded-lg bg-gray-800 p-4 shadow-lg ring-1 ring-white/15 controls-panel relative">
-                    <p class="text-sm text-gray-300 mb-4">
-                        Choose your race distance, race date, training block, weekly mileage, and goal pace.
-                        Then click <span class="font-semibold text-gray-300">Generate</span> to build your plan.
-                    </p>
+                    <div class="mb-4 flex flex-wrap items-center gap-2">
+                        <p class="text-sm text-gray-300">
+                            <span x-show="!selectedRaceDistance">
+                                Choose your race distance, race date, training block, weekly mileage, and goal pace.
+                            </span>
+                            <span x-show="selectedRaceDistance">
+                                Configuring your
+                                <span class="font-semibold text-gray-200" x-text="selectedRaceDistance"></span>
+                                training plan
+                            </span>
+                        </p>
+
+                        <!-- Mileage pill -->
+                        <span x-show="selectedWeeklyMileage"
+                            class="inline-flex items-center rounded-full bg-blue-900/40 border border-blue-700 px-3 py-1 text-xs font-medium text-blue-200">
+                            Peak mileage:
+                            <span class="ml-1 capitalize" x-text="selectedWeeklyMileage"></span>
+                        </span>
+                    </div>
                     <!-- Desktop: Advanced Configuration (top-right of panel) -->
                     <div class="absolute top-4 right-4 z-20" x-show="!isMobile" x-cloak>
-                      <button type="button"
-                        class="rounded-md bg-gray-700 px-4 py-2 text-sm text-white hover:bg-gray-600"
-                        @click="openAdvancedConfig()">
-                        Advanced
-                      </button>
+                        <button type="button"
+                            class="rounded-md bg-gray-700 px-4 py-2 text-sm text-white hover:bg-gray-600"
+                            @click="openAdvancedConfig()">
+                            Advanced
+                        </button>
                     </div>
                     <!-- Controls (use horizontal space) -->
                     <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
@@ -146,55 +161,55 @@
 
                     <!-- Generate button row -->
                     <div class="mt-3">
-                      <div class="w-full relative flex flex-col items-center gap-2">
-                        <!-- Primary action -->
-                        <button id="generateBtn"
-                          class="w-full sm:w-auto rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
-                          @click="updateGoalPaceFromPercent(); window.paceGoal = [String(goalPaceLabel || '').replace('/mi',' min/mi')]; generatePlan(); setTimeout(() => { 
+                        <div class="w-full relative flex flex-col items-center gap-2">
+                            <!-- Primary action -->
+                            <button id="generateBtn"
+                                class="w-full sm:w-auto rounded-md bg-blue-600 px-6 py-2 text-white hover:bg-blue-700"
+                                @click="updateGoalPaceFromPercent(); window.paceGoal = [String(goalPaceLabel || '').replace('/mi',' min/mi')]; generatePlan(); setTimeout(() => { 
                             if ($refs.controlsDetails && !showErrorToast) { 
                               $refs.controlsDetails.open = false; 
                             } 
                           }, 50)">
-                          Generate
-                        </button>
+                                Generate
+                            </button>
 
-                        <!-- Mobile: Advanced Config as a subtle link below Generate -->
-                        <button type="button"
-                          class="sm:hidden text-xs text-gray-300 hover:text-white underline underline-offset-4"
-                          @click="openAdvancedConfig()">
-                          Advanced Configuration
-                        </button>
-                      </div>
+                            <!-- Mobile: Advanced Config as a subtle link below Generate -->
+                            <button type="button"
+                                class="sm:hidden text-xs text-gray-300 hover:text-white underline underline-offset-4"
+                                @click="openAdvancedConfig()">
+                                Advanced Configuration
+                            </button>
+                        </div>
 
-                      <!-- Quick summary of selected workouts -->
-                      <div class="text-xs text-gray-300" x-show="selectedWorkoutTypeIds && selectedWorkoutTypeIds.length">
-                        <span class="text-gray-400">Selected workouts:</span>
-                        <span x-text="(selectedWorkoutTypeIds || []).join(', ')"></span>
-                      </div>
+                        <!-- Quick summary of selected workouts -->
+                        <div class="text-xs text-gray-300"
+                            x-show="selectedWorkoutTypeIds && selectedWorkoutTypeIds.length">
+                            <span class="text-gray-400">Selected workouts:</span>
+                            <span x-text="(selectedWorkoutTypeIds || []).join(', ')"></span>
+                        </div>
                     </div>
 
                     <!-- Advanced Configuration Modal -->
-                    <div
-                        x-show="advancedConfigOpen"
-                        x-transition.opacity
-                        x-cloak
+                    <div x-show="advancedConfigOpen" x-transition.opacity x-cloak
                         class="fixed inset-0 z-50 flex items-center justify-center"
-                        @keydown.escape.window="closeAdvancedConfig()"
-                        style="display:none;">
+                        @keydown.escape.window="closeAdvancedConfig()" style="display:none;">
 
                         <!-- Backdrop -->
                         <div class="absolute inset-0 bg-black/70" @click="closeAdvancedConfig()"></div>
 
                         <!-- Modal Panel -->
-                        <div class="relative w-full max-w-3xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 max-h-[85vh] flex flex-col">
+                        <div
+                            class="relative w-full max-w-3xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 max-h-[85vh] flex flex-col">
                             <div class="flex items-start justify-between px-5 py-4 border-b border-gray-700">
                                 <div>
                                     <div class="text-lg font-semibold">Advanced Configuration</div>
                                     <div class="text-sm text-gray-400">
-                                        Choose which workout types can appear in your plan. (Quality workouts are scheduled on Tue/Thu.)
+                                        Choose which workout types can appear in your plan. (Quality workouts are
+                                        scheduled on Tue/Thu.)
                                     </div>
                                 </div>
-                                <button class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800" @click="closeAdvancedConfig()" aria-label="Close">✕</button>
+                                <button class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
+                                    @click="closeAdvancedConfig()" aria-label="Close">✕</button>
                             </div>
 
                             <div class="p-5 grid grid-cols-1 md:grid-cols-2 gap-4 overflow-y-auto">
@@ -211,18 +226,15 @@
                                         <div class="text-xs uppercase tracking-wide text-gray-400 mb-2">Quality</div>
                                         <template x-for="w in (workoutLibraryGroups.quality || [])" :key="w.id">
                                             <label class="flex items-start gap-3 py-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    class="mt-1"
-                                                    :checked="isWorkoutSelected(w.id)"
-                                                    @change="toggleWorkoutType(w.id)"
-                                                />
+                                                <input type="checkbox" class="mt-1" :checked="isWorkoutSelected(w.id)"
+                                                    @change="toggleWorkoutType(w.id)" />
                                                 <div>
                                                     <div class="font-medium" x-text="w.name"></div>
                                                     <div class="text-xs text-gray-400">
                                                         Intensity <span x-text="w.intensity"></span>
                                                         <span class="mx-1">•</span>
-                                                        Prefers <span x-text="(w.placement && w.placement.dayPreference) ? w.placement.dayPreference.join(', ') : 'Any day'"></span>
+                                                        Prefers <span
+                                                            x-text="(w.placement && w.placement.dayPreference) ? w.placement.dayPreference.join(', ') : 'Any day'"></span>
                                                     </div>
                                                 </div>
                                             </label>
@@ -234,15 +246,12 @@
                                         <div class="text-xs uppercase tracking-wide text-gray-400 mb-2">Long</div>
                                         <template x-for="w in (workoutLibraryGroups.long || [])" :key="w.id">
                                             <label class="flex items-start gap-3 py-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    class="mt-1"
-                                                    :checked="isWorkoutSelected(w.id)"
-                                                    @change="toggleWorkoutType(w.id)"
-                                                />
+                                                <input type="checkbox" class="mt-1" :checked="isWorkoutSelected(w.id)"
+                                                    @change="toggleWorkoutType(w.id)" />
                                                 <div>
                                                     <div class="font-medium" x-text="w.name"></div>
-                                                    <div class="text-xs text-gray-400">Usually scheduled on weekends</div>
+                                                    <div class="text-xs text-gray-400">Usually scheduled on weekends
+                                                    </div>
                                                 </div>
                                             </label>
                                         </template>
@@ -253,12 +262,8 @@
                                         <div class="text-xs uppercase tracking-wide text-gray-400 mb-2">Easy</div>
                                         <template x-for="w in (workoutLibraryGroups.easy || [])" :key="w.id">
                                             <label class="flex items-start gap-3 py-2 cursor-pointer">
-                                                <input
-                                                    type="checkbox"
-                                                    class="mt-1"
-                                                    :checked="isWorkoutSelected(w.id)"
-                                                    @change="toggleWorkoutType(w.id)"
-                                                />
+                                                <input type="checkbox" class="mt-1" :checked="isWorkoutSelected(w.id)"
+                                                    @change="toggleWorkoutType(w.id)" />
                                                 <div>
                                                     <div class="font-medium" x-text="w.name"></div>
                                                     <div class="text-xs text-gray-400">Fills remaining days</div>
@@ -282,21 +287,21 @@
                                     <div class="flex flex-wrap gap-2">
                                         <template x-for="id in (selectedWorkoutTypeIds || [])" :key="id">
                                             <span class="px-2 py-1 rounded bg-gray-800 text-xs border border-gray-700">
-                                                <span x-text="(workoutCatalog.find(w => w.id === id) || {name:id}).name"></span>
+                                                <span
+                                                    x-text="(workoutCatalog.find(w => w.id === id) || {name:id}).name"></span>
                                             </span>
                                         </template>
                                     </div>
 
                                     <div class="mt-4 text-xs text-gray-400">
-                                        Tip: Click <span class="text-gray-200 font-semibold">Generate</span> to rebuild your plan using this selection.
+                                        Tip: Click <span class="text-gray-200 font-semibold">Generate</span> to rebuild
+                                        your plan using this selection.
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex justify-end gap-2 px-5 py-4 border-t border-gray-700">
-                                <button
-                                    type="button"
-                                    class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
+                                <button type="button" class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
                                     @click="closeAdvancedConfig()">
                                     Done
                                 </button>
@@ -319,62 +324,57 @@
                         <!-- Tabs (mobile-scrollable with arrows) -->
                         <div class="relative border-b border-gray-700">
 
-                          <!-- Left arrow (mobile only) -->
-                          <button
-                            x-show="isMobile"
-                            @click="$refs.tabsScroller.scrollBy({ left: -120, behavior: 'smooth' })"
-                            class="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-gray-800/90 border border-gray-700 text-gray-300 hover:text-white"
-                            aria-label="Scroll tabs left">
-                            ‹
-                          </button>
-
-                          <!-- Right arrow (mobile only) -->
-                          <button
-                            x-show="isMobile"
-                            @click="$refs.tabsScroller.scrollBy({ left: 120, behavior: 'smooth' })"
-                            class="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-gray-800/90 border border-gray-700 text-gray-300 hover:text-white"
-                            aria-label="Scroll tabs right">
-                            ›
-                          </button>
-
-                          <!-- Scrollable tab list -->
-                          <div
-                            x-ref="tabsScroller"
-                            class="flex overflow-x-auto whitespace-nowrap scrollbar-hide px-10"
-                          >
-                            <button @click="activeTab = 'calendar'"
-                              :class="activeTab === 'calendar' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
-                              class="flex-none py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
-                              Calendar
+                            <!-- Left arrow (mobile only) -->
+                            <button x-show="isMobile"
+                                @click="$refs.tabsScroller.scrollBy({ left: -120, behavior: 'smooth' })"
+                                class="absolute left-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-gray-800/90 border border-gray-700 text-gray-300 hover:text-white"
+                                aria-label="Scroll tabs left">
+                                ‹
                             </button>
 
-                            <button @click="activeTab = 'summary'; if (!isMobile) { loadBarChart(); }"
-                              :class="activeTab === 'summary' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
-                              class="flex-none py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
-                              Overview
+                            <!-- Right arrow (mobile only) -->
+                            <button x-show="isMobile"
+                                @click="$refs.tabsScroller.scrollBy({ left: 120, behavior: 'smooth' })"
+                                class="absolute right-0 top-1/2 -translate-y-1/2 z-10 h-8 w-8 flex items-center justify-center rounded-full bg-gray-800/90 border border-gray-700 text-gray-300 hover:text-white"
+                                aria-label="Scroll tabs right">
+                                ›
                             </button>
 
-                            <button @click="activeTab = 'analytics'; loadAnalyticsCharts()"
-                              :class="activeTab === 'analytics' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
-                              class="flex-none py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
-                              Analytics
-                            </button>
+                            <!-- Scrollable tab list -->
+                            <div x-ref="tabsScroller"
+                                class="flex overflow-x-auto whitespace-nowrap scrollbar-hide px-10">
+                                <button @click="activeTab = 'calendar'"
+                                    :class="activeTab === 'calendar' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
+                                    class="flex-none py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
+                                    Calendar
+                                </button>
 
-                            <button @click="
+                                <button @click="activeTab = 'summary'; if (!isMobile) { loadBarChart(); }"
+                                    :class="activeTab === 'summary' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
+                                    class="flex-none py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
+                                    Overview
+                                </button>
+
+                                <button @click="activeTab = 'analytics'; loadAnalyticsCharts()"
+                                    :class="activeTab === 'analytics' ? 'border-blue-500 text-blue-400' : 'border-transparent text-gray-500 hover:text-gray-300'"
+                                    class="flex-none py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
+                                    Analytics
+                                </button>
+
+                                <button @click="
                                 activeTab = 'ai';
                                 aiLoading = true;
                                 Promise.resolve().then(() => {
                                   window.initAICoach && window.initAICoach();
                                   setTimeout(() => aiLoading = false, 1500);
                                 });
-                              "
-                              :class="activeTab === 'ai'
+                              " :class="activeTab === 'ai'
                                 ? 'border-blue-500 text-blue-400'
                                 : 'border-transparent text-gray-500 hover:text-gray-300'"
-                              class="flex-none py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
-                              Ask the AI Coach
-                            </button>
-                          </div>
+                                    class="flex-none py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
+                                    Ask the AI Coach
+                                </button>
+                            </div>
                         </div>
 
                         <!-- Tab Content -->
@@ -450,18 +450,21 @@
                                     <!-- Mobile: Agenda/List view (calendar grid hidden on small screens) -->
                                     <div x-show="isMobile">
                                         <template x-if="!mobileAgendaGroups || mobileAgendaGroups.length === 0">
-                                            <div class="text-sm text-gray-400 mt-2">No workouts scheduled for this month.</div>
+                                            <div class="text-sm text-gray-400 mt-2">No workouts scheduled for this
+                                                month.</div>
                                         </template>
 
                                         <div class="space-y-4 mt-2">
                                             <template x-for="group in mobileAgendaGroups" :key="group.dateKey">
                                                 <div class="rounded-xl border border-gray-700 bg-gray-800">
-                                                    <div class="px-4 py-2 border-b border-gray-700 text-sm font-semibold text-gray-200">
+                                                    <div
+                                                        class="px-4 py-2 border-b border-gray-700 text-sm font-semibold text-gray-200">
                                                         <span x-text="group.label"></span>
                                                     </div>
 
                                                     <div class="divide-y divide-gray-700">
-                                                        <template x-for="event in group.events" :key="(event.event_title || '') + '|' + (event.event_date || '')">
+                                                        <template x-for="event in group.events"
+                                                            :key="(event.event_title || '') + '|' + (event.event_date || '')">
                                                             <div class="px-4 py-3 cursor-pointer hover:bg-gray-700/40 border-l-4"
                                                                 :class="{
                                                                   'border-blue-400 bg-blue-900/15': event.event_theme === 'blue',
@@ -474,14 +477,16 @@
                                                                 @click="showEventModal(group.day, null, event.event_title)">
 
                                                                 <div class="flex items-start justify-between gap-3">
-                                                                  <div class="min-w-0">
-                                                                    <div class="text-sm font-medium truncate" x-text="event.event_title"></div>
-                                                                    <div class="text-xs text-gray-400 mt-1" x-text="event.event_notes"></div>
-                                                                  </div>
+                                                                    <div class="min-w-0">
+                                                                        <div class="text-sm font-medium truncate"
+                                                                            x-text="event.event_title"></div>
+                                                                        <div class="text-xs text-gray-400 mt-1"
+                                                                            x-text="event.event_notes"></div>
+                                                                    </div>
 
-                                                                  <!-- Small color dot to make the category immediately scannable -->
-                                                                  <div class="mt-1 h-2.5 w-2.5 rounded-full flex-none"
-                                                                    :class="{
+                                                                    <!-- Small color dot to make the category immediately scannable -->
+                                                                    <div class="mt-1 h-2.5 w-2.5 rounded-full flex-none"
+                                                                        :class="{
                                                                       'bg-blue-400': event.event_theme === 'blue',
                                                                       'bg-red-400': event.event_theme === 'red',
                                                                       'bg-yellow-400': event.event_theme === 'yellow',
@@ -500,55 +505,71 @@
 
                                     <!-- Desktop month grid -->
                                     <div x-show="!isMobile">
-                                    <!-- Weekdays -->
-                                    <div class="grid grid-cols-7 gap-1">
-                                        <template x-for="day in DAYS" :key="day">
-                                            <div class="text-center text-sm font-semibold text-gray-400 uppercase">
-                                                <span x-text="day"></span>
-                                            </div>
-                                        </template>
-                                    </div>
-
-                                    <div class="-mx-1 -mb-1">
-                                        <div class="flex flex-wrap border-t border-l">
-                                            <template x-for="blankday in blankdays">
-                                                <div style="width: 14.28%; height: 120px"
-                                                    class="text-center border-r border-b px-4 pt-2">
-                                                </div>
-                                            </template>
-                                            <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
-                                                <div style="width: 14.28%; height: 120px"
-                                                    class="px-4 pt-2 border-r border-b relative"
-                                                    @click="setSelectedDay(date)">
-                                                    <div @click.stop="setSelectedDay(date); showEventModal(date, dateIndex, null)" x-text="date"
-                                                        class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
-                                                        :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
-                                                    </div>
-                                                    <div style="height: 80px;" class="overflow-y-auto mt-1"
-                                                        x-show="dayEventCount(date) > 0">
-                                                        <template x-for="event in dayEvents(date)"
-                                                            :key="(event.event_title || '') + '|' + (event.event_date_key || event.event_date || '')">
-                                                            <div @click.stop="showEventModal(date, dateIndex, event.event_title)"
-                                                                class="cursor-pointer px-2 py-1 rounded-lg mt-1 overflow-hidden border"
-                                                                :class="{
-                                                                                    'border-blue-200 text-blue-800 bg-blue-100': event.event_theme === 'blue',
-                                                                                    'border-red-200 text-red-800 bg-red-100': event.event_theme === 'red',
-                                                                                    'border-yellow-200 text-yellow-800 bg-yellow-100': event.event_theme === 'yellow',
-                                                                                    'border-green-200 text-green-800 bg-green-100': event.event_theme === 'green',
-                                                                                    'border-purple-200 text-purple-800 bg-purple-100': event.event_theme === 'purple'
-                                                                                }">
-                                                                <p x-text="event.event_title"
-                                                                    class="text-sm truncate leading-tight">
-                                                                    <p x-text="event.event_notes" class="text-sm"
-                                                                        style="zoom: 85%;" />
-                                                                </p>
-                                                            </div>
-                                                        </template>
-                                                    </div>
+                                        <!-- Weekdays -->
+                                        <div class="grid grid-cols-7 gap-1">
+                                            <template x-for="day in DAYS" :key="day">
+                                                <div class="text-center text-sm font-semibold text-gray-400 uppercase">
+                                                    <span x-text="day"></span>
                                                 </div>
                                             </template>
                                         </div>
-                                    </div>
+
+                                        <div class="-mx-1 -mb-1">
+                                            <div class="flex flex-wrap border-t border-l">
+                                                <template x-for="blankday in blankdays">
+                                                    <div style="width: 14.28%; height: 120px"
+                                                        class="text-center border-r border-b px-4 pt-2">
+                                                    </div>
+                                                </template>
+                                                <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
+                                                    <div style="width: 14.28%; height: 120px"
+                                                        class="px-4 pt-2 border-r border-b relative"
+                                                        @click="setSelectedDay(date)">
+                                                        <div @click.stop="setSelectedDay(date); showEventModal(date, dateIndex, null)"
+                                                            x-text="date"
+                                                            class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
+                                                            :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
+                                                        </div>
+                                                        <div style="height: 80px;" class="overflow-y-auto mt-1"
+                                                            x-show="dayEventCount(date) > 0">
+                                                            <template x-for="event in dayEvents(date)"
+                                                                :key="(event.event_title || '') + '|' + (event.event_date_key || event.event_date || '')">
+                                                                <div @click.stop="showEventModal(date, dateIndex, event.event_title)"
+                                                                    class="cursor-pointer mt-1 overflow-hidden border border-gray-700 rounded-lg border-l-4 px-2 py-1"
+                                                                    :class="{
+    'border-l-blue-400 bg-blue-900/15': event.event_theme === 'blue',
+    'border-l-red-400 bg-red-900/15': event.event_theme === 'red',
+    'border-l-yellow-400 bg-yellow-900/15': event.event_theme === 'yellow',
+    'border-l-green-400 bg-green-900/15': event.event_theme === 'green',
+    'border-l-purple-400 bg-purple-900/15': event.event_theme === 'purple',
+    'border-l-gray-600': !event.event_theme
+  }">
+                                                                    <div class="flex items-start justify-between gap-2">
+                                                                        <div class="min-w-0">
+                                                                            <div class="text-xs font-medium text-gray-100 truncate"
+                                                                                x-text="event.event_title"></div>
+                                                                            <div class="text-[0.7rem] text-gray-400 truncate"
+                                                                                x-text="event.event_notes"></div>
+                                                                        </div>
+
+                                                                        <!-- Small color dot (matches mobile agenda) -->
+                                                                        <div class="mt-0.5 h-2 w-2 rounded-full flex-none"
+                                                                            :class="{
+        'bg-blue-400': event.event_theme === 'blue',
+        'bg-red-400': event.event_theme === 'red',
+        'bg-yellow-400': event.event_theme === 'yellow',
+        'bg-green-400': event.event_theme === 'green',
+        'bg-purple-400': event.event_theme === 'purple',
+        'bg-gray-500': !event.event_theme
+      }"></div>
+                                                                    </div>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                            </div>
+                                        </div>
                                     </div>
 
                                     <!-- Event Modal -->
@@ -579,6 +600,120 @@
                                                     <option value="Long Run">Long Run</option>
                                                     <option value="Race">Race</option>
                                                 </select>
+                                            </div>
+                                            <!-- Workout selector (library) -->
+                                            <div class="mt-4">
+                                                <div class="flex items-center justify-between">
+                                                    <label
+                                                        class="block text-sm font-medium text-gray-300">Workout</label>
+                                                    <button type="button"
+                                                        class="text-xs text-blue-300 hover:text-blue-200 underline underline-offset-4"
+                                                        @click="openWorkoutPicker()">
+                                                        Change workout
+                                                    </button>
+                                                </div>
+
+                                                <!-- Read-only summary (no input styling) -->
+                                                <div class="text-sm text-gray-400 flex flex-wrap items-center gap-2">
+                                                    <span>
+                                                        Selected: <span x-text="getSelectedWorkoutLabel()"></span>
+                                                    </span>
+
+                                                    <!-- Distance pill (planned event distance) -->
+                                                    <span
+                                                        x-show="eventToEdit && eventToEdit.event_distance"
+                                                        class="inline-flex items-center rounded-full bg-blue-900/40 border border-blue-700 px-2 py-0.5 text-[0.65rem] font-semibold text-blue-200"
+                                                        x-text="`Est. ${Number(eventToEdit.event_distance).toFixed(1)} mi`">
+                                                    </span>
+                                                </div>
+
+                                                <!-- Static workout definition (do NOT recompute) -->
+                                                <div class="text-xs text-gray-500"
+                                                    x-text="getSelectedWorkoutDetails()">
+                                                </div>
+                                            </div>
+
+                                            <!-- Workout picker modal (inside event modal) -->
+                                            <div x-show="workoutPickerOpen" x-cloak
+                                                class="fixed inset-0 z-[60] flex items-center justify-center">
+                                                <div class="absolute inset-0 bg-black/70" @click="closeWorkoutPicker()">
+                                                </div>
+
+                                                <div
+                                                    class="relative w-full max-w-lg mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 max-h-[85vh] flex flex-col">
+                                                    <div
+                                                        class="flex items-start justify-between px-5 py-4 border-b border-gray-700">
+                                                        <div>
+                                                            <div class="text-lg font-semibold">Choose a workout</div>
+                                                            <div class="text-sm text-gray-400"
+                                                                x-text="getWorkoutPickerHint()"></div>
+                                                        </div>
+                                                        <button
+                                                            class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
+                                                            @click="closeWorkoutPicker()" aria-label="Close">✕</button>
+                                                    </div>
+
+                                                    <div class="p-4 border-b border-gray-700">
+                                                        <input type="text" x-model="workoutPickerQuery"
+                                                            placeholder="Search workouts (e.g., cruise, hills, progression)"
+                                                            class="w-full bg-gray-800 text-gray-100 rounded-lg border border-gray-700 px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" />
+                                                    </div>
+
+                                                    <div class="p-4 overflow-y-auto">
+                                                        <template x-if="filteredWorkoutOptions().length === 0">
+                                                            <div class="text-sm text-gray-400">No workouts match your
+                                                                search.</div>
+                                                        </template>
+
+                                                        <div class="space-y-2">
+                                                            <template x-for="w in filteredWorkoutOptions()" :key="w.id">
+                                                                <button type="button"
+                                                                    class="w-full text-left rounded-lg border border-gray-700 bg-gray-800/60 hover:bg-gray-800 px-4 py-3"
+                                                                    @click="applyWorkoutSelection(w.id)">
+                                                                    <div class="flex items-start justify-between gap-3">
+                                                                        <div class="min-w-0">
+                                                                            <div class="text-sm font-semibold text-gray-100"
+                                                                                x-text="w.name"></div>
+                                                                            <div class="text-xs text-gray-400 mt-1">
+                                                                                <span class="uppercase tracking-wide"
+                                                                                    x-text="w.category"></span>
+                                                                                <span class="mx-1">•</span>
+                                                                                Intensity <span
+                                                                                    x-text="w.intensity"></span>
+                                                                                <span class="mx-1">•</span>
+                                                                                <span
+                                                                                    x-text="workoutOptionMilesText(w)"></span>
+                                                                            </div>
+                                                                            <div class="text-[0.7rem] text-gray-500 mt-1"
+                                                                                style="display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden;"
+                                                                                x-text="workoutOptionPreviewText(w)">
+                                                                            </div>
+                                                                        </div>
+                                                                        <div
+                                                                            class="text-xs text-gray-400 flex items-center gap-2">
+                                                                            <span
+                                                                                x-text="(w.placement && w.placement.dayPreference) ? w.placement.dayPreference.join(', ') : ''"></span>
+                                                                            <span
+                                                                                x-show="eventToEdit && eventToEdit.event_workout_type_id === w.id"
+                                                                                class="px-2 py-0.5 rounded-full bg-blue-900/30 border border-blue-700 text-blue-200 text-[0.7rem]">
+                                                                                Selected
+                                                                            </span>
+                                                                        </div>
+                                                                    </div>
+                                                                </button>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+
+                                                    <div
+                                                        class="flex justify-end gap-2 px-5 py-4 border-t border-gray-700">
+                                                        <button type="button"
+                                                            class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
+                                                            @click="closeWorkoutPicker()">
+                                                            Done
+                                                        </button>
+                                                    </div>
+                                                </div>
                                             </div>
                                             <div class="mt-4">
                                                 <label class="block text-sm font-medium text-gray-300">Distance
@@ -651,50 +786,57 @@
 
                                     <!-- Desktop: inline overview chart -->
                                     <template x-if="!isMobile">
-                                      <div class="mt-6">
-                                        <canvas id="myChart" width="50%" height="20%"></canvas>
-                                      </div>
+                                        <div class="mt-6">
+                                            <canvas id="myChart" width="50%" height="20%"></canvas>
+                                        </div>
                                     </template>
 
                                     <!-- Mobile: open overview chart in full-screen modal -->
                                     <template x-if="isMobile">
-                                      <div class="mt-6">
-                                        <button type="button"
-                                          class="w-full rounded-md bg-gray-700 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-600"
-                                          @click="openOverviewChartModal()">
-                                          View chart
-                                        </button>
-                                        <div class="mt-2 text-xs text-gray-400">Tip: Charts are easier to read in full-screen.</div>
-                                      </div>
+                                        <div class="mt-6">
+                                            <button type="button"
+                                                class="w-full rounded-md bg-gray-700 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-600"
+                                                @click="openOverviewChartModal()">
+                                                View chart
+                                            </button>
+                                            <div class="mt-2 text-xs text-gray-400">Tip: Charts are easier to read in
+                                                full-screen.</div>
+                                        </div>
                                     </template>
 
                                     <!-- Mobile Overview Chart Modal -->
                                     <template x-if="overviewChartModalOpen">
-                                      <div class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="closeOverviewChartModal()">
-                                        <div class="absolute inset-0 bg-black/70" @click="closeOverviewChartModal()"></div>
+                                        <div class="fixed inset-0 z-50 flex items-center justify-center"
+                                            @keydown.escape.window="closeOverviewChartModal()">
+                                            <div class="absolute inset-0 bg-black/70"
+                                                @click="closeOverviewChartModal()"></div>
 
-                                        <div class="relative w-full h-[92vh] mx-3 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 flex flex-col">
-                                          <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-                                            <div>
-                                              <div class="text-base font-semibold">Overview chart</div>
-                                              <div class="text-xs text-gray-400">Scroll if needed</div>
+                                            <div
+                                                class="relative w-full h-[92vh] mx-3 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 flex flex-col">
+                                                <div
+                                                    class="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+                                                    <div>
+                                                        <div class="text-base font-semibold">Overview chart</div>
+                                                        <div class="text-xs text-gray-400">Scroll if needed</div>
+                                                    </div>
+                                                    <button
+                                                        class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
+                                                        @click="closeOverviewChartModal()" aria-label="Close">✕</button>
+                                                </div>
+
+                                                <div class="p-4 overflow-y-auto">
+                                                    <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
+                                                        <canvas id="myChart" width="100%" height="60%"></canvas>
+                                                    </div>
+                                                </div>
+
+                                                <div class="px-4 py-3 border-t border-gray-700 flex justify-end">
+                                                    <button type="button"
+                                                        class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
+                                                        @click="closeOverviewChartModal()">Done</button>
+                                                </div>
                                             </div>
-                                            <button class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
-                                              @click="closeOverviewChartModal()" aria-label="Close">✕</button>
-                                          </div>
-
-                                          <div class="p-4 overflow-y-auto">
-                                            <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
-                                              <canvas id="myChart" width="100%" height="60%"></canvas>
-                                            </div>
-                                          </div>
-
-                                          <div class="px-4 py-3 border-t border-gray-700 flex justify-end">
-                                            <button type="button" class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
-                                              @click="closeOverviewChartModal()">Done</button>
-                                          </div>
                                         </div>
-                                      </div>
                                     </template>
                                 </div>
                             </template>
@@ -725,65 +867,71 @@
 
                                     <!-- Desktop: inline charts -->
                                     <template x-if="!isMobile">
-                                      <div class="space-y-6">
-                                        <canvas id="weeklyMileageTrend"></canvas>
-                                        <canvas id="longRunProgression"></canvas>
-                                        <canvas id="paceProgression"></canvas>
-                                      </div>
+                                        <div class="space-y-6">
+                                            <canvas id="weeklyMileageTrend"></canvas>
+                                            <canvas id="longRunProgression"></canvas>
+                                            <canvas id="paceProgression"></canvas>
+                                        </div>
                                     </template>
 
                                     <!-- Mobile: charts in full-screen modal -->
                                     <template x-if="isMobile">
-                                      <div class="pt-2">
-                                        <button type="button"
-                                          class="w-full rounded-md bg-gray-700 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-600"
-                                          @click="openChartsModal()">
-                                          View charts
-                                        </button>
-                                        <div class="mt-2 text-xs text-gray-400">
-                                          Tip: Charts are easier to read in full-screen.
+                                        <div class="pt-2">
+                                            <button type="button"
+                                                class="w-full rounded-md bg-gray-700 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-600"
+                                                @click="openChartsModal()">
+                                                View charts
+                                            </button>
+                                            <div class="mt-2 text-xs text-gray-400">
+                                                Tip: Charts are easier to read in full-screen.
+                                            </div>
                                         </div>
-                                      </div>
                                     </template>
 
                                     <!-- Mobile Charts Modal -->
                                     <template x-if="chartsModalOpen">
-                                      <div class="fixed inset-0 z-50 flex items-center justify-center" @keydown.escape.window="closeChartsModal()">
-                                        <div class="absolute inset-0 bg-black/70" @click="closeChartsModal()"></div>
+                                        <div class="fixed inset-0 z-50 flex items-center justify-center"
+                                            @keydown.escape.window="closeChartsModal()">
+                                            <div class="absolute inset-0 bg-black/70" @click="closeChartsModal()"></div>
 
-                                        <div class="relative w-full h-[92vh] mx-3 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 flex flex-col">
-                                          <div class="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-                                            <div>
-                                              <div class="text-base font-semibold">Charts</div>
-                                              <div class="text-xs text-gray-400">Scroll to view charts</div>
+                                            <div
+                                                class="relative w-full h-[92vh] mx-3 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 flex flex-col">
+                                                <div
+                                                    class="flex items-center justify-between px-4 py-3 border-b border-gray-700">
+                                                    <div>
+                                                        <div class="text-base font-semibold">Charts</div>
+                                                        <div class="text-xs text-gray-400">Scroll to view charts</div>
+                                                    </div>
+                                                    <button
+                                                        class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
+                                                        @click="closeChartsModal()" aria-label="Close">✕</button>
+                                                </div>
+
+                                                <div class="p-4 space-y-6 overflow-y-auto">
+                                                    <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
+                                                        <div class="text-sm font-semibold mb-2">Weekly mileage</div>
+                                                        <canvas id="weeklyMileageTrend"></canvas>
+                                                    </div>
+
+                                                    <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
+                                                        <div class="text-sm font-semibold mb-2">Long run progression
+                                                        </div>
+                                                        <canvas id="longRunProgression"></canvas>
+                                                    </div>
+
+                                                    <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
+                                                        <div class="text-sm font-semibold mb-2">Pace progression</div>
+                                                        <canvas id="paceProgression"></canvas>
+                                                    </div>
+                                                </div>
+
+                                                <div class="px-4 py-3 border-t border-gray-700 flex justify-end">
+                                                    <button type="button"
+                                                        class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
+                                                        @click="closeChartsModal()">Done</button>
+                                                </div>
                                             </div>
-                                            <button class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
-                                              @click="closeChartsModal()" aria-label="Close">✕</button>
-                                          </div>
-
-                                          <div class="p-4 space-y-6 overflow-y-auto">
-                                            <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
-                                              <div class="text-sm font-semibold mb-2">Weekly mileage</div>
-                                              <canvas id="weeklyMileageTrend"></canvas>
-                                            </div>
-
-                                            <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
-                                              <div class="text-sm font-semibold mb-2">Long run progression</div>
-                                              <canvas id="longRunProgression"></canvas>
-                                            </div>
-
-                                            <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
-                                              <div class="text-sm font-semibold mb-2">Pace progression</div>
-                                              <canvas id="paceProgression"></canvas>
-                                            </div>
-                                          </div>
-
-                                          <div class="px-4 py-3 border-t border-gray-700 flex justify-end">
-                                            <button type="button" class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
-                                              @click="closeChartsModal()">Done</button>
-                                          </div>
                                         </div>
-                                      </div>
                                     </template>
                                 </div>
                             </template>
@@ -946,6 +1094,7 @@
     </script>
 
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script type="text/javascript" src="./workoutsCatalog.js"></script>
     <script type="text/javascript" src="./pyr.js"></script>
     <!--<script src="./dist/nouislider.min.js"></script>-->
     <script src="sliderOptions.js"></script>
@@ -958,18 +1107,24 @@
         0% {
             transform: translateX(-100%);
         }
+
         100% {
             transform: translateX(300%);
         }
     }
+
     .ai-loading-bar-inner {
         animation: aiLoadingBarSlide 1.2s linear infinite;
     }
+
     .scrollbar-hide::-webkit-scrollbar {
-      display: none;
+        display: none;
     }
+
     .scrollbar-hide {
-      -ms-overflow-style: none;  /* IE and Edge */
-      scrollbar-width: none;     /* Firefox */
+        -ms-overflow-style: none;
+        /* IE and Edge */
+        scrollbar-width: none;
+        /* Firefox */
     }
 </style>

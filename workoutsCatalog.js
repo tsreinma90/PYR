@@ -26,6 +26,7 @@
   * @typedef {Object} WorkoutVariantRecipe
  * @property {string} label
  * @property {number[]=} minutes
+ * @property {number[]=} totalMinutes  // optional: total session duration (including WU/CD if applicable)
  * @property {number[]=} reps
  * @property {number[]=} repMinutes
  * @property {string[]=} sessions
@@ -102,9 +103,213 @@ function pickByProgress(arr, weekIndex, totalWeeks) {
 // Create a concrete workout instance (generator-facing)
 // ---------------------------------------------------------------------------
 
-export function createWorkoutInstance(workoutType, ctx) {
+/**
+ * @typedef {Object} WorkoutInstance
+ * @property {string} title
+ * @property {string} titleDetail
+ * @property {"easy"|"quality"|"long"|"strength"|"mobility"} category
+ * @property {0|1|2|3} intensity
+ * @property {string} description
+ * @property {string} notes
+ * @property {number=} estimatedMinutesTotal
+ * @property {number=} estimatedMiles
+ */
+
+/**
+ * @typedef {Object} WorkoutInstanceContext
+ * @property {RunnerLevel} level
+ * @property {number} weekIndex
+ * @property {number} totalWeeks
+ * @property {{ easy?: number, long?: number, tempo?: number, speed?: number }=} pacesMinPerMile
+ */
+
+export function createWorkoutInstance(/** @type {WorkoutType} */ workoutType, /** @type {WorkoutInstanceContext} */ ctx) {
     const { level, weekIndex, totalWeeks } = ctx;
     const recipe = workoutType.variantsByLevel[level];
+
+    function estimateTotalMinutes(fallbackText) {
+        const totalM = pickByProgress(recipe.totalMinutes, weekIndex, totalWeeks);
+        if (typeof totalM === "number" && Number.isFinite(totalM)) return totalM;
+
+        const mainM = pickByProgress(recipe.minutes, weekIndex, totalWeeks);
+        if (typeof mainM === "number" && Number.isFinite(mainM)) {
+            const wuCd = recipe.includeWarmupCooldown ? 20 : 0;
+            return mainM + wuCd;
+        }
+
+        // Fallback: parse "35 min" or "10–15 min" from generated text.
+        if (!fallbackText) return undefined;
+        const s = String(fallbackText);
+
+        // Prefer ranges like 10–15 min (take midpoint)
+        const mRange = s.match(/(\d{1,3})\s*(?:–|-|—)\s*(\d{1,3})\s*min/i);
+        if (mRange) {
+            const a = Number(mRange[1]);
+            const b = Number(mRange[2]);
+            if (Number.isFinite(a) && Number.isFinite(b)) {
+                return Math.round(((a + b) / 2) * 10) / 10;
+            }
+        }
+
+        // Otherwise first single "NN min"
+        const mSingle = s.match(/(\d{1,3})\s*min/i);
+        if (mSingle) {
+            const n = Number(mSingle[1]);
+            if (Number.isFinite(n)) return n;
+        }
+
+        return undefined;
+    }
+
+    function paceForWorkoutType() {
+        const p = ctx.pacesMinPerMile || {};
+        // Default pace mapping by workout id/category.
+        if (workoutType.id === "tempo" || workoutType.id === "progression") return p.tempo ?? p.easy;
+        if (workoutType.id === "intervals" || workoutType.id === "hills") return p.speed ?? p.tempo ?? p.easy;
+        if (workoutType.id === "long_run") return p.long ?? p.easy;
+        if (workoutType.id === "easy") return p.easy;
+        return p.easy;
+    }
+
+    // --- Distance parsing for track-style prescriptions ---
+    const METERS_PER_MILE = 1609.34;
+
+    function metersToMiles(m) {
+        return m / METERS_PER_MILE;
+    }
+
+    function kmToMiles(km) {
+        return km * 0.621371;
+    }
+
+    // Parse common distance patterns from session text.
+    // Returns miles for the MAIN SET only (not including WU/CD unless we add it separately).
+    function parseMainSetMilesFromText(text) {
+        if (!text) return undefined;
+        const s = String(text);
+
+        // Ladder: 400/800/1200/800/400 (assume meters)
+        // Example: "Ladder: 400/800/1200/800/400 @ ..."
+        const ladder = s.match(/Ladder\s*:\s*([0-9\s\/]+)\s*/i);
+        if (ladder && ladder[1]) {
+            const parts = ladder[1]
+                .split('/')
+                .map(p => Number(String(p).trim()))
+                .filter(n => Number.isFinite(n) && n > 0);
+            if (parts.length) {
+                const totalMeters = parts.reduce((a, b) => a + b, 0);
+                return metersToMiles(totalMeters);
+            }
+        }
+
+        // Repeats: "6 x 400m" or "6x400m"
+        let m = s.match(/(\d+)\s*x\s*(\d+)\s*m\b/i);
+        if (m) {
+            const reps = Number(m[1]);
+            const meters = Number(m[2]);
+            if (Number.isFinite(reps) && Number.isFinite(meters)) {
+                return metersToMiles(reps * meters);
+            }
+        }
+
+        // Repeats in km: "5 x 1km" or "5 x 2 km"
+        m = s.match(/(\d+)\s*x\s*(\d+(?:\.\d+)?)\s*km\b/i);
+        if (m) {
+            const reps = Number(m[1]);
+            const km = Number(m[2]);
+            if (Number.isFinite(reps) && Number.isFinite(km)) {
+                return kmToMiles(reps * km);
+            }
+        }
+
+        // Repeats in miles: "3 x 1 mi" or "4 x 0.5mi"
+        m = s.match(/(\d+)\s*x\s*(\d+(?:\.\d+)?)\s*mi\b/i);
+        if (m) {
+            const reps = Number(m[1]);
+            const mi = Number(m[2]);
+            if (Number.isFinite(reps) && Number.isFinite(mi)) {
+                return reps * mi;
+            }
+        }
+
+        // Single distance mention like "10K" or "5k" is too ambiguous here; skip.
+        return undefined;
+    }
+
+    // Parse explicit WU/CD minutes if present (e.g., "WU 12–15 / CD 10" or "WU 10 / CD 10").
+    function parseWarmupCooldownMinutes(text) {
+        if (!text) return undefined;
+        const s = String(text);
+
+        // Capture WU range or single
+        const wuRange = s.match(/WU\s*(\d{1,3})\s*(?:–|-|—)\s*(\d{1,3})/i);
+        const wuSingle = s.match(/WU\s*(\d{1,3})\b/i);
+
+        // Capture CD range or single
+        const cdRange = s.match(/CD\s*(\d{1,3})\s*(?:–|-|—)\s*(\d{1,3})/i);
+        const cdSingle = s.match(/CD\s*(\d{1,3})\b/i);
+
+        let wu = undefined;
+        let cd = undefined;
+
+        if (wuRange) {
+            const a = Number(wuRange[1]);
+            const b = Number(wuRange[2]);
+            if (Number.isFinite(a) && Number.isFinite(b)) wu = (a + b) / 2;
+        } else if (wuSingle) {
+            const a = Number(wuSingle[1]);
+            if (Number.isFinite(a)) wu = a;
+        }
+
+        if (cdRange) {
+            const a = Number(cdRange[1]);
+            const b = Number(cdRange[2]);
+            if (Number.isFinite(a) && Number.isFinite(b)) cd = (a + b) / 2;
+        } else if (cdSingle) {
+            const a = Number(cdSingle[1]);
+            if (Number.isFinite(a)) cd = a;
+        }
+
+        if (wu == null && cd == null) return undefined;
+        return { wuMinutes: wu, cdMinutes: cd };
+    }
+
+    function estimateWarmupCooldownMilesFromText(text) {
+        const p = ctx.pacesMinPerMile || {};
+        const easyPace = p.easy;
+        if (typeof easyPace !== 'number' || !Number.isFinite(easyPace) || easyPace <= 0) return 0;
+
+        const parsed = parseWarmupCooldownMinutes(text);
+        if (parsed) {
+            const wu = (typeof parsed.wuMinutes === 'number' && Number.isFinite(parsed.wuMinutes)) ? parsed.wuMinutes : 0;
+            const cd = (typeof parsed.cdMinutes === 'number' && Number.isFinite(parsed.cdMinutes)) ? parsed.cdMinutes : 0;
+            return (wu + cd) / easyPace;
+        }
+
+        // Fallback default if recipe says WU/CD included.
+        if (recipe.includeWarmupCooldown) {
+            return 20 / easyPace; // 10 WU + 10 CD
+        }
+
+        return 0;
+    }
+
+    function estimateMiles(totalMinutes) {
+        // Prefer distance-based estimation when the workout prescription includes explicit distances (e.g., 6 x 400m).
+        const mainSetMiles = parseMainSetMilesFromText(estimationText);
+        if (typeof mainSetMiles === 'number' && Number.isFinite(mainSetMiles) && mainSetMiles > 0) {
+            const wuCdMiles = estimateWarmupCooldownMilesFromText(estimationText);
+            const miles = mainSetMiles + wuCdMiles;
+            return Math.round(miles * 10) / 10;
+        }
+
+        // Fallback: time-based estimation
+        const pace = paceForWorkoutType();
+        if (typeof totalMinutes !== "number" || !Number.isFinite(totalMinutes)) return undefined;
+        if (typeof pace !== "number" || !Number.isFinite(pace) || pace <= 0) return undefined;
+        const miles = totalMinutes / pace;
+        return Math.round(miles * 10) / 10;
+    }
 
     const minutes = pickByProgress(recipe.minutes, weekIndex, totalWeeks);
     const reps = pickByProgress(recipe.reps, weekIndex, totalWeeks);
@@ -114,9 +319,9 @@ export function createWorkoutInstance(workoutType, ctx) {
 
     let description = workoutType.name;
 
-    const wuCdText = recipe.includeWarmupCooldown
-        ? "Warm-up 10–15 min easy + drills/strides; Cool-down 10 min easy"
-        : "";
+    // const wuCdText = recipe.includeWarmupCooldown
+    //     ? "Warm-up 10–15 min easy + drills/strides; Cool-down 10 min easy"
+    //     : "";
 
     // Create a short title detail for calendar tiles (keeps the name clean but adds the workout prescription)
     function toTitleDetail(s) {
@@ -132,6 +337,68 @@ export function createWorkoutInstance(workoutType, ctx) {
     function sessionHasRecovery(s) {
         if (!s) return false;
         return /(w\/|recovery|recoveries|rest|jog|walk down)/i.test(String(s));
+    }
+
+    // Format the free-text session/description into a more “workout card” style prescription.
+    // This improves UX without changing the underlying catalog data.
+    function formatWorkoutPrescription(mainText) {
+        const lines = [];
+
+        // Warm-up / Cool-down: prefer explicit tokens in the text; otherwise use the generic WU/CD hint.
+        const text = String(mainText || '').trim();
+
+        // Strip common WU/CD parentheticals for the main set display.
+        const mainSet = String(text)
+            .replace(/\(WU\s*[^)]*\)/gi, '')
+            .replace(/\(WU\/CD\)/gi, '')
+            .replace(/\(WU\s*\d+\s*(?:–|-|—)?\s*\d*\s*\/?\s*CD\s*\d+[^)]*\)/gi, '')
+            .trim();
+
+        // Warm-up line
+        if (recipe.includeWarmupCooldown) {
+            // If the session already specifies WU/CD times, keep the generic template but it’s still useful.
+            lines.push(`Warm-up: 10–15 min easy + drills/strides`);
+        }
+
+        // Main set label based on workout type
+        const prefix = (() => {
+            if (workoutType.id === 'tempo') return 'Main set (Tempo)';
+            if (workoutType.id === 'intervals') return 'Main set (Intervals)';
+            if (workoutType.id === 'hills') return 'Main set (Hills)';
+            if (workoutType.id === 'progression') return 'Main set (Progression)';
+            if (workoutType.id === 'long_run') return 'Main set (Long)';
+            if (workoutType.id === 'easy') return 'Easy run';
+            return 'Main set';
+        })();
+
+        // For readability, remove leading labels like "Track:" / "VO2:" / "Tempo:" from the start of the line.
+        const cleaned = mainSet
+            .replace(/^(Track|VO2|Intervals|Hills|Tempo|Cruise|Progression|Ladder)\s*:\s*/i, '')
+            .trim();
+
+        if (cleaned) {
+            lines.push(`${prefix}: ${cleaned}`);
+        }
+
+        // Recovery guidance (only if the session doesn’t already include recovery text)
+        if (workoutType.category === 'quality' && !sessionHasRecovery(text)) {
+            lines.push('Recovery: jog easy between reps; keep recoveries truly easy.');
+        }
+
+        // Fueling guidance for long runs
+        if (workoutType.id === 'long_run') {
+            lines.push('Fueling: bring water; consider carbs every 30–40 min on longer runs.');
+        }
+
+        // Cool-down line
+        if (recipe.includeWarmupCooldown) {
+            lines.push('Cool-down: 10 min easy jog');
+        }
+
+        return {
+            mainSetText: cleaned || mainSet,
+            lines
+        };
     }
 
     switch (workoutType.id) {
@@ -170,26 +437,34 @@ export function createWorkoutInstance(workoutType, ctx) {
             break;
     }
 
-    const recoveryGuidance = (workoutType.category === "quality" && !sessionHasRecovery(description))
-        ? "Recovery: jog easy between reps; keep recoveries truly easy"
-        : "";
+    // Build a structured prescription-style notes field.
+    const pres = formatWorkoutPrescription(description);
 
-    const fuelingGuidance = (workoutType.id === "long_run")
-        ? "Fueling: bring water; consider carbs every 30–40 min on longer runs"
-        : "";
+    // Preserve any authored notes from the catalog (these are usually coaching cues).
+    const coachingCues = [note].filter(Boolean);
 
-    const notes = [wuCdText, recoveryGuidance, fuelingGuidance, note]
+    // Notes: structured prescription + coaching cues (multi-line so it reads like a real workout).
+    const notes = [...pres.lines, ...coachingCues]
         .filter(Boolean)
-        .join(". ");
+        .join("\n");
+
+    const estimationText = [pres.mainSetText, description, session, notes]
+        .filter(Boolean)
+        .join(' | ');
+
+    const estimatedMinutesTotal = estimateTotalMinutes(estimationText);
+    const estimatedMiles = estimateMiles(estimatedMinutesTotal);
 
     return {
         title: workoutType.name,
         // UI can show: `${title} — ${titleDetail}`
-        titleDetail: toTitleDetail(description),
+        titleDetail: toTitleDetail(pres.mainSetText || description),
         category: workoutType.category,
         intensity: recipe.intensity ?? workoutType.intensity,
         description,
-        notes
+        notes,
+        estimatedMinutesTotal,
+        estimatedMiles
     };
 }
 
@@ -457,4 +732,14 @@ export const DEFAULT_WORKOUT_SELECTION_BY_LEVEL = {
 
 export function getWorkoutTypeById(id) {
     return WORKOUT_CATALOG.find((w) => w.id === id);
+}
+
+/**
+ * Convenience helper for UI:
+ * Given a workoutTypeId and context, returns a WorkoutInstance with estimatedMiles.
+ */
+export function createWorkoutInstanceById(workoutTypeId, ctx) {
+    const wt = getWorkoutTypeById(workoutTypeId);
+    if (!wt) return null;
+    return createWorkoutInstance(wt, ctx);
 }

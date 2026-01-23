@@ -884,6 +884,7 @@ function sharedState() {
 
         // Loaded from workoutsCatalog.js (DEFAULT_WORKOUT_SELECTION_BY_LEVEL)
         defaultWorkoutSelectionByLevel: {},
+        createWorkoutInstanceByIdFn: null,
 
         // Load catalog once so the modal can render a library
         async loadWorkoutCatalog() {
@@ -893,10 +894,15 @@ function sharedState() {
                 this.defaultWorkoutSelectionByLevel = (mod.DEFAULT_WORKOUT_SELECTION_BY_LEVEL && typeof mod.DEFAULT_WORKOUT_SELECTION_BY_LEVEL === 'object')
                     ? mod.DEFAULT_WORKOUT_SELECTION_BY_LEVEL
                     : {};
+                this.createWorkoutInstanceByIdFn =
+                    (typeof mod.createWorkoutInstanceById === 'function')
+                        ? mod.createWorkoutInstanceById
+                        : null;
             } catch (e) {
                 console.error("Failed to load workoutsCatalog.js", e);
                 this.workoutCatalog = [];
                 this.defaultWorkoutSelectionByLevel = {};
+                this.createWorkoutInstanceByIdFn = null;
             }
         },
         // Infer experience level using mileage target (simple heuristic).
@@ -1460,6 +1466,9 @@ function sharedState() {
                 no_of_days: [],
                 isModalOpen: false,
                 eventToEdit: null,
+                workoutPickerOpen: false,
+                workoutPickerQuery: '',
+
                 // -----------------------------
                 // Mobile Mode (safe, grid-preserving)
                 // -----------------------------
@@ -1606,6 +1615,7 @@ function sharedState() {
                             event_title,
                             event_notes,
                             event_distance,
+                            event_workout_type_id: workout.event_workout_type_id,
                             event_theme: EVENT_COLOR_MAP.get(event_type),
                             event_type
                         };
@@ -1692,7 +1702,222 @@ function sharedState() {
                         };
                     }
 
+                    // Reset workout picker whenever the event modal opens
+                    this.workoutPickerOpen = false;
+                    this.workoutPickerQuery = '';
                     this.isModalOpen = true;
+                },
+
+                openWorkoutPicker() {
+                    this.workoutPickerOpen = true;
+                    this.workoutPickerQuery = '';
+                },
+
+                closeWorkoutPicker() {
+                    this.workoutPickerOpen = false;
+                    this.workoutPickerQuery = '';
+                },
+
+                getWorkoutPickerHint() {
+                    const t = (this.eventToEdit && this.eventToEdit.event_type)
+                        ? String(this.eventToEdit.event_type).toLowerCase()
+                        : '';
+                    if (t.includes('easy')) return 'Easy-run options';
+                    if (t.includes('long')) return 'Long-run options';
+                    if (t.includes('speed')) return 'Quality options (tempo / intervals / hills)';
+                    if (t.includes('race')) return 'Race day — typically not replaced, but you can.';
+                    return 'Pick a workout from your library.';
+                },
+
+                getSelectedWorkoutLabel() {
+                    const id = this.eventToEdit && this.eventToEdit.event_workout_type_id;
+                    if (!id) return 'Using the default workout for this day.';
+                    const w = (self.workoutCatalog || []).find(x => x.id === id);
+                    return w ? `Selected: ${w.name}` : `Selected: ${id}`;
+                },
+
+                buildWorkoutInstanceContext() {
+                    const parsePaceMinPerMile = (paceLabel) => {
+                        if (!paceLabel) return undefined;
+                        const s = String(paceLabel).trim();
+                        const m = s.match(/(\d+):(\d+)/);
+                        if (!m) return undefined;
+                        const mm = Number(m[1]);
+                        const ss = Number(m[2]);
+                        if (!Number.isFinite(mm) || !Number.isFinite(ss)) return undefined;
+                        return mm + (ss / 60);
+                    };
+
+                    const goal = parsePaceMinPerMile(self.goalPaceLabel);
+                    const pacesMinPerMile = {
+                        easy: (typeof goal === 'number') ? goal + 1.5 : undefined,
+                        long: (typeof goal === 'number') ? goal + 1.0 : undefined,
+                        tempo: (typeof goal === 'number') ? goal + 0.3 : undefined,
+                        speed: (typeof goal === 'number') ? Math.max(0.1, goal - 0.3) : undefined
+                    };
+
+                    const dayMs = 24 * 60 * 60 * 1000;
+                    let weekIndex = 0;
+                    let totalWeeks = self.numOfWeeksInTraining ? parseInt(self.numOfWeeksInTraining, 10) : 1;
+                    try {
+                        const first = (this.workouts && this.workouts.length) ? new Date(this.workouts[0].event_date) : null;
+                        const cur = (this.eventToEdit && this.eventToEdit.event_date)
+                            ? new Date(`${this.eventToEdit.event_date}T12:00:00`)
+                            : null;
+                        if (first && cur && !isNaN(first) && !isNaN(cur)) {
+                            weekIndex = Math.max(0, Math.floor((cur.getTime() - first.getTime()) / (7 * dayMs)));
+                        }
+                        if (this.workouts && this.workouts.length) {
+                            totalWeeks = Math.max(1, Math.ceil(this.workouts.length / 7));
+                        }
+                    } catch (e) { }
+
+                    return {
+                        level: self.inferExperienceLevelFromMileageTarget
+                            ? self.inferExperienceLevelFromMileageTarget(self.average_mileage_weekly)
+                            : 'beginner',
+                        weekIndex,
+                        totalWeeks,
+                        pacesMinPerMile
+                    };
+                },
+
+                getSelectedWorkoutDetails() {
+                    const id = this.eventToEdit && this.eventToEdit.event_workout_type_id;
+                    if (!id) return '';
+
+                    let instance = null;
+                    try {
+                        const fn = self.createWorkoutInstanceByIdFn || window.createWorkoutInstanceById;
+                        if (typeof fn === 'function') {
+                            instance = fn(id, this.buildWorkoutInstanceContext());
+                        }
+                    } catch (e) { instance = null; }
+
+                    if (!instance) return '';
+
+                    const milesTxt = (typeof instance.estimatedMiles === 'number' && Number.isFinite(instance.estimatedMiles))
+                        ? `Est. ${instance.estimatedMiles} mi`
+                        : 'Est. — mi';
+
+                    const detail = instance.titleDetail || instance.description || '';
+                    return detail ? `${milesTxt} • ${detail}` : milesTxt;
+                },
+
+                workoutOptionMilesText(w) {
+                    if (!w || !w.id) return 'Est. — mi';
+                    try {
+                        const fn = self.createWorkoutInstanceByIdFn || window.createWorkoutInstanceById;
+                        if (typeof fn !== 'function') return 'Est. — mi';
+                        const inst = fn(w.id, this.buildWorkoutInstanceContext());
+                        if (inst && typeof inst.estimatedMiles === 'number' && Number.isFinite(inst.estimatedMiles)) {
+                            return `Est. ${inst.estimatedMiles} mi`;
+                        }
+                    } catch (e) { }
+                    return 'Est. — mi';
+                },
+
+                workoutOptionPreviewText(w) {
+                    if (!w || !w.id) return '';
+                    try {
+                        const fn = self.createWorkoutInstanceByIdFn || window.createWorkoutInstanceById;
+                        if (typeof fn !== 'function') return '';
+                        const inst = fn(w.id, this.buildWorkoutInstanceContext());
+                        if (!inst) return '';
+                        return inst.titleDetail || inst.description || inst.notes || '';
+                    } catch (e) { }
+                    return '';
+                },
+
+                filteredWorkoutOptions() {
+                    const q = (this.workoutPickerQuery || '').trim().toLowerCase();
+                    const t = (this.eventToEdit && this.eventToEdit.event_type)
+                        ? String(this.eventToEdit.event_type).toLowerCase()
+                        : '';
+
+                    let allowedCategory = null;
+                    if (t.includes('easy')) allowedCategory = 'easy';
+                    else if (t.includes('long')) allowedCategory = 'long';
+                    else if (t.includes('speed')) allowedCategory = 'quality';
+
+                    const selectedIds = Array.isArray(self.selectedWorkoutTypeIds) ? self.selectedWorkoutTypeIds : null;
+
+                    const base = (self.workoutCatalog || []).filter(w => {
+                        if (!w) return false;
+                        if (allowedCategory && String(w.category) !== allowedCategory) return false;
+
+                        if (selectedIds && selectedIds.length > 0) {
+                            if (!selectedIds.includes(w.id)) return false;
+                        }
+                        return true;
+                    });
+
+                    if (!q) return base;
+
+                    return base.filter(w => {
+                        const blob = `${w.name || ''} ${w.id || ''} ${w.category || ''} ${(w.description || '')}`.toLowerCase();
+                        return blob.includes(q);
+                    });
+                },
+
+                applyWorkoutSelection(workoutTypeId) {
+                    if (!this.eventToEdit) return;
+
+                    this.eventToEdit.event_workout_type_id = workoutTypeId;
+
+                    const ctx = this.buildWorkoutInstanceContext();
+
+                    // Prefer the function captured from dynamic import; fall back to window if present.
+                    const fn = self.createWorkoutInstanceByIdFn || window.createWorkoutInstanceById;
+
+                    let instance = null;
+                    try {
+                        if (typeof fn === 'function') {
+                            instance = fn(workoutTypeId, ctx);
+                        }
+                    } catch (e) {
+                        instance = null;
+                    }
+
+                    if (instance) {
+                        // Notes: set to notes only (no duplication), fallback to description if missing
+                        this.eventToEdit.event_notes = String(instance.notes || instance.description || '').trim();
+
+                        // Distance (if known)
+                        if (typeof instance.estimatedMiles === 'number' && Number.isFinite(instance.estimatedMiles)) {
+                            // Distance dropdown currently supports integer miles only; round so it stays in sync.
+                            this.eventToEdit.event_distance = Math.max(1, Math.round(instance.estimatedMiles));
+                        }
+
+                        // Align event_type with the selected workout category to reduce confusion.
+                        // Only adjust if the event isn't a Race.
+                        const cat = String(instance.category || '').toLowerCase();
+                        const currentType = String(this.eventToEdit.event_type || '');
+                        if (!currentType.toLowerCase().includes('race')) {
+                            if (cat === 'easy') this.eventToEdit.event_type = 'Easy Run';
+                            else if (cat === 'long') this.eventToEdit.event_type = 'Long Run';
+                            else if (cat === 'quality') this.eventToEdit.event_type = 'Speed Workout';
+                        }
+
+                        // Title: always update to match the new event type, distance, and workout
+                        const workoutName = instance.title;
+                        const dist = (this.eventToEdit.event_distance != null) ? `${this.eventToEdit.event_distance}` : '';
+
+                        // Map event_type to the wording used in titles.
+                        const typeLabel = (() => {
+                            const t = String(this.eventToEdit.event_type || '');
+                            if (t === 'Easy Run') return 'easy run';
+                            if (t === 'Long Run') return 'long run';
+                            if (t === 'Speed Workout') return 'speed workout';
+                            if (t === 'Race') return 'race';
+                            return String(t).toLowerCase();
+                        })();
+
+                        const prefix = (dist ? `${dist} miles ` : '') + (typeLabel ? `${typeLabel}` : '');
+                        this.eventToEdit.event_title = `${prefix} — ${workoutName}`.replace(/\s+/g, ' ').trim();
+                    }
+
+                    this.closeWorkoutPicker();
                 },
 
                 saveEvent() {
@@ -1731,7 +1956,8 @@ function sharedState() {
                             notes: this.eventToEdit.event_notes,
                             theme: EVENT_COLOR_MAP.get(this.eventToEdit.event_type),
                             event_type: this.eventToEdit.event_type,
-                            event_distance: this.eventToEdit.event_distance
+                            event_distance: this.eventToEdit.event_distance,
+                            event_workout_type_id: this.eventToEdit.event_workout_type_id
                         };
                     } else {
                         // Add new event with a generated id (or reuse any provided id)
@@ -1746,7 +1972,8 @@ function sharedState() {
                             notes: this.eventToEdit.event_notes,
                             theme: EVENT_COLOR_MAP.get(this.eventToEdit.event_type),
                             event_type: this.eventToEdit.event_type,
-                            event_distance: this.eventToEdit.event_distance
+                            event_distance: this.eventToEdit.event_distance,
+                            event_workout_type_id: this.eventToEdit.event_workout_type_id
                         });
                     }
 
