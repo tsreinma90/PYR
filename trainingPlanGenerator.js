@@ -121,7 +121,8 @@ function createTrainingPlan(
   mileageGoal,
   raceDate,
   goalPace,
-  numWeeksUntilRace
+  numWeeksUntilRace,
+  preferences = null
 ) {
   nextRun = parseLocalDate(startDay);
   raceDate = parseLocalDate(raceDate);
@@ -140,7 +141,8 @@ function createTrainingPlan(
     workoutMap,
     workoutRatio,
     workoutCount,
-    raceDate
+    raceDate,
+    preferences
   );
 }
 
@@ -206,13 +208,24 @@ function calculateWorkoutPercentiles(workoutMap) {
   return workoutRatio;
 }
 
+function allowedWorkoutFamilies(preferences) {
+  const ids = preferences?.selectedWorkoutTypeIds;
+  if (!Array.isArray(ids)) return { tempo: true, speed: true };
+
+  const joined = ids.map(String).join(" ").toLowerCase();
+  return {
+    tempo: joined.includes("tempo") || joined.includes("threshold") || joined.includes("progression") || joined.includes("cruise"),
+    speed: joined.includes("speed") || joined.includes("interval") || joined.includes("repeat") || joined.includes("hill") || joined.includes("fartlek")
+  };
+}
+
 /* 
   createWeeklyWorkoutMap now:
   - In non-final weeks, assigns workouts with variation.
   - In the final week, only light, easy runs (max 10 miles overall) are scheduled.
   - Schedules quality days on Tuesday + Thursday (spreads intensity; avoids Tue/Wed back-to-back quality).
 */
-function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks) {
+function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks, preferences = null) {
   let map = new Map();
   const isTaper = weekNumber >= totalWeeks - 3;
 
@@ -231,18 +244,15 @@ function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks) {
   // This prevents back-to-back quality sessions on Tue/Wed.
   const qualityDays = ["Tuesday", "Thursday"];
 
-  let qualityTypes;
-  if (experienceLevel === "beginner") {
-    qualityTypes = ["Tempo"];
-  } else if (experienceLevel === "intermediate" || experienceLevel === "advanced") {
-    qualityTypes = ["Tempo", "Speed"];
-  }
   const tempoVariations = ["Steady state", "Progression", "Cruise intervals"];
   const speedVariations = ["400m repeats", "800m intervals", "Fartlek", "Hill repeats"];
 
-  // Helper: weighted selection favoring Tempo (75% Tempo, 25% Speed) on quality days (Tue/Thu).
+  const allowed = allowedWorkoutFamilies(preferences);
+
   function chooseQualityWorkout() {
-    if (qualityTypes.length === 1) return qualityTypes[0];
+    if (!allowed.tempo && !allowed.speed) return "Easy";
+    if (!allowed.tempo) return "Speed";
+    if (!allowed.speed) return "Tempo";
     return Math.random() < 0.75 ? "Tempo" : "Speed";
   }
 
@@ -264,9 +274,13 @@ function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks) {
         map.set(dayName, { type: "Easy", note: "Taper: Recovery run" });
       } else {
         const chosenType = chooseQualityWorkout();
-        const notePool = chosenType === "Tempo" ? tempoVariations : speedVariations;
-        const note = notePool[Math.floor(Math.random() * notePool.length)];
-        map.set(dayName, { type: chosenType, note });
+        if (chosenType === "Easy") {
+          map.set(dayName, { type: "Easy", note: "" });
+        } else {
+          const notePool = chosenType === "Tempo" ? tempoVariations : speedVariations;
+          const note = notePool[Math.floor(Math.random() * notePool.length)];
+          map.set(dayName, { type: chosenType, note });
+        }
       }
       continue;
     }
@@ -283,7 +297,8 @@ function generateRuns(
   baseWorkoutMap,
   workoutRatio,
   workoutCount,
-  raceDate
+  raceDate,
+  preferences = null
 ) {
   let allRuns = [];
   let experienceLevel = determineExperienceLevel(
@@ -293,7 +308,7 @@ function generateRuns(
 
   for (let week = 0; week < milesPerWeek.length; week++) {
     const trainingPhase = getTrainingPhase(week, milesPerWeek.length);
-    const weeklyMap = createWeeklyWorkoutMap(experienceLevel, week, milesPerWeek.length);
+    const weeklyMap = createWeeklyWorkoutMap(experienceLevel, week, milesPerWeek.length, preferences);
     const longRunIncluded = longRunIncludedInPlan(weeklyMap);
 
     for (let x = 0; x < 7; x++) {
