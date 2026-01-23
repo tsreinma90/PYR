@@ -12,10 +12,25 @@
             <details class="controls-details" x-ref="controlsDetails" open>
                 <summary class="controls-summary">Training Preferences</summary>
                 <div class="w-full rounded-lg bg-gray-800 p-4 shadow-lg ring-1 ring-white/15 controls-panel relative">
-                    <p class="text-sm text-gray-300 mb-4">
-                        Choose your race distance, race date, training block, weekly mileage, and goal pace.
-                        Then click <span class="font-semibold text-gray-300">Generate</span> to build your plan.
-                    </p>
+                    <div class="mb-4 flex flex-wrap items-center gap-2">
+                        <p class="text-sm text-gray-300">
+                            <span x-show="!selectedRaceDistance">
+                                Choose your race distance, race date, training block, weekly mileage, and goal pace.
+                            </span>
+                            <span x-show="selectedRaceDistance">
+                                Configuring your
+                                <span class="font-semibold text-gray-200" x-text="selectedRaceDistance"></span>
+                                training plan
+                            </span>
+                        </p>
+
+                        <!-- Mileage pill -->
+                        <span x-show="selectedWeeklyMileage"
+                            class="inline-flex items-center rounded-full bg-blue-900/40 border border-blue-700 px-3 py-1 text-xs font-medium text-blue-200">
+                            Peak mileage:
+                            <span class="ml-1 capitalize" x-text="selectedWeeklyMileage"></span>
+                        </span>
+                    </div>
                     <!-- Desktop: Advanced Configuration (top-right of panel) -->
                     <div class="absolute top-4 right-4 z-20" x-show="!isMobile" x-cloak>
                         <button type="button"
@@ -599,10 +614,22 @@
                                                 </div>
 
                                                 <!-- Read-only summary (no input styling) -->
-                                                <div class="mt-1 text-xs text-gray-400 space-y-1">
-                                                    <div><span x-text="getSelectedWorkoutLabel()"></span></div>
-                                                    <div class="text-[0.7rem] text-gray-500"
-                                                        x-text="getSelectedWorkoutDetails()"></div>
+                                                <div class="text-sm text-gray-400 flex flex-wrap items-center gap-2">
+                                                    <span>
+                                                        Selected: <span x-text="getSelectedWorkoutLabel()"></span>
+                                                    </span>
+
+                                                    <!-- Distance pill (planned event distance) -->
+                                                    <span
+                                                        x-show="eventToEdit && eventToEdit.event_distance"
+                                                        class="inline-flex items-center rounded-full bg-blue-900/40 border border-blue-700 px-2 py-0.5 text-[0.65rem] font-semibold text-blue-200"
+                                                        x-text="`Est. ${Number(eventToEdit.event_distance).toFixed(1)} mi`">
+                                                    </span>
+                                                </div>
+
+                                                <!-- Static workout definition (do NOT recompute) -->
+                                                <div class="text-xs text-gray-500"
+                                                    x-text="getSelectedWorkoutDetails()">
                                                 </div>
                                             </div>
 
