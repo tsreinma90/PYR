@@ -81,6 +81,13 @@ function convertPaceToDecimal(pace) {
 function decimalToPace(decimal) {
   let minutes = Math.floor(decimal);
   let seconds = Math.round((decimal - minutes) * 60);
+
+  // Handle rounding edge case (e.g. 7:60 → 8:00)
+  if (seconds === 60) {
+    minutes += 1;
+    seconds = 0;
+  }
+
   if (seconds < 10) seconds = "0" + seconds;
   return `${minutes}:${seconds}`;
 }
