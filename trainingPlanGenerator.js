@@ -85,6 +85,18 @@ function decimalToPace(decimal) {
   return `${minutes}:${seconds}`;
 }
 
+// Helper: compute a pace range (min/max) in "mm:ss" format given a center decimal and range in seconds
+function getPaceRange(centerDecimal, rangeSeconds) {
+  const minDecimal = centerDecimal - rangeSeconds / 60;
+  const maxDecimal = centerDecimal + rangeSeconds / 60;
+  return {
+    min: decimalToPace(minDecimal),
+    max: decimalToPace(maxDecimal),
+    min_decimal: minDecimal,
+    max_decimal: maxDecimal
+  };
+}
+
 function getTrainingPhase(weekNumber, totalWeeks) {
   const progress = weekNumber / totalWeeks;
 
@@ -94,21 +106,64 @@ function getTrainingPhase(weekNumber, totalWeeks) {
   return "taper";
 }
 
+// Helper: Derive Long Run Type and Effort (RPE) guidance from training phase
+function getLongRunProfile(trainingPhase) {
+  switch (trainingPhase) {
+    case "base":
+      return {
+        label: "Aerobic",
+        effort: "RPE 2–3 (easy, conversational)"
+      };
+    case "build":
+      return {
+        label: "Progressive",
+        effort: "RPE 3 → 5 (easy to steady)"
+      };
+    case "peak":
+      return {
+        label: "Race-Specific",
+        effort: "RPE 3 → 6–7 (easy to race effort)"
+      };
+    case "taper":
+      return {
+        label: "Reduced",
+        effort: "RPE 2–3 (relaxed, freshening up)"
+      };
+    default:
+      return null;
+  }
+}
+
 function getRecommendedPace(workoutType, goalPace, trainingPhase) {
   const goalDecimal = convertPaceToDecimal(goalPace);
 
   // Define phase-based offsets (seconds per mile)
   const PACE_OFFSETS = {
-    Easy:   { base: 75, build: 60, peak: 45, taper: 45 },
+    Easy:   { base: 90, build: 75, peak: 60, taper: 60 },
     Tempo:  { base: 35, build: 25, peak: 15, taper: 10 },
     Speed:  { base: -10, build: -20, peak: -30, taper: -20 },
-    Long:   { base: 90, build: 60, peak: 45, taper: 45 }
+    Long: { base: 90, build: 75, peak: 60, taper: 60 }
   };
 
   // Default to 0 if workout type not found
   const offset = (PACE_OFFSETS[workoutType] && PACE_OFFSETS[workoutType][trainingPhase]) || 0;
 
   const recommendedDecimal = goalDecimal + offset / 60; // convert seconds to minutes
+
+  // Easy & Long runs use pace ranges; Tempo & Speed stay precise
+  if (workoutType === "Easy" || workoutType === "Long") {
+    const rangeSeconds = workoutType === "Easy" ? 20 : 30;
+    const range = getPaceRange(recommendedDecimal, rangeSeconds);
+    return {
+      pace: `${range.min}–${range.max}`,
+      pace_decimal: recommendedDecimal,
+      pace_min: range.min,
+      pace_max: range.max,
+      pace_min_decimal: range.min_decimal,
+      pace_max_decimal: range.max_decimal
+    };
+  }
+
   return {
     pace: decimalToPace(recommendedDecimal),
     pace_decimal: recommendedDecimal
@@ -503,7 +558,25 @@ function createWorkout(
     if (eventNote && eventNote.length > 0) {
       eventNote += " | ";
     }
-    eventNote += `Recommended pace: ${pace} per mile`;
+    eventNote += `Recommended pace: ${pace} per mile${workoutType === "Long" ? " (average)" : ""}`;
+    // Insert Long Run Type and Effort (RPE) guidance for Long runs
+    if (workoutType === "Long") {
+      const profile = getLongRunProfile(trainingPhase);
+      if (profile) {
+        eventNote = (eventNote ? eventNote + " | " : "") +
+          `Long Run Type: ${profile.label}`;
+        eventNote = (eventNote ? eventNote + " | " : "") +
+          `Effort: ${profile.effort}`;
+      }
+      // Keep existing finish-fast notes as-is
+      if (trainingPhase === "build") {
+        eventNote = (eventNote ? eventNote + " | " : "") +
+          "Finish last 20–30% at steady / moderate effort";
+      } else if (trainingPhase === "peak") {
+        eventNote = (eventNote ? eventNote + " | " : "") +
+          "Finish last 20–30% at race-specific pace";
+      }
+    }
   }
   // Attach stable placement metadata so the UI can render multiple runs on the same day
   // without shifting subsequent workouts by array index.
