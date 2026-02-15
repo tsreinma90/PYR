@@ -362,19 +362,6 @@
                                     Analytics
                                 </button>
 
-                                <button @click="
-                                activeTab = 'ai';
-                                aiLoading = true;
-                                Promise.resolve().then(() => {
-                                  window.initAICoach && window.initAICoach();
-                                  setTimeout(() => aiLoading = false, 1500);
-                                });
-                              " :class="activeTab === 'ai'
-                                ? 'border-blue-500 text-blue-400'
-                                : 'border-transparent text-gray-500 hover:text-gray-300'"
-                                    class="flex-none py-2 px-4 text-center font-medium border-b-2 transition-colors duration-200">
-                                    Ask the AI Coach
-                                </button>
                             </div>
                         </div>
 
@@ -451,7 +438,13 @@
                                                 <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
                                                 <span x-text="year" class="ml-1 text-lg font-normal"></span>
                                             </div>
-                                            <div class="flex items-center justify-end space-x-3 mt-4">
+                                        <div class="flex items-center justify-end space-x-3 mt-4">
+                                                <!-- Ask AI Coach Button -->
+                                                <button
+                                                    @click="aiModalOpen = true"
+                                                    class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition">
+                                                    Ask AI Coach
+                                                </button>
                                                 <div x-data="dropdown()" class="relative inline-block text-left">
                                                     <button x-ref="toggle" @click="toggleDropdown()"
                                                         class="rounded-md px-3 py-2 text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -633,10 +626,13 @@
                                                             <!-- Weekly Total Badge (End of Week) -->
                                                             <template
                                                                 x-if="weeklyTotalsForMonth && weeklyTotalsForMonth().length && ((blankdays.length + dateIndex) % 7 === 6)">
-                                                                <div
-                                                                    class="absolute bottom-1 right-2 text-[0.7rem] text-gray-400 font-semibold">
+                                                                <div class="absolute bottom-1.5 right-1.5 text-[0.55rem] font-semibold
+         px-1.5 py-[1px]
+         bg-gray-700/50 text-gray-400
+         rounded-md">
                                                                     <span
-                                                                        x-text="(weeklyTotalsForMonth()[Math.floor((blankdays.length + dateIndex) / 7)]?.total || 0) + ' mi'"></span>
+                                                                        x-text="(weeklyTotalsForMonth()[Math.floor((blankdays.length + dateIndex) / 7)]?.total || 0) + ' mi'">
+                                                                    </span>
                                                                 </div>
                                                             </template>
                                                         </div>
@@ -824,6 +820,51 @@
                                             </div>
                                         </div>
                                     </div>
+                                <!-- AI Coach Modal -->
+                                <div x-show="aiModalOpen"
+                                     x-transition
+                                     x-cloak
+                                     class="fixed inset-0 z-50 flex items-center justify-center"
+                                     @keydown.escape.window="aiModalOpen = false">
+
+                                    <div class="absolute inset-0 bg-black/70" @click="aiModalOpen = false"></div>
+
+                                    <div class="relative w-full max-w-2xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700">
+
+                                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+                                            <div class="text-lg font-semibold">AI Coach</div>
+                                            <button
+                                                class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
+                                                @click="aiModalOpen = false">✕</button>
+                                        </div>
+
+                                        <div class="p-6 space-y-4">
+                                            <div class="text-xs font-medium text-sky-300 flex items-center gap-2">
+                                                <span>Powered by Agentforce</span>
+                                            </div>
+
+                                            <label class="block text-sm font-semibold text-gray-200">
+                                                Describe anything relevant to your training:
+                                            </label>
+
+                                            <textarea
+                                                x-model="userInput"
+                                                rows="4"
+                                                placeholder="e.g. I’m coming back from injury and can train 3x/week"
+                                                class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                            </textarea>
+
+                                            <button
+                                                @click="refinePlan()"
+                                                class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition">
+                                                Refine Plan
+                                            </button>
+
+                                            <div class="mt-4 text-sm text-gray-300 bg-gray-800 border border-gray-700 rounded-md p-4">
+                                                <span x-text="aiFeedback || 'AI feedback will appear here after refinement.'"></span>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </template>
                             <template x-if="activeTab === 'summary'">
@@ -1008,47 +1049,6 @@
                                     </template>
                                 </div>
                             </template>
-                            <template x-if="activeTab === 'ai'">
-                                <div class="mt-4 space-y-4">
-
-                                    <!-- Spinner while the LWC / Lightning Out is connecting -->
-                                    <div x-show="aiLoading" x-transition
-                                        class="flex items-center gap-2 text-xs font-medium text-sky-300">
-                                        <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                                stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor"
-                                                d="M4 12a 8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                        </svg>
-                                        <span>Connecting to AI Coach…</span>
-                                    </div>
-
-                                    <!-- Powered by Agentforce badge -->
-                                    <div class="flex items-center gap-2 text-xs font-medium text-sky-200">
-                                        <svg viewBox="0 0 32 32" class="h-5 w-5" aria-hidden="true">
-                                            <defs>
-                                                <linearGradient id="sfCloudGradient" x1="0%" y1="0%" x2="100%"
-                                                    y2="100%">
-                                                    <stop offset="0%" stop-color="#00A1E0" />
-                                                    <stop offset="100%" stop-color="#0176D3" />
-                                                </linearGradient>
-                                            </defs>
-                                            <path
-                                                d="M8.5 22.5c-2.5 0-4.5-2-4.5-4.4 0-2 1.3-3.7 3.2-4.3.4-3 2.9-5.3 6-5.3 2.1 0 4 1.1 5.1 2.8.4-.1.9-.2 1.3-.2 2.6 0 4.8 2.1 4.8 4.7 0 2.6-2.2 4.7-4.8 4.7H8.5z"
-                                                fill="url(#sfCloudGradient)"></path>
-                                        </svg>
-                                        <span>Powered by Agentforce</span>
-                                    </div>
-
-                                    <label class="block font-semibold mb-1 text-sm text-gray-200">
-                                        Describe anything relevant to your training (e.g., past injuries, goals,
-                                        travel,
-                                        time limits):
-                                    </label>
-
-                                    <textarea x-model="userInput" rows="4"
-                                        placeholder="e.g. I’m coming back from injury and can train 3x/week"
-                                        class="w-full mt-2 p-3 rounded-md bg-gray-900 text-gray-100 placeholder-gray-500
                    border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
 
                                     <button @click="enhancePlan()"

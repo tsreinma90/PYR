@@ -1473,6 +1473,19 @@ function sharedState() {
                 workoutPickerOpen: false,
                 workoutPickerQuery: '',
 
+                // -----------------------------------
+                // AI Coach Modal (Calendar Header Button)
+                // -----------------------------------
+                aiModalOpen: false,
+
+                openAiModal() {
+                    this.aiModalOpen = true;
+                },
+
+                closeAiModal() {
+                    this.aiModalOpen = false;
+                },
+
                 // -----------------------------
                 // Mobile Mode (safe, grid-preserving)
                 // -----------------------------
