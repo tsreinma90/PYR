@@ -1580,62 +1580,6 @@ function sharedState() {
                     }
                 },
 
-                // -----------------------------------
-                // Weekly Totals (for calendar header)
-                // -----------------------------------
-                get weeklyTotalsForMonth() {
-                    try {
-                        const list = Array.isArray(this.workouts) ? this.workouts : [];
-                        if (!list.length) return [];
-
-                        const weeks = {};
-
-                        for (const e of list) {
-                            if (!e || !e.event_date) continue;
-
-                            const key = e.event_date_key
-                                ? String(e.event_date_key)
-                                : String(e.event_date).slice(0, 10);
-
-                            if (!key || key.length < 10) continue;
-
-                            const d = new Date(`${key}T12:00:00`);
-                            if (isNaN(d.getTime())) continue;
-
-                            if (d.getFullYear() !== this.year || d.getMonth() !== this.month) continue;
-
-                            // Determine Monday of this week
-                            const day = d.getDay();
-                            const diffToMonday = (day === 0 ? -6 : 1) - day;
-                            const monday = new Date(d);
-                            monday.setDate(d.getDate() + diffToMonday);
-
-                            const weekKey = monday.toISOString().slice(0, 10);
-
-                            if (!weeks[weekKey]) {
-                                weeks[weekKey] = {
-                                    startDate: new Date(monday),
-                                    totalMiles: 0
-                                };
-                            }
-
-                            const miles = parseFloat(e.event_distance);
-                            if (!isNaN(miles)) {
-                                weeks[weekKey].totalMiles += miles;
-                            }
-                        }
-
-                        return Object.values(weeks)
-                            .sort((a, b) => a.startDate - b.startDate)
-                            .map(w => ({
-                                label: `Week of ${w.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
-                                totalMiles: Math.round(w.totalMiles)
-                            }));
-                    } catch (err) {
-                        console.warn('[PYR] weeklyTotalsForMonth failed:', err);
-                        return [];
-                    }
-                },
 
                 // -----------------------------------
                 // Active Training Phase (for header bubbles)
@@ -1730,6 +1674,46 @@ function sharedState() {
                         this.calculateDays();
                     }
                     self.loadBarChart();
+                },
+
+                weeklyTotalsForMonth() {
+                    if (!this.workouts || !this.workouts.length) return [];
+
+                    const weeks = [];
+                    const totalCells = this.blankdays.length + this.no_of_days.length;
+                    const totalWeeks = Math.ceil(totalCells / 7);
+
+                    for (let w = 0; w < totalWeeks; w++) {
+                        let total = 0;
+
+                        for (let d = 0; d < 7; d++) {
+                            const cellIndex = w * 7 + d;
+                            const dateIndex = cellIndex - this.blankdays.length;
+
+                            // Only count real days inside THIS month
+                            if (dateIndex >= 0 && dateIndex < this.no_of_days.length) {
+                                const day = this.no_of_days[dateIndex];
+
+                                // Use stable local date key (avoids timezone bleed from prev/next month)
+                                const dayKey = localDateKeyFromDate(
+                                    new Date(this.year, this.month, day, 12, 0, 0, 0)
+                                );
+
+                                const dayWorkouts = this.workouts.filter(e => {
+                                    const key = e.event_date_key || localDateKey(e.event_date);
+                                    return key === dayKey;
+                                });
+
+                                dayWorkouts.forEach(workout => {
+                                    total += Number(workout.event_distance) || 0;
+                                });
+                            }
+                        }
+
+                        weeks.push({ total });
+                    }
+
+                    return weeks;
                 },
 
                 // Navigate Months

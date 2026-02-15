@@ -383,65 +383,69 @@
                             <template x-if="activeTab === 'calendar'">
                                 <div x-data="calendarComponent()" class="p-6 bg-gray-900 text-white">
 
-    <!-- Plan Overview Header (integrated above calendar container) -->
-    <div class="mb-6">
-        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                                    <!-- Plan Overview Header (integrated above calendar container) -->
+                                    <div class="mb-6">
+                                        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
 
-            <!-- Left: Plan title + duration -->
-            <div>
-                <div class="text-2xl font-semibold text-white capitalize">
-                    <span x-text="selectedRaceDistance || 'Training Plan'"></span>
-                </div>
-                <div class="text-sm text-gray-400 mt-1">
-                    <span x-text="numOfWeeksInTraining"></span> week program
-                </div>
-            </div>
+                                            <!-- Left: Plan title + duration -->
+                                            <div>
+                                                <div class="text-2xl font-semibold text-white capitalize">
+                                                    <span x-text="selectedRaceDistance || 'Training Plan'"></span>
+                                                </div>
+                                                <div class="text-sm text-gray-400 mt-1">
+                                                    <span x-text="numOfWeeksInTraining"></span> week program
+                                                </div>
+                                            </div>
 
-            <!-- Right: Key metrics -->
-            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+                                            <!-- Right: Key metrics -->
+                                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
 
-                <div class="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide">Peak Week</div>
-                    <div class="text-white font-semibold text-lg"
-                         x-text="analyticsSummary.peakWeekMileage.toFixed(0) + ' mi'">
-                    </div>
-                </div>
+                                                <div class="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700">
+                                                    <div class="text-gray-400 text-xs uppercase tracking-wide">Peak Week
+                                                    </div>
+                                                    <div class="text-white font-semibold text-lg"
+                                                        x-text="analyticsSummary.peakWeekMileage.toFixed(0) + ' mi'">
+                                                    </div>
+                                                </div>
 
-                <div class="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide">Avg Weekly</div>
-                    <div class="text-white font-semibold text-lg"
-                         x-text="average_mileage_weekly">
-                    </div>
-                </div>
+                                                <div class="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700">
+                                                    <div class="text-gray-400 text-xs uppercase tracking-wide">Avg
+                                                        Weekly</div>
+                                                    <div class="text-white font-semibold text-lg"
+                                                        x-text="average_mileage_weekly">
+                                                    </div>
+                                                </div>
 
-                <div class="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700 hidden sm:block">
-                    <div class="text-gray-400 text-xs uppercase tracking-wide">Total Mileage</div>
-                    <div class="text-white font-semibold text-lg"
-                         x-text="analyticsSummary.totalMileage.toFixed(0)">
-                    </div>
-                </div>
+                                                <div
+                                                    class="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700 hidden sm:block">
+                                                    <div class="text-gray-400 text-xs uppercase tracking-wide">Total
+                                                        Mileage</div>
+                                                    <div class="text-white font-semibold text-lg"
+                                                        x-text="analyticsSummary.totalMileage.toFixed(0)">
+                                                    </div>
+                                                </div>
 
-            </div>
-        </div>
+                                            </div>
+                                        </div>
 
-        <!-- Phase Buttons -->
-        <div class="mt-4 flex flex-wrap gap-2">
-            <template x-for="phase in ['base','build','peak','taper']" :key="phase">
-                <button
-                    type="button"
-                    @click="jumpToPhase(phase)"
-                    class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 focus:outline-none"
-                    :class="activePhaseForMonth === phase
+                                        <!-- Phase Buttons -->
+                                        <div class="mt-4 flex flex-wrap gap-2">
+                                            <template x-for="phase in ['base','build','peak','taper']" :key="phase">
+                                                <button type="button" @click="jumpToPhase(phase)"
+                                                    class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 focus:outline-none"
+                                                    :class="activePhaseForMonth === phase
                         ? 'bg-blue-600 border-blue-500 text-white shadow-md'
                         : 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-gray-200'">
-                    <span x-text="phase.charAt(0).toUpperCase() + phase.slice(1)"></span>
-                </button>
-            </template>
-        </div>
-    </div>
+                                                    <span
+                                                        x-text="phase.charAt(0).toUpperCase() + phase.slice(1)"></span>
+                                                </button>
+                                            </template>
+                                        </div>
+                                    </div>
 
                                     <!-- Calendar Header -->
-                                    <div class="calendar-container flex flex-col bg-gray-900/70 rounded-xl p-6 border border-gray-800">
+                                    <div
+                                        class="calendar-container flex flex-col bg-gray-900/70 rounded-xl p-6 border border-gray-800">
                                         <div class="flex justify-between items-center mb-6">
                                             <div>
                                                 <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
@@ -505,26 +509,26 @@
                                             </div>
                                         </div>
 
-                                <!-- Mobile: Agenda/List view (calendar grid hidden on small screens) -->
-                                    <div x-show="isMobile">
-                                        <template x-if="!mobileAgendaGroups || mobileAgendaGroups.length === 0">
-                                            <div class="text-sm text-gray-400 mt-2">No workouts scheduled for this
-                                                month.</div>
-                                        </template>
+                                        <!-- Mobile: Agenda/List view (calendar grid hidden on small screens) -->
+                                        <div x-show="isMobile">
+                                            <template x-if="!mobileAgendaGroups || mobileAgendaGroups.length === 0">
+                                                <div class="text-sm text-gray-400 mt-2">No workouts scheduled for this
+                                                    month.</div>
+                                            </template>
 
-                                        <div class="space-y-4 mt-2">
-                                            <template x-for="group in mobileAgendaGroups" :key="group.dateKey">
-                                                <div class="rounded-xl border border-gray-700 bg-gray-800">
-                                                    <div
-                                                        class="px-4 py-2 border-b border-gray-700 text-sm font-semibold text-gray-200">
-                                                        <span x-text="group.label"></span>
-                                                    </div>
+                                            <div class="space-y-4 mt-2">
+                                                <template x-for="group in mobileAgendaGroups" :key="group.dateKey">
+                                                    <div class="rounded-xl border border-gray-700 bg-gray-800">
+                                                        <div
+                                                            class="px-4 py-2 border-b border-gray-700 text-sm font-semibold text-gray-200">
+                                                            <span x-text="group.label"></span>
+                                                        </div>
 
-                                                    <div class="divide-y divide-gray-700">
-                                                        <template x-for="event in group.events"
-                                                            :key="(event.event_title || '') + '|' + (event.event_date || '')">
-                                                            <div class="px-4 py-3 cursor-pointer hover:bg-gray-700/40 border-l-4"
-                                                                :class="{
+                                                        <div class="divide-y divide-gray-700">
+                                                            <template x-for="event in group.events"
+                                                                :key="(event.event_title || '') + '|' + (event.event_date || '')">
+                                                                <div class="px-4 py-3 cursor-pointer hover:bg-gray-700/40 border-l-4"
+                                                                    :class="{
                                                                   'border-blue-400 bg-blue-900/15': event.event_theme === 'blue',
                                                                   'border-red-400 bg-red-900/15': event.event_theme === 'red',
                                                                   'border-yellow-400 bg-yellow-900/15': event.event_theme === 'yellow',
@@ -532,19 +536,19 @@
                                                                   'border-purple-400 bg-purple-900/15': event.event_theme === 'purple',
                                                                   'border-gray-600': !event.event_theme
                                                                 }"
-                                                                @click="showEventModal(group.day, null, event.event_title)">
+                                                                    @click="showEventModal(group.day, null, event.event_title)">
 
-                                                                <div class="flex items-start justify-between gap-3">
-                                                                    <div class="min-w-0">
-                                                                        <div class="text-sm font-medium truncate"
-                                                                            x-text="event.event_title"></div>
-                                                                        <div class="text-xs text-gray-400 mt-1"
-                                                                            x-text="event.event_notes"></div>
-                                                                    </div>
+                                                                    <div class="flex items-start justify-between gap-3">
+                                                                        <div class="min-w-0">
+                                                                            <div class="text-sm font-medium truncate"
+                                                                                x-text="event.event_title"></div>
+                                                                            <div class="text-xs text-gray-400 mt-1"
+                                                                                x-text="event.event_notes"></div>
+                                                                        </div>
 
-                                                                    <!-- Small color dot to make the category immediately scannable -->
-                                                                    <div class="mt-1 h-2.5 w-2.5 rounded-full flex-none"
-                                                                        :class="{
+                                                                        <!-- Small color dot to make the category immediately scannable -->
+                                                                        <div class="mt-1 h-2.5 w-2.5 rounded-full flex-none"
+                                                                            :class="{
                                                                       'bg-blue-400': event.event_theme === 'blue',
                                                                       'bg-red-400': event.event_theme === 'red',
                                                                       'bg-yellow-400': event.event_theme === 'yellow',
@@ -552,74 +556,6 @@
                                                                       'bg-purple-400': event.event_theme === 'purple',
                                                                       'bg-gray-500': !event.event_theme
                                                                     }"></div>
-                                                                </div>
-                                                            </div>
-                                                        </template>
-                                                    </div>
-                                                </div>
-                                            </template>
-                                        </div>
-                                    </div>
-
-                                    <!-- Desktop month grid -->
-                                    <div x-show="!isMobile">
-                                        <!-- Weekdays -->
-                                        <div class="grid grid-cols-7 gap-1">
-                                            <template x-for="day in DAYS" :key="day">
-                                                <div class="text-center text-sm font-semibold text-gray-400 uppercase">
-                                                    <span x-text="day"></span>
-                                                </div>
-                                            </template>
-                                        </div>
-
-                                        <div class="-mx-1 -mb-1">
-                                            <div class="flex flex-wrap border-t border-l">
-                                                <template x-for="blankday in blankdays">
-                                                    <div style="width: 14.28%; height: 120px"
-                                                        class="text-center border-r border-b px-4 pt-2">
-                                                    </div>
-                                                </template>
-                                                <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
-                                                    <div style="width: 14.28%; height: 120px"
-                                                        class="px-4 pt-2 border-r border-b relative"
-                                                        @click="setSelectedDay(date)">
-                                                        <div @click.stop="setSelectedDay(date); showEventModal(date, dateIndex, null)"
-                                                            x-text="date"
-                                                            class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
-                                                            :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
-                                                        </div>
-                                                        <div style="height: 80px;" class="overflow-y-auto mt-1"
-                                                            x-show="dayEventCount(date) > 0">
-                                                            <template x-for="event in dayEvents(date)"
-                                                                :key="(event.event_title || '') + '|' + (event.event_date_key || event.event_date || '')">
-                                                                <div @click.stop="showEventModal(date, dateIndex, event.event_title)"
-                                                                    class="cursor-pointer mt-1 overflow-hidden border border-gray-700 rounded-lg border-l-4 px-2 py-1"
-                                                                    :class="{
-    'border-l-blue-400 bg-blue-900/15': event.event_theme === 'blue',
-    'border-l-red-400 bg-red-900/15': event.event_theme === 'red',
-    'border-l-yellow-400 bg-yellow-900/15': event.event_theme === 'yellow',
-    'border-l-green-400 bg-green-900/15': event.event_theme === 'green',
-    'border-l-purple-400 bg-purple-900/15': event.event_theme === 'purple',
-    'border-l-gray-600': !event.event_theme
-  }">
-                                                                    <div class="flex items-start justify-between gap-2">
-                                                                        <div class="min-w-0">
-                                                                            <div class="text-xs font-medium text-gray-100 truncate"
-                                                                                x-text="event.event_title"></div>
-                                                                            <div class="text-[0.7rem] text-gray-400 truncate"
-                                                                                x-text="event.event_notes"></div>
-                                                                        </div>
-
-                                                                        <!-- Small color dot (matches mobile agenda) -->
-                                                                        <div class="mt-0.5 h-2 w-2 rounded-full flex-none"
-                                                                            :class="{
-        'bg-blue-400': event.event_theme === 'blue',
-        'bg-red-400': event.event_theme === 'red',
-        'bg-yellow-400': event.event_theme === 'yellow',
-        'bg-green-400': event.event_theme === 'green',
-        'bg-purple-400': event.event_theme === 'purple',
-        'bg-gray-500': !event.event_theme
-      }"></div>
                                                                     </div>
                                                                 </div>
                                                             </template>
@@ -628,7 +564,86 @@
                                                 </template>
                                             </div>
                                         </div>
-                                    </div>
+
+                                        <!-- Desktop month grid -->
+                                        <div x-show="!isMobile">
+                                            <!-- Weekdays -->
+                                            <div class="grid grid-cols-7 gap-1">
+                                                <template x-for="day in DAYS" :key="day">
+                                                    <div
+                                                        class="text-center text-sm font-semibold text-gray-400 uppercase">
+                                                        <span x-text="day"></span>
+                                                    </div>
+                                                </template>
+                                            </div>
+
+                                            <div class="-mx-1 -mb-1">
+                                                <div class="flex flex-wrap border-t border-l">
+                                                    <template x-for="blankday in blankdays">
+                                                        <div style="width: 14.28%; height: 120px"
+                                                            class="text-center border-r border-b px-4 pt-2">
+                                                        </div>
+                                                    </template>
+                                                    <template x-for="(date, dateIndex) in no_of_days" :key="dateIndex">
+                                                        <div style="width: 14.28%; height: 120px"
+                                                            class="px-4 pt-2 border-r border-b relative"
+                                                            @click="setSelectedDay(date)">
+                                                            <div @click.stop="setSelectedDay(date); showEventModal(date, dateIndex, null)"
+                                                                x-text="date"
+                                                                class="inline-flex w-6 h-6 items-center justify-center cursor-pointer text-center leading-none rounded-full transition ease-in-out duration-100"
+                                                                :class="{'bg-blue-500 text-white': isToday(date) == true, 'text-gray-700 hover:bg-blue-200': isToday(date) == false }">
+                                                            </div>
+                                                            <div style="height: 80px;" class="overflow-y-auto mt-1"
+                                                                x-show="dayEventCount(date) > 0">
+                                                                <template x-for="event in dayEvents(date)"
+                                                                    :key="(event.event_title || '') + '|' + (event.event_date_key || event.event_date || '')">
+                                                                    <div @click.stop="showEventModal(date, dateIndex, event.event_title)"
+                                                                        class="cursor-pointer mt-1 overflow-hidden border border-gray-700 rounded-lg border-l-4 px-2 py-1"
+                                                                        :class="{
+    'border-l-blue-400 bg-blue-900/15': event.event_theme === 'blue',
+    'border-l-red-400 bg-red-900/15': event.event_theme === 'red',
+    'border-l-yellow-400 bg-yellow-900/15': event.event_theme === 'yellow',
+    'border-l-green-400 bg-green-900/15': event.event_theme === 'green',
+    'border-l-purple-400 bg-purple-900/15': event.event_theme === 'purple',
+    'border-l-gray-600': !event.event_theme
+  }">
+                                                                        <div
+                                                                            class="flex items-start justify-between gap-2">
+                                                                            <div class="min-w-0">
+                                                                                <div class="text-xs font-medium text-gray-100 truncate"
+                                                                                    x-text="event.event_title"></div>
+                                                                                <div class="text-[0.7rem] text-gray-400 truncate"
+                                                                                    x-text="event.event_notes"></div>
+                                                                            </div>
+
+                                                                            <!-- Small color dot (matches mobile agenda) -->
+                                                                            <div class="mt-0.5 h-2 w-2 rounded-full flex-none"
+                                                                                :class="{
+        'bg-blue-400': event.event_theme === 'blue',
+        'bg-red-400': event.event_theme === 'red',
+        'bg-yellow-400': event.event_theme === 'yellow',
+        'bg-green-400': event.event_theme === 'green',
+        'bg-purple-400': event.event_theme === 'purple',
+        'bg-gray-500': !event.event_theme
+      }"></div>
+                                                                        </div>
+                                                                    </div>
+                                                                </template>
+                                                            </div>
+                                                            <!-- Weekly Total Badge (End of Week) -->
+                                                            <template
+                                                                x-if="weeklyTotalsForMonth && weeklyTotalsForMonth().length && ((blankdays.length + dateIndex) % 7 === 6)">
+                                                                <div
+                                                                    class="absolute bottom-1 right-2 text-[0.7rem] text-gray-400 font-semibold">
+                                                                    <span
+                                                                        x-text="(weeklyTotalsForMonth()[Math.floor((blankdays.length + dateIndex) / 7)]?.total || 0) + ' mi'"></span>
+                                                                </div>
+                                                            </template>
+                                                        </div>
+                                                    </template>
+                                                </div>
+                                            </div>
+                                        </div>
 
                                     </div> <!-- Properly close .calendar-container after all calendar content -->
 
