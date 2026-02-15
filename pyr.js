@@ -375,10 +375,14 @@ function formatPaceFromDecimal(paceDecimal) {
 }
 
 function getTrainingPhaseForWeek(weekIndex, totalWeeks) {
-    const progress = totalWeeks > 0 ? (weekIndex / totalWeeks) : 0;
-    if (progress < 0.4) return "base";
-    if (progress < 0.7) return "build";
-    if (progress < 0.9) return "peak";
+    const taperWeeks = 2;
+    const peakWeeks = 2;
+    const baseWeeks = Math.floor(totalWeeks * 0.35);
+    const buildWeeks = totalWeeks - baseWeeks - peakWeeks - taperWeeks;
+
+    if (weekIndex < baseWeeks) return "base";
+    if (weekIndex < baseWeeks + buildWeeks) return "build";
+    if (weekIndex < totalWeeks - taperWeeks) return "peak";
     return "taper";
 }
 
@@ -1576,6 +1580,90 @@ function sharedState() {
                     }
                 },
 
+                // -----------------------------------
+                // Weekly Totals (for calendar header)
+                // -----------------------------------
+                get weeklyTotalsForMonth() {
+                    try {
+                        const list = Array.isArray(this.workouts) ? this.workouts : [];
+                        if (!list.length) return [];
+
+                        const weeks = {};
+
+                        for (const e of list) {
+                            if (!e || !e.event_date) continue;
+
+                            const key = e.event_date_key
+                                ? String(e.event_date_key)
+                                : String(e.event_date).slice(0, 10);
+
+                            if (!key || key.length < 10) continue;
+
+                            const d = new Date(`${key}T12:00:00`);
+                            if (isNaN(d.getTime())) continue;
+
+                            if (d.getFullYear() !== this.year || d.getMonth() !== this.month) continue;
+
+                            // Determine Monday of this week
+                            const day = d.getDay();
+                            const diffToMonday = (day === 0 ? -6 : 1) - day;
+                            const monday = new Date(d);
+                            monday.setDate(d.getDate() + diffToMonday);
+
+                            const weekKey = monday.toISOString().slice(0, 10);
+
+                            if (!weeks[weekKey]) {
+                                weeks[weekKey] = {
+                                    startDate: new Date(monday),
+                                    totalMiles: 0
+                                };
+                            }
+
+                            const miles = parseFloat(e.event_distance);
+                            if (!isNaN(miles)) {
+                                weeks[weekKey].totalMiles += miles;
+                            }
+                        }
+
+                        return Object.values(weeks)
+                            .sort((a, b) => a.startDate - b.startDate)
+                            .map(w => ({
+                                label: `Week of ${w.startDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`,
+                                totalMiles: Math.round(w.totalMiles)
+                            }));
+                    } catch (err) {
+                        console.warn('[PYR] weeklyTotalsForMonth failed:', err);
+                        return [];
+                    }
+                },
+
+                // -----------------------------------
+                // Active Training Phase (for header bubbles)
+                // -----------------------------------
+                get activePhaseForMonth() {
+                    try {
+                        const workouts = Array.isArray(this.workouts) ? this.workouts : [];
+                        if (!workouts.length) return null;
+
+                        // Determine first workout date (plan start)
+                        const first = parseYmdLocalNoon(workouts[0].event_date_key || workouts[0].event_date);
+                        if (isNaN(first)) return null;
+
+                        const totalWeeks = Math.max(1, Math.ceil(workouts.length / 7));
+
+                        // Use middle of currently viewed month to determine phase
+                        const midMonth = new Date(this.year, this.month, 15, 12, 0, 0, 0);
+
+                        const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+                        const weekIndex = Math.max(0, Math.floor((midMonth - first) / msPerWeek));
+
+                        return getTrainingPhaseForWeek(weekIndex, totalWeeks);
+                    } catch (e) {
+                        console.warn('[PYR] activePhaseForMonth failed:', e);
+                        return null;
+                    }
+                },
+
                 MONTH_NAMES,
                 DAYS,
 
@@ -1655,6 +1743,44 @@ function sharedState() {
                         this.year--;
                     }
                     this.calculateDays();
+                },
+
+                jumpToPhase(phase) {
+                    try {
+                        if (!phase) return;
+
+                        const workouts = Array.isArray(this.workouts) ? this.workouts : [];
+                        if (!workouts.length) return;
+
+                        // First workout = plan start
+                        const first = parseYmdLocalNoon(
+                            workouts[0].event_date_key || workouts[0].event_date
+                        );
+                        if (isNaN(first)) return;
+
+                        const totalWeeks = Math.max(1, Math.ceil(workouts.length / 7));
+
+                        // Find first week index matching phase
+                        let targetWeekIndex = null;
+                        for (let i = 0; i < totalWeeks; i++) {
+                            const p = getTrainingPhaseForWeek(i, totalWeeks);
+                            if (p === phase) {
+                                targetWeekIndex = i;
+                                break;
+                            }
+                        }
+
+                        if (targetWeekIndex === null) return;
+
+                        const msPerWeek = 7 * 24 * 60 * 60 * 1000;
+                        const targetDate = new Date(first.getTime() + (targetWeekIndex * msPerWeek));
+
+                        this.month = targetDate.getMonth();
+                        this.year = targetDate.getFullYear();
+                        this.calculateDays();
+                    } catch (e) {
+                        console.warn('[PYR] jumpToPhase failed:', e);
+                    }
                 },
 
                 // Calculate Days in Month

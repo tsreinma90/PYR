@@ -5,16 +5,12 @@
     </div>
     <div id="sf-ai-review"></div>
     <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8">
-        <div x-data="{ controlsOpen: true }"
-             :class="controlsOpen ? 'gap-6' : 'gap-2'"
-             class="mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1">
+        <div x-data="{ controlsOpen: true }" :class="controlsOpen ? 'gap-6' : 'gap-2'"
+            class="mx-auto px-4 sm:px-6 lg:px-8 min-h-screen grid grid-cols-1">
 
             <!-- Top Controls Panel (full width) -->
             <!-- Top Controls Panel (full width) -->
-            <details class="controls-details"
-                     x-ref="controlsDetails"
-                     open
-                     @toggle="controlsOpen = $event.target.open">
+            <details class="controls-details" x-ref="controlsDetails" open @toggle="controlsOpen = $event.target.open">
                 <summary class="controls-summary">Training Preferences</summary>
                 <div class="w-full rounded-lg bg-gray-800 p-4 shadow-lg ring-1 ring-white/15 controls-panel relative">
                     <div class="mb-4 flex flex-wrap items-center gap-2">
@@ -386,9 +382,67 @@
                         <div class="mt-6">
                             <template x-if="activeTab === 'calendar'">
                                 <div x-data="calendarComponent()" class="p-6 bg-gray-900 text-white">
+
+    <!-- Plan Overview Header (integrated above calendar container) -->
+    <div class="mb-6">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+
+            <!-- Left: Plan title + duration -->
+            <div>
+                <div class="text-2xl font-semibold text-white capitalize">
+                    <span x-text="selectedRaceDistance || 'Training Plan'"></span>
+                </div>
+                <div class="text-sm text-gray-400 mt-1">
+                    <span x-text="numOfWeeksInTraining"></span> week program
+                </div>
+            </div>
+
+            <!-- Right: Key metrics -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+
+                <div class="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">Peak Week</div>
+                    <div class="text-white font-semibold text-lg"
+                         x-text="analyticsSummary.peakWeekMileage.toFixed(0) + ' mi'">
+                    </div>
+                </div>
+
+                <div class="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">Avg Weekly</div>
+                    <div class="text-white font-semibold text-lg"
+                         x-text="average_mileage_weekly">
+                    </div>
+                </div>
+
+                <div class="bg-gray-800/60 rounded-lg px-4 py-3 border border-gray-700 hidden sm:block">
+                    <div class="text-gray-400 text-xs uppercase tracking-wide">Total Mileage</div>
+                    <div class="text-white font-semibold text-lg"
+                         x-text="analyticsSummary.totalMileage.toFixed(0)">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Phase Buttons -->
+        <div class="mt-4 flex flex-wrap gap-2">
+            <template x-for="phase in ['base','build','peak','taper']" :key="phase">
+                <button
+                    type="button"
+                    @click="jumpToPhase(phase)"
+                    class="px-3 py-1.5 rounded-full text-xs font-semibold border transition-all duration-200 focus:outline-none"
+                    :class="activePhaseForMonth === phase
+                        ? 'bg-blue-600 border-blue-500 text-white shadow-md'
+                        : 'bg-gray-800 border-gray-700 text-gray-400 hover:bg-gray-700 hover:text-gray-200'">
+                    <span x-text="phase.charAt(0).toUpperCase() + phase.slice(1)"></span>
+                </button>
+            </template>
+        </div>
+    </div>
+
                                     <!-- Calendar Header -->
-                                    <div class="calendar-container flex flex-col bg-gray-900 rounded-lg p-4">
-                                        <div class="flex justify-between items-center mb-4">
+                                    <div class="calendar-container flex flex-col bg-gray-900/70 rounded-xl p-6 border border-gray-800">
+                                        <div class="flex justify-between items-center mb-6">
                                             <div>
                                                 <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
                                                 <span x-text="year" class="ml-1 text-lg font-normal"></span>
@@ -450,9 +504,8 @@
                                                 </button>
                                             </div>
                                         </div>
-                                    </div>
 
-                                    <!-- Mobile: Agenda/List view (calendar grid hidden on small screens) -->
+                                <!-- Mobile: Agenda/List view (calendar grid hidden on small screens) -->
                                     <div x-show="isMobile">
                                         <template x-if="!mobileAgendaGroups || mobileAgendaGroups.length === 0">
                                             <div class="text-sm text-gray-400 mt-2">No workouts scheduled for this
@@ -577,6 +630,8 @@
                                         </div>
                                     </div>
 
+                                    </div> <!-- Properly close .calendar-container after all calendar content -->
+
                                     <!-- Event Modal -->
                                     <div x-show="isModalOpen"
                                         class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-75">
@@ -625,16 +680,14 @@
                                                     </span>
 
                                                     <!-- Distance pill (planned event distance) -->
-                                                    <span
-                                                        x-show="eventToEdit && eventToEdit.event_distance"
+                                                    <span x-show="eventToEdit && eventToEdit.event_distance"
                                                         class="inline-flex items-center rounded-full bg-blue-900/40 border border-blue-700 px-2 py-0.5 text-[0.65rem] font-semibold text-blue-200"
                                                         x-text="`Est. ${Number(eventToEdit.event_distance).toFixed(1)} mi`">
                                                     </span>
                                                 </div>
 
                                                 <!-- Static workout definition (do NOT recompute) -->
-                                                <div class="text-xs text-gray-500"
-                                                    x-text="getSelectedWorkoutDetails()">
+                                                <div class="text-xs text-gray-500" x-text="getSelectedWorkoutDetails()">
                                                 </div>
                                             </div>
 
