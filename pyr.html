@@ -438,10 +438,9 @@
                                                 <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
                                                 <span x-text="year" class="ml-1 text-lg font-normal"></span>
                                             </div>
-                                        <div class="flex items-center justify-end space-x-3 mt-4">
+                                            <div class="flex items-center justify-end space-x-3 mt-4">
                                                 <!-- Ask AI Coach Button -->
-                                                <button
-                                                    @click="aiModalOpen = true"
+                                                <button @click="aiModalOpen = true"
                                                     class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition">
                                                     Ask AI Coach
                                                 </button>
@@ -820,55 +819,78 @@
                                             </div>
                                         </div>
                                     </div>
-                                <!-- AI Coach Modal -->
-                                <div x-show="aiModalOpen"
-                                     x-transition
-                                     x-cloak
-                                     class="fixed inset-0 z-50 flex items-center justify-center"
-                                     @keydown.escape.window="aiModalOpen = false">
+                                    <!-- AI Coach Modal -->
+                                    <div x-show="aiModalOpen" x-transition x-cloak
+                                        class="fixed inset-0 z-50 flex items-center justify-center"
+                                        @keydown.escape.window="aiModalOpen = false">
 
-                                    <div class="absolute inset-0 bg-black/70" @click="aiModalOpen = false"></div>
+                                        <div class="absolute inset-0 bg-black/70" @click="aiModalOpen = false"></div>
 
-                                    <div class="relative w-full max-w-2xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700">
+                                        <div
+                                            class="relative w-full max-w-2xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700">
 
-                                        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-700">
-                                            <div class="text-lg font-semibold">AI Coach</div>
-                                            <button
-                                                class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
-                                                @click="aiModalOpen = false">✕</button>
-                                        </div>
-
-                                        <div class="p-6 space-y-4">
-                                            <div class="flex items-center gap-2 text-xs font-medium text-blue-400">
-                                                <svg class="w-4 h-4 text-blue-500 flex-none" fill="currentColor" viewBox="0 0 20 20">
-                                                    <path d="M6 16a4 4 0 010-8 5 5 0 019.9-1.1A3.5 3.5 0 1116.5 16H6z"/>
-                                                </svg>
-                                                <span>Powered by Agentforce</span>
+                                            <div
+                                                class="flex items-center justify-between px-6 py-4 border-b border-gray-700">
+                                                <div class="text-lg font-semibold">AI Coach</div>
+                                                <button
+                                                    class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
+                                                    @click="aiModalOpen = false">✕</button>
                                             </div>
 
-                                            <label class="block text-sm font-semibold text-gray-200">
-                                                Describe anything relevant to your training:
-                                            </label>
+                                            <div class="p-6 space-y-4">
+                                                <div class="flex items-center gap-2 text-xs font-medium text-blue-400">
+                                                    <svg class="w-4 h-4 text-blue-500 flex-none" fill="currentColor"
+                                                        viewBox="0 0 20 20">
+                                                        <path
+                                                            d="M6 16a4 4 0 010-8 5 5 0 019.9-1.1A3.5 3.5 0 1116.5 16H6z" />
+                                                    </svg>
+                                                    <span>Powered by Agentforce</span>
+                                                </div>
 
-                                            <textarea
-                                                x-model="userInput"
-                                                rows="4"
-                                                placeholder="e.g. I’m coming back from injury and can train 3x/week"
-                                                class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                                <label class="block text-sm font-semibold text-gray-200">
+                                                    Describe anything relevant to your training:
+                                                </label>
+
+                                                <textarea x-model="userInput" rows="4"
+                                                    placeholder="e.g. I’m coming back from injury and can train 3x/week"
+                                                    class="w-full p-3 rounded-md bg-gray-800 text-gray-100 border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500">
                                             </textarea>
 
-                                            <button
-                                                @click="refinePlan()"
-                                                class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition">
-                                                Refine Plan
-                                            </button>
+                                                <button @click="enhancePlan()"
+                                                    :disabled="aiLoading"
+                                                    class="inline-flex items-center gap-2 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 disabled:opacity-60 disabled:cursor-not-allowed transition">
+                                                    
+                                                    <!-- Spinner -->
+                                                    <svg x-show="aiLoading" x-cloak class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a 8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                    </svg>
 
-                                            <div class="mt-4 text-sm text-gray-300 bg-gray-800 border border-gray-700 rounded-md p-4">
-                                                <span x-text="aiFeedback || 'AI feedback will appear here after refinement.'"></span>
+                                                    <span x-text="aiLoading ? 'Refining…' : 'Refine Plan'"></span>
+                                                </button>
+
+                                                <div class="mt-4 text-sm rounded-md p-4 border"
+                                                     :class="aiError 
+                                                        ? 'bg-red-900/30 border-red-600 text-red-200' 
+                                                        : 'bg-gray-800 border-gray-700 text-gray-300'">
+
+                                                    <!-- Error state -->
+                                                    <template x-if="aiError">
+                                                        <div class="flex items-start gap-2">
+                                                            <span class="text-red-400">⚠</span>
+                                                            <span x-text="aiError"></span>
+                                                        </div>
+                                                    </template>
+
+                                                    <!-- Normal / success state -->
+                                                    <template x-if="!aiError">
+                                                        <span x-text="aiFeedback || 'AI feedback will appear here after refinement.'"></span>
+                                                    </template>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
                             </template>
                             <template x-if="activeTab === 'summary'">
                                 <div>
@@ -1052,71 +1074,12 @@
                                     </template>
                                 </div>
                             </template>
-                   border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"></textarea>
-
-                                    <button @click="enhancePlan()"
-                                        class="inline-flex items-center gap-2 mt-2 px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 disabled:opacity-60 disabled:cursor-not-allowed transition"
-                                        :disabled="loading">
-                                        <svg x-show="loading" x-cloak class="h-4 w-4 animate-spin" viewBox="0 0 24 24"
-                                            fill="none">
-                                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                                stroke-width="4"></circle>
-                                            <path class="opacity-75" fill="currentColor"
-                                                d="M4 12a 8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                                        </svg>
-                                        <span x-text="loading ? 'Refining…' : 'Refine Plan'"></span>
-                                    </button>
-
-                                    <!-- Top loading bar (per-request while AI is thinking) -->
-                                    <div x-show="loading" x-transition
-                                        class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
-                                        <div
-                                            class="ai-loading-bar-inner h-full w-1/3 bg-gradient-to-r from-sky-400 via-blue-400 to-emerald-400">
-                                        </div>
-                                    </div>
-
-                                    <!-- Empty state -->
-                                    <div x-show="!loading && !enhancedOutput"
-                                        class="rounded-lg border border-gray-700 bg-gray-900/80 px-4 py-3 text-sm text-gray-300">
-                                        The AI coach’s feedback will appear here after you click
-                                        <span class="font-semibold text-sky-300">Refine Plan</span>.
-                                    </div>
-
-                                    <!-- Error bubble (if you ever send ⚠️-prefixed messages) -->
-                                    <div x-show="!loading && enhancedOutput && enhancedOutput.startsWith('⚠️')"
-                                        class="rounded-2xl border border-red-500/60 bg-red-950/40 px-4 py-3 text-sm text-red-100 shadow-lg shadow-red-900/30 max-w-3xl">
-                                        <div class="flex items-start gap-3">
-                                            <p class="whitespace-pre-line" x-text="enhancedOutput"></p>
-                                        </div>
-                                    </div>
-
-                                    <!-- Chat bubble for AI response (simple, known-working) -->
-                                    <!-- FULL-WIDTH AI OUTPUT CARD -->
-                                    <div x-show="!loading && enhancedOutput && !enhancedOutput.startsWith('⚠️')"
-                                        class="mt-4 w-full">
-                                        <div
-                                            class="w-full rounded-xl border border-emerald-500/40 bg-emerald-900/40 px-6 py-4 shadow-lg shadow-emerald-900/30">
-                                            <div
-                                                class="flex items-center gap-2 mb-3 text-sm font-semibold text-emerald-200">
-                                                <div
-                                                    class="flex h-7 w-7 items-center justify-center rounded-full bg-emerald-600 text-[0.7rem] font-bold text-white">
-                                                    AI
-                                                </div>
-                                                <span>AI Coach Assessment</span>
-                                            </div>
-
-                                            <p class="text-sm text-emerald-50 leading-relaxed whitespace-pre-line"
-                                                x-text="enhancedOutput"></p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </template>
                         </div>
+                        </template>
                     </div>
                 </div>
             </div>
         </div>
-        <br /><br />
     </div>
 </div>
 

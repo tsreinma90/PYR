@@ -1084,6 +1084,9 @@ function sharedState() {
         userInput: "",
         enhancedOutput: "",
         loading: false,
+        aiLoading: false,
+        aiError: null,
+        aiFeedback: "",
 
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
@@ -1311,72 +1314,50 @@ function sharedState() {
         },
 
         async enhancePlan() {
-            // Clear previous output and show loading state
-            this.loading = true;
-            this.enhancedOutput = "";
+            // Use modal-specific state
+            this.aiLoading = true;
+            this.aiError = null;
+            this.aiFeedback = "";
 
             // Ensure the LWC bridge is ready
             const cmp = window.trainingPlanReviewCmp;
             if (!cmp || typeof cmp.reviewPlan !== "function") {
-                this.loading = false;
-                this.enhancedOutput = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
+                this.aiLoading = false;
+                this.aiFeedback = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
                 return;
             }
 
             // Ensure we actually have a training plan to send
             const planJson = window.currentTrainingPlanJson || [];
             if (!Array.isArray(planJson) || planJson.length === 0) {
-                this.loading = false;
-                this.enhancedOutput = "⚠️ Please generate a training plan first, then ask the AI Coach.";
+                this.aiLoading = false;
+                this.aiFeedback = "⚠️ Please generate a training plan first, then ask the AI Coach.";
                 return;
             }
 
-            // User question / notes from the textarea
             const userQuestion =
                 this.userInput && this.userInput.trim().length
                     ? this.userInput.trim()
                     : "Please review this training plan and suggest practical improvements.";
 
-            // Optional runner context – derive from sharedState fields
             const runnerContext = {
                 raceDistance: this.selectedRaceDistance || null,
                 raceDate: this.raceDate || null,
                 weeklyMileage: this.selectedWeeklyMileage || null
             };
 
-            // Build request object for the LWC bridge; it will normalize/serialize as needed
             const req = {
-                trainingPlanJson: planJson,      // array of workout objects
-                runnerContext: runnerContext,    // extra metadata/context
-                userQuestion: userQuestion       // maps to Apex ReviewRequest.userQuestion
+                trainingPlanJson: planJson,
+                runnerContext: runnerContext,
+                userQuestion: userQuestion
             };
 
             try {
-                // Call the LWC @api method with a single request object
                 await cmp.reviewPlan(req);
-                // Do not set enhancedOutput here; it will be set when the
-                // trainingplanreviewed or trainingplanreviewerror events fire.
+                // Response will be handled by trainingplanreviewed event listener
             } catch (e) {
-                // LWC / Apex-style errors usually have body.message etc.
-                if (e && e.body) {
-                    console.error('*** error.body:', e.body);
-                    console.error('*** error.body.message:', e.body.message);
-                    console.error('*** error.body.exceptionType:', e.body.exceptionType);
-                    console.error('*** error.body.stackTrace:', e.body.stackTrace);
-                }
-
-                // Some Lightning Out errors show up here instead
-                if (e && e.message) {
-                    console.error('*** error.message:', e.message);
-                }
-
-                try {
-                    console.error('*** error as JSON:', JSON.stringify(e));
-                } catch (jsonErr) {
-                    console.error('*** error could not be stringified:', jsonErr);
-                }
-                this.loading = false;
-                this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
+                this.aiError = "⚠️ There was an unexpected error contacting the AI Coach.";
+                this.aiLoading = false;
             }
         },
 
