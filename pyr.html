@@ -131,7 +131,16 @@
                                     <label class="block text-sm font-medium text-gray-300 mb-1">
                                         Goal Race Pace
                                         <span class="text-gray-500 text-sm"
-                                            x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A'} - ${timeLimits[selectedRaceDistance]?.max || 'N/A'})`"></span>
+                                            x-text="'(Range: ' 
+                                              + (selectedRaceDistance && timeLimits[selectedRaceDistance] 
+                                                ? (timeLimits[selectedRaceDistance].min || 'N/A') 
+                                                : 'N/A')
+                                              + ' - ' 
+                                              + (selectedRaceDistance && timeLimits[selectedRaceDistance] 
+                                                ? (timeLimits[selectedRaceDistance].max || 'N/A') 
+                                                : 'N/A')
+                                              + ')'"
+                                        ></span>
                                     </label>
                                     <!--<div class="py-1">
                                         <div id="weeklyMileageSlider"></div>
@@ -312,7 +321,7 @@
                 </div>
             </details>
 
-            <div x-show="showErrorToast" x-transition
+            <div x-show="$root.showErrorToast" x-transition
                 class="fixed top-5 left-1/2 transform -translate-x-1/2 bg-red-600 text-white px-6 py-3 rounded-lg shadow-xl z-50">
                 Please fill out all required fields!
             </div>
@@ -659,20 +668,23 @@
                                             <h3 class="text-lg font-semibold text-white">
                                                 Edit -
                                                 <span
-                                                    x-text="new Date(`${eventToEdit.event_date}T12:00:00`).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })">
-                                                </span>
+                                                    x-text="eventToEdit && eventToEdit.event_date 
+                                                        ? new Date(eventToEdit.event_date + 'T12:00:00')
+                                                            .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
+                                                        : ''"
+                                                ></span>
                                             </h3>
 
                                             <div class="mt-4">
                                                 <label class="block text-sm font-medium text-gray-300">Event
                                                     Title</label>
-                                                <input x-model="eventToEdit.event_title" type="text"
+                                                <input x-model="eventToEdit && eventToEdit.event_title" type="text"
                                                     class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2" />
                                             </div>
                                             <div class="mt-4">
                                                 <label class="block text-sm font-medium text-gray-300">Event
                                                     Type</label>
-                                                <select x-model="eventToEdit.event_type"
+                                                <select x-model="eventToEdit && eventToEdit.event_type"
                                                     class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2">
                                                     <option value="">Select Event Type</option>
                                                     <option value="Easy Run">Easy Run</option>
@@ -796,7 +808,7 @@
                                             <div class="mt-4">
                                                 <label class="block text-sm font-medium text-gray-300">Distance
                                                     (miles)</label>
-                                                <select x-model="eventToEdit.event_distance"
+                                                <select x-model="eventToEdit && eventToEdit.event_distance"
                                                     @change="eventToEdit.event_distance = $event.target.value;"
                                                     class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2">
                                                     <template x-for="(mile, index) in miles">
@@ -806,7 +818,7 @@
                                             </div>
                                             <div class="mt-4">
                                                 <label class="block text-sm font-medium text-gray-300">Notes</label>
-                                                <textarea x-model="eventToEdit.event_notes"
+                                                <textarea x-model="eventToEdit && eventToEdit.event_notes"
                                                     class="mt-2 w-full bg-gray-700 text-white rounded-lg border border-gray-600 p-2"
                                                     rows="3"></textarea>
                                             </div>
