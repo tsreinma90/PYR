@@ -1461,6 +1461,18 @@ function sharedState() {
 
                 openAiModal() {
                     this.aiModalOpen = true;
+                    this.aiLoading = true;
+
+                    Promise.resolve().then(() => {
+                        if (window.initAICoach) {
+                            window.initAICoach();
+                        }
+
+                        // Small delay for UX smoothness
+                        setTimeout(() => {
+                            this.aiLoading = false;
+                        }, 1200);
+                    });
                 },
 
                 closeAiModal() {
