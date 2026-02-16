@@ -1315,14 +1315,14 @@ function sharedState() {
 
         async enhancePlan() {
             // Use modal-specific state
-            this.aiLoading = true;
+            this.loading = true;      // controls modal overlay spinner
             this.aiError = null;
             this.aiFeedback = "";
 
             // Ensure the LWC bridge is ready
             const cmp = window.trainingPlanReviewCmp;
             if (!cmp || typeof cmp.reviewPlan !== "function") {
-                this.aiLoading = false;
+                this.loading = false;
                 this.aiFeedback = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
                 return;
             }
@@ -1330,7 +1330,7 @@ function sharedState() {
             // Ensure we actually have a training plan to send
             const planJson = window.currentTrainingPlanJson || [];
             if (!Array.isArray(planJson) || planJson.length === 0) {
-                this.aiLoading = false;
+                this.loading = false;
                 this.aiFeedback = "⚠️ Please generate a training plan first, then ask the AI Coach.";
                 return;
             }
@@ -1357,7 +1357,7 @@ function sharedState() {
                 // Response will be handled by trainingplanreviewed event listener
             } catch (e) {
                 this.aiError = "⚠️ There was an unexpected error contacting the AI Coach.";
-                this.aiLoading = false;
+                this.loading = false;
             }
         },
 
