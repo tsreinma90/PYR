@@ -130,8 +130,7 @@
                                 <div id="input-specific_time_goal" class="conditional-input">
                                     <label class="block text-sm font-medium text-gray-300 mb-1">
                                         Goal Race Pace
-                                        <span class="text-gray-500 text-sm"
-                                            x-text="'(Range: ' 
+                                        <span class="text-gray-500 text-sm" x-text="'(Range: ' 
                                               + (selectedRaceDistance && timeLimits[selectedRaceDistance] 
                                                 ? (timeLimits[selectedRaceDistance].min || 'N/A') 
                                                 : 'N/A')
@@ -139,8 +138,7 @@
                                               + (selectedRaceDistance && timeLimits[selectedRaceDistance] 
                                                 ? (timeLimits[selectedRaceDistance].max || 'N/A') 
                                                 : 'N/A')
-                                              + ')'"
-                                        ></span>
+                                              + ')'"></span>
                                     </label>
                                     <!--<div class="py-1">
                                         <div id="weeklyMileageSlider"></div>
@@ -449,8 +447,7 @@
                                             </div>
                                             <div class="flex items-center justify-end space-x-3 mt-4">
                                                 <!-- Ask AI Coach Button -->
-                                                <button
-                                                    @click="
+                                                <button @click="
                                                         aiModalOpen = true;
                                                         aiLoading = true;
                                                         Promise.resolve().then(() => {
@@ -667,12 +664,10 @@
                                         <div class="bg-gray-800 rounded-lg p-6 w-full max-w-md">
                                             <h3 class="text-lg font-semibold text-white">
                                                 Edit -
-                                                <span
-                                                    x-text="eventToEdit && eventToEdit.event_date 
+                                                <span x-text="eventToEdit && eventToEdit.event_date 
                                                         ? new Date(eventToEdit.event_date + 'T12:00:00')
                                                             .toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-                                                        : ''"
-                                                ></span>
+                                                        : ''"></span>
                                             </h3>
 
                                             <div class="mt-4">
@@ -844,133 +839,133 @@
                                     <!-- AI Coach Modal -->
 
                                     <div x-show="aiModalOpen" x-transition x-cloak
-     class="fixed inset-0 z-50 flex items-center justify-center"
-     @keydown.escape.window="aiModalOpen = false">
+                                        class="fixed inset-0 z-50 flex justify-center items-start overflow-y-auto p-6"
+                                        @keydown.escape.window="aiModalOpen = false">
 
-    <!-- Overlay -->
-    <div class="absolute inset-0 bg-black/70"
-         @click="aiModalOpen = false"></div>
+                                        <!-- Overlay -->
+                                        <div class="absolute inset-0 bg-black/70" @click="aiModalOpen = false"></div>
 
-    <!-- Modal Card -->
-    <div
-        class="relative w-full max-w-2xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-2xl border border-gray-700 flex flex-col max-h-[85vh]"
-        :class="loading ? 'opacity-80' : ''">
+                                        <!-- Modal Card -->
+                                        <div class="relative w-full max-w-2xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-2xl border border-gray-700 flex flex-col max-h-[90vh]"
+                                            :class="$root.loading ? 'opacity-80' : ''">
 
-        <!-- Header -->
-        <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
-            <div class="text-lg font-semibold">AI Coach</div>
-            <button class="text-gray-400 hover:text-white"
-                    @click="aiModalOpen = false">✕</button>
-        </div>
+                                            <!-- Header -->
+                                            <div
+                                                class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
+                                                <div class="text-lg font-semibold">AI Coach</div>
+                                                <button class="text-gray-400 hover:text-white"
+                                                    @click="aiModalOpen = false">✕</button>
+                                            </div>
 
-        <!-- Body -->
-        <div class="relative px-6 py-5 space-y-5 flex-1 overflow-y-auto">
-            <!-- Full-screen spinner overlay while refining -->
-            <div x-show="loading"
-                 x-transition.opacity
-                 class="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm z-20">
-                <div class="flex flex-col items-center gap-3">
-                    <div class="h-10 w-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
-                    <div class="text-sm text-indigo-300 font-medium">Refining your plan…</div>
-                </div>
-            </div>
+                                            <!-- Body -->
+                                            <div class="relative px-6 py-5 space-y-5 flex-1 overflow-y-auto overscroll-contain">
+                                                <!-- Full-screen spinner overlay while refining -->
+                                                <div x-show="$root.loading" x-transition.opacity
+                                                    class="absolute inset-0 flex items-center justify-center bg-gray-900/80 backdrop-blur-sm z-20">
+                                                    <div class="flex flex-col items-center gap-3">
+                                                        <div
+                                                            class="h-10 w-10 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin">
+                                                        </div>
+                                                        <div class="text-sm text-indigo-300 font-medium">Refining your
+                                                            plan…</div>
+                                                    </div>
+                                                </div>
 
-            <!-- Connecting Spinner -->
-            <div x-show="aiLoading"
-                 class="flex items-center gap-2 text-xs font-medium text-sky-300">
-                <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                            stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                          d="M4 12a 8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
-                <span>Connecting to AI Coach…</span>
-            </div>
+                                                <!-- Connecting Spinner -->
+                                                <div x-show="aiLoading"
+                                                    class="flex items-center gap-2 text-xs font-medium text-sky-300">
+                                                    <svg class="h-4 w-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                            stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a 8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                    </svg>
+                                                    <span>Connecting to AI Coach…</span>
+                                                </div>
 
-            <!-- Powered Badge -->
-            <div class="flex items-center gap-2 text-xs font-medium text-sky-300">
-                <svg viewBox="0 0 32 32" class="h-5 w-5" aria-hidden="true">
-                    <defs>
-                        <linearGradient id="sfCloudGradient" x1="0%" y1="0%"
-                                        x2="100%" y2="100%">
-                            <stop offset="0%" stop-color="#00A1E0" />
-                            <stop offset="100%" stop-color="#0176D3" />
-                        </linearGradient>
-                    </defs>
-                    <path d="M8.5 22.5c-2.5 0-4.5-2-4.5-4.4 0-2 1.3-3.7 3.2-4.3.4-3 2.9-5.3 6-5.3 2.1 0 4 1.1 5.1 2.8.4-.1.9-.2 1.3-.2 2.6 0 4.8 2.1 4.8 4.7 0 2.6-2.2 4.7-4.8 4.7H8.5z"
-                          fill="url(#sfCloudGradient)"></path>
-                </svg>
-                <span>Powered by Agentforce</span>
-            </div>
+                                                <!-- Powered Badge -->
+                                                <div class="flex items-center gap-2 text-xs font-medium text-sky-300">
+                                                    <svg viewBox="0 0 32 32" class="h-5 w-5" aria-hidden="true">
+                                                        <defs>
+                                                            <linearGradient id="sfCloudGradient" x1="0%" y1="0%"
+                                                                x2="100%" y2="100%">
+                                                                <stop offset="0%" stop-color="#00A1E0" />
+                                                                <stop offset="100%" stop-color="#0176D3" />
+                                                            </linearGradient>
+                                                        </defs>
+                                                        <path
+                                                            d="M8.5 22.5c-2.5 0-4.5-2-4.5-4.4 0-2 1.3-3.7 3.2-4.3.4-3 2.9-5.3 6-5.3 2.1 0 4 1.1 5.1 2.8.4-.1.9-.2 1.3-.2 2.6 0 4.8 2.1 4.8 4.7 0 2.6-2.2 4.7-4.8 4.7H8.5z"
+                                                            fill="url(#sfCloudGradient)"></path>
+                                                    </svg>
+                                                    <span>Powered by Agentforce</span>
+                                                </div>
 
-            <label class="block font-semibold text-sm text-gray-200">
-                Describe anything relevant to your training:
-            </label>
+                                                <label class="block font-semibold text-sm text-gray-200">
+                                                    Describe anything relevant to your training:
+                                                </label>
 
-            <textarea x-model="userInput" rows="4"
-                      placeholder="e.g. I’m coming back from injury and can train 3x/week"
-                      class="w-full p-3 rounded-md bg-gray-800 text-gray-100 placeholder-gray-500
+                                                <textarea x-model="userInput" rows="4"
+                                                    placeholder="e.g. I’m coming back from injury and can train 3x/week"
+                                                    class="w-full p-3 rounded-md bg-gray-800 text-gray-100 placeholder-gray-500
                              border border-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
             </textarea>
 
-            <!-- Refine Button -->
-            <button @click="enhancePlan()"
-                    :disabled="loading"
-                    class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600
+                                                <!-- Refine Button -->
+                                                <button @click="enhancePlan()" :disabled="$root.loading" class="inline-flex items-center gap-2 px-4 py-2 bg-indigo-600
                            text-white text-sm rounded-md hover:bg-indigo-500
                            disabled:opacity-60 disabled:cursor-not-allowed transition">
 
-                <svg x-show="loading" x-cloak
-                     class="h-4 w-4 animate-spin"
-                     viewBox="0 0 24 24" fill="none">
-                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                            stroke="currentColor" stroke-width="4"></circle>
-                    <path class="opacity-75" fill="currentColor"
-                          d="M4 12a 8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
-                </svg>
+                                                    <svg x-show="$root.loading" x-cloak class="h-4 w-4 animate-spin"
+                                                        viewBox="0 0 24 24" fill="none">
+                                                        <circle class="opacity-25" cx="12" cy="12" r="10"
+                                                            stroke="currentColor" stroke-width="4"></circle>
+                                                        <path class="opacity-75" fill="currentColor"
+                                                            d="M4 12a 8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                                                    </svg>
 
-                <span x-text="loading ? 'Refining…' : 'Refine Plan'"></span>
-            </button>
+                                                    <span x-text="$root.loading ? 'Refining…' : 'Refine Plan'"></span>
+                                                </button>
 
-            <!-- Loading Bar -->
-            <div x-show="loading"
-                 class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
-                <div class="ai-loading-bar-inner h-full w-1/3
+                                                <!-- Loading Bar -->
+                                                <div x-show="$root.loading"
+                                                    class="w-full h-1 bg-gray-700 rounded-full overflow-hidden">
+                                                    <div class="ai-loading-bar-inner h-full w-1/3
                             bg-gradient-to-r from-sky-400 via-blue-400 to-emerald-400">
-                </div>
-            </div>
+                                                    </div>
+                                                </div>
 
-            <!-- Empty State -->
-            <div x-show="!loading && !enhancedOutput"
-                 class="rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-gray-300">
-                The AI coach’s feedback will appear here after you click
-                <span class="font-semibold text-sky-300">Refine Plan</span>.
-            </div>
+                                                <!-- Empty State -->
+                                                <div x-show="!$root.loading && !enhancedOutput"
+                                                    class="rounded-lg border border-gray-700 bg-gray-800 px-4 py-3 text-sm text-gray-300">
+                                                    The AI coach’s feedback will appear here after you click
+                                                    <span class="font-semibold text-sky-300">Refine Plan</span>.
+                                                </div>
 
-            <!-- Error -->
-            <div x-show="!loading && enhancedOutput && enhancedOutput.startsWith('⚠️')"
-                 class="rounded-lg border border-red-500/60 bg-red-950/40 px-4 py-3 text-sm text-red-200">
-                <p class="whitespace-pre-line" x-text="enhancedOutput"></p>
-            </div>
+                                                <!-- Error -->
+                                                <div x-show="!$root.loading && enhancedOutput && enhancedOutput.startsWith('⚠️')"
+                                                    class="rounded-lg border border-red-500/60 bg-red-950/40 px-4 py-3 text-sm text-red-200">
+                                                    <p class="whitespace-pre-line" x-text="enhancedOutput"></p>
+                                                </div>
 
-            <!-- Success -->
-            <div x-show="!loading && enhancedOutput && !enhancedOutput.startsWith('⚠️')"
-                 class="rounded-lg border border-emerald-500/40 bg-emerald-900/40 px-4 py-4">
-                <div class="flex items-center gap-2 mb-2 text-sm font-semibold text-emerald-200">
-                    <div class="flex h-6 w-6 items-center justify-center rounded-full
+                                                <!-- Success -->
+                                                <div x-show="!$root.loading && enhancedOutput && !enhancedOutput.startsWith('⚠️')"
+                                                    class="rounded-lg border border-emerald-500/40 bg-emerald-900/40 px-4 py-4">
+                                                    <div
+                                                        class="flex items-center gap-2 mb-2 text-sm font-semibold text-emerald-200">
+                                                        <div class="flex h-6 w-6 items-center justify-center rounded-full
                                 bg-emerald-600 text-xs font-bold text-white">
-                        AI
-                    </div>
-                    <span>AI Coach Assessment</span>
-                </div>
+                                                            AI
+                                                        </div>
+                                                        <span>AI Coach Assessment</span>
+                                                    </div>
 
-                <p class="text-sm text-emerald-50 whitespace-pre-line"
-                   x-text="enhancedOutput"></p>
-            </div>
+                                                    <p class="text-sm text-emerald-50 whitespace-pre-line"
+                                                        x-text="enhancedOutput"></p>
+                                                </div>
 
-        </div>
-    </div>
-</div>
+                                            </div>
+                                        </div>
+                                    </div>
                             </template>
                             <template x-if="activeTab === 'summary'">
                                 <div>
