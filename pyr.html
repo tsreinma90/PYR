@@ -440,7 +440,17 @@
                                             </div>
                                             <div class="flex items-center justify-end space-x-3 mt-4">
                                                 <!-- Ask AI Coach Button -->
-                                                <button @click="aiModalOpen = true"
+                                                <button
+                                                    @click="
+                                                        aiModalOpen = true;
+                                                        aiLoading = true;
+                                                        Promise.resolve().then(() => {
+                                                            if (window.initAICoach) {
+                                                                window.initAICoach();
+                                                            }
+                                                            setTimeout(() => aiLoading = false, 1500);
+                                                        });
+                                                    "
                                                     class="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white hover:bg-indigo-500 transition">
                                                     Ask AI Coach
                                                 </button>
