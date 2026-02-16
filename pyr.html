@@ -852,7 +852,7 @@
          @click="aiModalOpen = false"></div>
 
     <!-- Modal Card -->
-    <div class="relative w-full max-w-2xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-2xl border border-gray-700 overflow-hidden">
+    <div class="relative w-full max-w-2xl mx-4 bg-gray-900 text-gray-100 rounded-xl shadow-2xl border border-gray-700 flex flex-col max-h-[85vh] overflow-hidden">
 
         <!-- Header -->
         <div class="flex items-center justify-between px-6 py-4 border-b border-gray-800">
@@ -862,7 +862,7 @@
         </div>
 
         <!-- Body -->
-        <div class="px-6 py-5 space-y-5">
+        <div class="px-6 py-5 space-y-5 flex-1 overflow-y-auto">
 
             <!-- Connecting Spinner -->
             <div x-show="aiLoading"
