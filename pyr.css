@@ -603,3 +603,52 @@ body {
 .controls-panel #weeklyMileageSlider .noUi-tooltip {
   display: none !important;
 }
+
+/* --- AI Modal Scroll + Lock Fix --- */
+
+/* Lock background scroll when modal is open (add/remove via JS if desired) */
+body.modal-open {
+  overflow: hidden;
+}
+
+/* Fullscreen modal overlay */
+.ai-modal-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.65);
+}
+
+/* Modal card container */
+.ai-modal-card {
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  background: #0f172a;
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+/* Scrollable content area inside modal */
+.ai-modal-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px;
+}
+
+/* Ensure long AI output wraps nicely */
+.ai-modal-body p {
+  word-break: break-word;
+}
+
+/* Prevent layout shift on mobile */
+@media (max-width: 640px) {
+  .ai-modal-card {
+    max-height: 92vh;
+  }
+}
