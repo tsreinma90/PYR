@@ -838,20 +838,20 @@
                                     </div>
                                     <!-- AI Coach Modal -->
 
-                                    <div x-show="aiModalOpen" 
-                                         x-transition 
-                                         x-cloak
-                                         x-effect="document.body.classList.toggle('overflow-hidden', aiModalOpen)"
-                                         class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                                         style="display: none;"
-                                         @keydown.escape.window="aiModalOpen = false">
+                                    <template x-teleport="body">
+                                        <div x-show="aiModalOpen"
+                                             x-transition
+                                             x-cloak
+                                             x-effect="document.body.classList.toggle('overflow-hidden', aiModalOpen)"
+                                             class="fixed inset-0 z-[100] flex items-center justify-center p-4"
+                                             style="display: none;"
+                                             @keydown.escape.window="aiModalOpen = false">
 
                                         <!-- Overlay -->
                                         <div class="absolute inset-0 bg-black/70" @click="aiModalOpen = false"></div>
 
                                         <!-- Modal Card -->
-                                        <div class="relative w-full max-w-2xl bg-gray-900 text-gray-100 rounded-xl shadow-2xl border border-gray-700 flex flex-col max-h-[85vh] overflow-hidden"
-                                            :class="$root.loading ? 'opacity-80' : ''">
+                                        <div class="relative w-full max-w-2xl bg-gray-900 text-gray-100 rounded-xl shadow-2xl border border-gray-700 flex flex-col max-h-[85vh] overflow-hidden">
 
                                             <!-- Header -->
                                             <div
@@ -1000,7 +1000,8 @@ Overall, this is a solid plan and should prepare you well for race day.`;
 
                                             </div>
                                         </div>
-                                    </div>
+                                        </div>
+                                    </template>
                             </template>
                             <template x-if="activeTab === 'summary'">
                                 <div>

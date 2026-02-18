@@ -1098,7 +1098,7 @@ function sharedState() {
             this.loadWorkoutCatalog();
             // Listen for successful reviews from the LWC bridge
             window.addEventListener("trainingplanreviewed", (evt) => {
-                this.loading = false;
+                this.aiLoading = false;
                 const detail = (evt && evt.detail) || {};
 
                 const summary =
@@ -1111,7 +1111,7 @@ function sharedState() {
 
             // Listen for errors from the LWC bridge
             window.addEventListener("trainingplanreviewerror", (evt) => {
-                this.loading = false;
+                this.aiLoading = false;
                 const message =
                     (evt && evt.detail && evt.detail.message) ||
                     "There was a problem reviewing your training plan.";
@@ -1315,14 +1315,14 @@ function sharedState() {
 
         async enhancePlan() {
             // Use modal-specific state
-            this.loading = true;      // controls modal overlay spinner
+            this.aiLoading = true;      // controls modal overlay spinner
             this.aiError = null;
             this.aiFeedback = "";
 
             // Ensure the LWC bridge is ready
             const cmp = window.trainingPlanReviewCmp;
             if (!cmp || typeof cmp.reviewPlan !== "function") {
-                this.loading = false;
+                this.aiLoading = false;
                 this.aiFeedback = "⚠️ The AI Coach is not ready yet. Try again in a moment.";
                 return;
             }
@@ -1330,7 +1330,7 @@ function sharedState() {
             // Ensure we actually have a training plan to send
             const planJson = window.currentTrainingPlanJson || [];
             if (!Array.isArray(planJson) || planJson.length === 0) {
-                this.loading = false;
+                this.aiLoading = false;
                 this.aiFeedback = "⚠️ Please generate a training plan first, then ask the AI Coach.";
                 return;
             }
@@ -1357,7 +1357,7 @@ function sharedState() {
                 // Response will be handled by trainingplanreviewed event listener
             } catch (e) {
                 this.aiError = "⚠️ There was an unexpected error contacting the AI Coach.";
-                this.loading = false;
+                this.aiLoading = false;
             }
         },
 
