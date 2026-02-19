@@ -114,6 +114,34 @@ function getTrainingPhase(weekNumber, totalWeeks) {
   return "taper";
 }
 
+// Determine progression level based on training phase
+function getProgressionLevel(trainingPhase, progressionArray) {
+  if (!Array.isArray(progressionArray) || progressionArray.length === 0) {
+    return null;
+  }
+
+  // Sort levels ascending just in case
+  const sorted = [...progressionArray].sort((a, b) => a.level - b.level);
+
+  if (trainingPhase === "base") {
+    return sorted[0]; // easiest level
+  }
+
+  if (trainingPhase === "build") {
+    return sorted[Math.min(1, sorted.length - 1)]; // level 2 if exists
+  }
+
+  if (trainingPhase === "peak") {
+    return sorted[sorted.length - 1]; // hardest available
+  }
+
+  if (trainingPhase === "taper") {
+    return sorted[0]; // reduce back down
+  }
+
+  return sorted[0];
+}
+
 // Helper: Derive Long Run Type and Effort (RPE) guidance from training phase
 function getLongRunProfile(trainingPhase) {
   switch (trainingPhase) {
@@ -433,8 +461,8 @@ function generateRuns(
           if (weeklyMileage > 60) tier = "advanced";
           else if (weeklyMileage > 35) tier = "intermediate";
 
-          // Use progression level 1 for now
-          const progressionLevel = thresholdWorkout.progression.find(p => p.level === 1);
+          // Use progression level based on phase
+          const progressionLevel = getProgressionLevel(trainingPhase, thresholdWorkout.progression);
           const variant = progressionLevel.variants[tier];
 
           // Calculate rep distance (convert meters → miles if needed)
@@ -485,8 +513,8 @@ function generateRuns(
           if (weeklyMileage > 60) tier = "advanced";
           else if (weeklyMileage > 35) tier = "intermediate";
 
-          // Use progression level 1 for now
-          const progressionLevel = vo2Workout.progression.find(p => p.level === 1);
+          // Use progression level based on phase
+          const progressionLevel = getProgressionLevel(trainingPhase, vo2Workout.progression);
           const variant = progressionLevel.variants[tier];
 
           // Convert meters to miles
@@ -534,8 +562,8 @@ function generateRuns(
           if (weeklyMileage > 60) tier = "advanced";
           else if (weeklyMileage > 35) tier = "intermediate";
 
-          // Use progression level 1 for now
-          const progressionLevel = longWorkout.progression.find(p => p.level === 1);
+          // Use progression level based on phase
+          const progressionLevel = getProgressionLevel(trainingPhase, longWorkout.progression);
           const variant = progressionLevel.variants[tier];
 
           // Use existing mileage calculation for stability
