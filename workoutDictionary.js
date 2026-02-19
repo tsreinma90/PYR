@@ -1,5 +1,3 @@
-
-
 export const WORKOUT_DICTIONARY = {
 
   // =========================
@@ -154,6 +152,56 @@ export const WORKOUT_DICTIONARY = {
           beginner: { finishMilesAt: "marathon", finishDistance: 3 },
           intermediate: { finishMilesAt: "marathon", finishDistance: 5 },
           advanced: { finishMilesAt: "marathon", finishDistance: 6 }
+        }
+      }
+    ]
+  },
+
+  // =========================
+  // LONG RUN RACE SPECIFIC
+  // =========================
+
+  LONG_RUN_RACE_SPECIFIC: {
+    category: "long_run",
+    phases: ["peak"],
+    raceTypes: ["half", "marathon"],
+    intensity: "race_specific",
+
+    warmup: null,
+    cooldown: null,
+
+    progression: [
+      {
+        level: 1,
+        variants: {
+          beginner: { racePaceSegments: [{ distance: 2, unit: "mile" }] },
+          intermediate: { racePaceSegments: [{ distance: 3, unit: "mile" }, { distance: 2, unit: "mile" }] },
+          advanced: { racePaceSegments: [{ distance: 4, unit: "mile" }, { distance: 3, unit: "mile" }] }
+        }
+      }
+    ]
+  },
+
+  // =========================
+  // LONG RUN SHARPENING
+  // =========================
+
+  LONG_RUN_SHARPENING: {
+    category: "long_run",
+    phases: ["taper"],
+    raceTypes: ["half", "marathon"],
+    intensity: "sharpening",
+
+    warmup: null,
+    cooldown: null,
+
+    progression: [
+      {
+        level: 1,
+        variants: {
+          beginner: { pickups: { reps: 4, duration: 60, unit: "sec" } },
+          intermediate: { pickups: { reps: 6, duration: 60, unit: "sec" } },
+          advanced: { pickups: { reps: 8, duration: 60, unit: "sec" } }
         }
       }
     ]

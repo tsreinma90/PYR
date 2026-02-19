@@ -732,7 +732,7 @@ export const DEFAULT_WORKOUT_SELECTION_BY_LEVEL = {
 
 export function getWorkoutTypeById(id) {
     return WORKOUT_CATALOG.find((w) => w.id === id);
-}
+};
 
 /**
  * Convenience helper for UI:
@@ -742,4 +742,4 @@ export function createWorkoutInstanceById(workoutTypeId, ctx) {
     const wt = getWorkoutTypeById(workoutTypeId);
     if (!wt) return null;
     return createWorkoutInstance(wt, ctx);
-}
+};

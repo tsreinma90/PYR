@@ -6,6 +6,7 @@ import {
   createWorkoutInstance
 } from "./workoutsCatalog.js";
 import { WORKOUT_DICTIONARY } from "./workoutDictionary.js";
+import { TEMPLATES } from "./templates/templateRegistry.js";
 
 const weekdayMap = new Map();
 const themeMap = new Map();
@@ -175,9 +176,9 @@ function getRecommendedPace(workoutType, goalPace, trainingPhase) {
 
   // Define phase-based offsets (seconds per mile)
   const PACE_OFFSETS = {
-    Easy:   { base: 90, build: 75, peak: 60, taper: 60 },
-    Tempo:  { base: 35, build: 25, peak: 15, taper: 10 },
-    Speed:  { base: -10, build: -20, peak: -30, taper: -20 },
+    Easy: { base: 90, build: 75, peak: 60, taper: 60 },
+    Tempo: { base: 35, build: 25, peak: 15, taper: 10 },
+    Speed: { base: -10, build: -20, peak: -30, taper: -20 },
     Long: { base: 90, build: 75, peak: 60, taper: 60 }
   };
 
@@ -233,25 +234,45 @@ function createTrainingPlan(
   raceDate,
   goalPace,
   numWeeksUntilRace,
+  raceDistance,
   preferences = null
 ) {
+  console.log('*** top of method');
   nextRun = parseLocalDate(startDay);
   raceDate = parseLocalDate(raceDate);
   globalGoalPace = goalPace; // Save the goal pace globally
 
-  const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal);
-  const experienceLevel = determineExperienceLevel(mileageGoal, goalPace);
-  // Use the dynamic workout map to calculate overall percentiles.
-  const workoutMap = createDynamicWorkoutMap(experienceLevel, raceDate);
-  const workoutRatio = calculateWorkoutPercentiles(workoutMap);
-  const workoutCount = countUniqueValuesInMap(workoutMap);
+  // mileageGoal is already the computed numeric peak mileage
+  const peakMileage = mileageGoal;
+
+  console.log('*** peakMileage:', peakMileage);
+
+  const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, peakMileage);
+  const experienceLevel = determineExperienceLevel(peakMileage, goalPace);
+
+  console.log('*** experienceLevel:', milesPerWeek, experienceLevel);
+
+  // Normalize race distance to match template keys
+  let normalizedDistance = null;
+  if (typeof raceDistance === "string") {
+    const lower = raceDistance.toLowerCase();
+    if (lower.includes("half")) normalizedDistance = "half";
+    else if (lower.includes("marathon")) normalizedDistance = "marathon";
+    else if (lower.includes("10")) normalizedDistance = "10k";
+    else if (lower.includes("5")) normalizedDistance = "5k";
+  }
+
+  console.log("🔥 ENTERED createTrainingPlan");
+
+  const template =
+    TEMPLATES?.[normalizedDistance]?.[numWeeksUntilRace] || null;
+
+    console.log("Template found:", !!template);
 
   return generateRuns(
     nextRun,
     milesPerWeek,
-    workoutMap,
-    workoutRatio,
-    workoutCount,
+    template,
     raceDate,
     preferences
   );
@@ -405,9 +426,7 @@ function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks, prefere
 function generateRuns(
   nextRun,
   milesPerWeek,
-  baseWorkoutMap,
-  workoutRatio,
-  workoutCount,
+  template,
   raceDate,
   preferences = null
 ) {
@@ -419,8 +438,9 @@ function generateRuns(
 
   for (let week = 0; week < milesPerWeek.length; week++) {
     const trainingPhase = getTrainingPhase(week, milesPerWeek.length);
-    const weeklyMap = createWeeklyWorkoutMap(experienceLevel, week, milesPerWeek.length, preferences);
-    const longRunIncluded = longRunIncludedInPlan(weeklyMap);
+    const weeklyTemplate = template?.weeks?.[week];
+    // For legacy fallback, we could use createWeeklyWorkoutMap, but per instructions, remove its usage here.
+    const longRunIncluded = false; // No weeklyMap, so we can't check; safe placeholder for now.
 
     for (let x = 0; x < 7; x++) {
       // When we reach race day, schedule a dedicated race event and stop further run generation.
@@ -449,8 +469,17 @@ function generateRuns(
         }
       }
 
-      if (weeklyMap.has(dayOfWeek)) {
-        let { type: workoutType, note } = weeklyMap.get(dayOfWeek);
+      if (weeklyTemplate && weeklyTemplate.workouts[dayOfWeek]) {
+        let workoutConfig = weeklyTemplate.workouts[dayOfWeek];
+        let workoutType = workoutConfig.type || null;
+        let note = workoutConfig.note || "";
+
+        if (workoutConfig.id) {
+          const id = workoutConfig.id;
+          if (id.includes("THRESHOLD")) workoutType = "Tempo";
+          else if (id.includes("VO2")) workoutType = "Speed";
+          else if (id.includes("LONG")) workoutType = "Long";
+        }
         // ---- Structured Threshold Workout Injection (Phase 1) ----
         if (workoutType === "Tempo") {
           const thresholdWorkout = WORKOUT_DICTIONARY.THRESHOLD_MILE_REPEATS;
@@ -461,8 +490,41 @@ function generateRuns(
           if (weeklyMileage > 60) tier = "advanced";
           else if (weeklyMileage > 35) tier = "intermediate";
 
-          // Use progression level based on phase
-          const progressionLevel = getProgressionLevel(trainingPhase, thresholdWorkout.progression);
+          // Determine week position within phase for smarter progression
+          const totalWeeks = milesPerWeek.length;
+          const phaseStartIndex = milesPerWeek.findIndex((_, i) =>
+            getTrainingPhase(i, totalWeeks) === trainingPhase
+          );
+
+          const phaseWeeks = milesPerWeek
+            .map((_, i) => i)
+            .filter(i => getTrainingPhase(i, totalWeeks) === trainingPhase);
+
+          const weekInPhase = phaseWeeks.indexOf(week);
+          const phaseLength = phaseWeeks.length;
+
+          // Determine progression index based on phase + position
+          const sorted = [...thresholdWorkout.progression].sort((a, b) => a.level - b.level);
+          let progressionLevel;
+
+          if (trainingPhase === "base") {
+            progressionLevel = weekInPhase % 2 === 0
+              ? sorted[0]
+              : sorted[Math.min(1, sorted.length - 1)];
+          }
+          else if (trainingPhase === "build") {
+            const midPoint = Math.floor(phaseLength / 2);
+            progressionLevel = weekInPhase < midPoint
+              ? sorted[Math.min(1, sorted.length - 1)]
+              : sorted[sorted.length - 1];
+          }
+          else if (trainingPhase === "peak") {
+            progressionLevel = sorted[sorted.length - 1];
+          }
+          else { // taper
+            progressionLevel = sorted[0];
+          }
+
           const variant = progressionLevel.variants[tier];
 
           // Calculate rep distance (convert meters → miles if needed)
@@ -485,7 +547,7 @@ function generateRuns(
           const workout = createWorkout(
             nextRun,
             totalMiles,
-            "Tempo", // Keep UI category stable
+            "Tempo",
             null,
             structuredNote,
             trainingPhase,
@@ -503,7 +565,7 @@ function generateRuns(
           continue;
         }
 
-        // ---- Structured VO2 Workout Injection (Phase 1) ----
+        // ---- Structured VO2 Workout Injection (Phase + Week Aware) ----
         if (workoutType === "Speed") {
           const vo2Workout = WORKOUT_DICTIONARY.VO2_800_REPEATS;
 
@@ -513,11 +575,37 @@ function generateRuns(
           if (weeklyMileage > 60) tier = "advanced";
           else if (weeklyMileage > 35) tier = "intermediate";
 
-          // Use progression level based on phase
-          const progressionLevel = getProgressionLevel(trainingPhase, vo2Workout.progression);
+          const totalWeeks = milesPerWeek.length;
+
+          // Determine all week indices for this phase
+          const phaseWeeks = milesPerWeek
+            .map((_, i) => i)
+            .filter(i => getTrainingPhase(i, totalWeeks) === trainingPhase);
+
+          const weekInPhase = phaseWeeks.indexOf(week);
+          const phaseLength = phaseWeeks.length;
+
+          const sorted = [...vo2Workout.progression].sort((a, b) => a.level - b.level);
+          let progressionLevel;
+
+          if (trainingPhase === "base") {
+            progressionLevel = sorted[0];
+          }
+          else if (trainingPhase === "build") {
+            const midPoint = Math.floor(phaseLength / 2);
+            progressionLevel = weekInPhase < midPoint
+              ? sorted[Math.min(1, sorted.length - 1)]
+              : sorted[sorted.length - 1];
+          }
+          else if (trainingPhase === "peak") {
+            progressionLevel = sorted[sorted.length - 1];
+          }
+          else { // taper
+            progressionLevel = sorted[0];
+          }
+
           const variant = progressionLevel.variants[tier];
 
-          // Convert meters to miles
           const repDistanceMiles =
             (variant.distance * variant.reps) / 1609.34;
 
@@ -535,7 +623,7 @@ function generateRuns(
           const workout = createWorkout(
             nextRun,
             totalMiles,
-            "Speed", // Keep UI category stable
+            "Speed",
             null,
             structuredNote,
             trainingPhase,
@@ -552,9 +640,10 @@ function generateRuns(
           nextRun = nextRun.addDays(1);
           continue;
         }
-        // ---- Structured Long Run Progression Injection (Phase 1) ----
+        // ---- Structured Long Run Injection (Phase + Tier Aware) ----
         if (workoutType === "Long") {
-          const longWorkout = WORKOUT_DICTIONARY.LONG_RUN_PROGRESSIVE;
+          const id = workoutConfig.id || "LONG_RUN_PROGRESSIVE";
+          const longWorkout = WORKOUT_DICTIONARY[id] || WORKOUT_DICTIONARY.LONG_RUN_PROGRESSIVE;
 
           // Determine tier using weekly mileage
           const weeklyMileage = milesPerWeek[week];
@@ -562,26 +651,38 @@ function generateRuns(
           if (weeklyMileage > 60) tier = "advanced";
           else if (weeklyMileage > 35) tier = "intermediate";
 
-          // Use progression level based on phase
           const progressionLevel = getProgressionLevel(trainingPhase, longWorkout.progression);
-          const variant = progressionLevel.variants[tier];
+          const variant = progressionLevel?.variants?.[tier] || {};
 
-          // Use existing mileage calculation for stability
-          const baseLongMiles = calculateWorkoutDistance(
-            milesPerWeek[week],
-            "Long",
-            workoutRatio,
-            workoutCount
-          );
+          // Base long run distance = ~20% of weekly mileage
+          const baseLongMiles = Math.round(milesPerWeek[week] * 0.2) || 1;
 
-          // Cap finish distance to avoid exceeding total long run
-          const finishMiles = Math.min(
-            variant.finishDistance,
-            Math.floor(baseLongMiles * 0.5)
-          );
+          let structuredNote = "";
 
-          const structuredNote =
-            `Long run with final ${finishMiles} mile(s) at ${variant.finishMilesAt} pace`;
+          // ---- Progressive Long Run ----
+          if (variant.finishDistance) {
+            const finishMiles = Math.min(
+              variant.finishDistance,
+              Math.floor(baseLongMiles * 0.5)
+            );
+            structuredNote =
+              `Long run with final ${finishMiles} mile(s) at ${variant.finishMilesAt} pace`;
+          }
+
+          // ---- Race Specific Long Run ----
+          else if (variant.racePaceSegments) {
+            const segments = variant.racePaceSegments
+              .map(seg => `${seg.distance} ${seg.unit}`)
+              .join(" + ");
+            structuredNote =
+              `Long run including ${segments} at goal race pace`;
+          }
+
+          // ---- Sharpening Long Run ----
+          else if (variant.pickups) {
+            structuredNote =
+              `Long run with ${variant.pickups.reps} x ${variant.pickups.duration}${variant.pickups.unit} pickups`;
+          }
 
           const workout = createWorkout(
             nextRun,
@@ -604,68 +705,16 @@ function generateRuns(
           nextRun = nextRun.addDays(1);
           continue;
         }
-        let numMiles = calculateWorkoutDistance(
-          milesPerWeek[week],
-          workoutType,
-          workoutRatio,
-          workoutCount
-        );
-        if (longRunIncluded && workoutType !== "Long" && numMiles >= 12) {
-          let doDoubleDay = splitRunIntoTwo(numMiles, milesPerWeek[week], workoutRatio, workoutCount);
-          if (doDoubleDay) {
-            let result = splitRun(numMiles);
-            let morningRun = createWorkout(
-              nextRun,
-              result[0],
-              workoutType,
-              `Morning ${workoutType} - ${result[0]} miles`,
-              note,
-              trainingPhase,
-              {
-                week_index: week,
-                day_index: dayIndex,
-                day_name: dayOfWeek,
-                order_in_day: 1,
-                date_key: dateKey
-              }
-            );
-            let eveningRun = createWorkout(
-              nextRun,
-              result[1],
-              workoutType,
-              `Evening ${workoutType} - ${result[1]} miles`,
-              note,
-              trainingPhase,
-              {
-                week_index: week,
-                day_index: dayIndex,
-                day_name: dayOfWeek,
-                order_in_day: 2,
-                date_key: dateKey
-              }
-            );
-            allRuns.push(morningRun);
-            allRuns.push(eveningRun);
-          } else {
-            let workout = createWorkout(nextRun, numMiles, workoutType, null, note, trainingPhase, {
-              week_index: week,
-              day_index: dayIndex,
-              day_name: dayOfWeek,
-              order_in_day: 1,
-              date_key: dateKey
-            });
-            allRuns.push(workout);
-          }
-        } else {
-          let workout = createWorkout(nextRun, numMiles, workoutType, null, note, trainingPhase, {
-            week_index: week,
-            day_index: dayIndex,
-            day_name: dayOfWeek,
-            order_in_day: 1,
-            date_key: dateKey
-          });
-          allRuns.push(workout);
-        }
+        // For non-structured types, assign a placeholder mileage (since no workoutRatio/workoutCount).
+        let numMiles = Math.round(milesPerWeek[week] / 7) || 1;
+        let workout = createWorkout(nextRun, numMiles, workoutType, null, note, trainingPhase, {
+          week_index: week,
+          day_index: dayIndex,
+          day_name: dayOfWeek,
+          order_in_day: 1,
+          date_key: dateKey
+        });
+        allRuns.push(workout);
       }
       nextRun = nextRun.addDays(1);
     }
@@ -697,29 +746,44 @@ function calculateWorkoutDistance(
 // Progressive mileage builder with adaptive taper.
 function createWeeklyMileage(numOfWeeks, maxMileage) {
   let milesPerWeek = [];
-  const startingMileage = Math.ceil(0.6 * maxMileage);
+
+  // Start at 55% instead of 60% for smoother ramp
+  const startingMileage = Math.ceil(0.55 * maxMileage);
 
   // Dynamic taper length
   let taperWeeks;
   if (numOfWeeks <= 5) taperWeeks = 1;
-  else if (numOfWeeks <= 7) taperWeeks = 2;
+  else if (numOfWeeks <= 8) taperWeeks = 2;
   else taperWeeks = 3;
 
   const buildWeeks = numOfWeeks - taperWeeks;
   const increaseRate = (maxMileage - startingMileage) / Math.max(buildWeeks - 1, 1);
 
-  // Build phase
+  // ----- BUILD PHASE -----
   for (let i = 0; i < buildWeeks; i++) {
-    milesPerWeek.push(Math.ceil(startingMileage + increaseRate * i));
+    let weeklyMileage = startingMileage + increaseRate * i;
+
+    // Every 4th week is a slight deload (~10% drop)
+    if ((i + 1) % 4 === 0) {
+      weeklyMileage *= 0.9;
+    }
+
+    milesPerWeek.push(Math.ceil(weeklyMileage));
   }
 
-  // Taper phase
-  for (let t = taperWeeks; t > 1; t--) {
-    milesPerWeek.push(Math.ceil(maxMileage * (0.5 + 0.2 * (t - 1)))); 
+  // Ensure we actually hit peak before taper
+  milesPerWeek[buildWeeks - 1] = maxMileage;
+
+  // ----- TAPER PHASE -----
+  if (taperWeeks === 3) {
+    milesPerWeek.push(Math.ceil(maxMileage * 0.85));
+    milesPerWeek.push(Math.ceil(maxMileage * 0.65));
+  } else if (taperWeeks === 2) {
+    milesPerWeek.push(Math.ceil(maxMileage * 0.75));
   }
 
-  // Final (race) week: cap at 10 miles
-  milesPerWeek.push(Math.min(Math.ceil(maxMileage * 0.3), 10));
+  // Final race week (~40% but capped at 10 for half/short races)
+  milesPerWeek.push(Math.min(Math.ceil(maxMileage * 0.4), 10));
 
   return milesPerWeek;
 }
@@ -762,8 +826,8 @@ function createWorkout(
   // For applicable workouts, append recommended pace information.
   if (workoutType !== "Rest" && workoutType !== "Race" && globalGoalPace) {
     // For now, workoutType doubles as intensity until structured workouts are wired in.
-    const recommended = getRecommendedPaceByIntensity(
-      workoutType.toLowerCase(),
+    const recommended = getRecommendedPace(
+      workoutType,
       globalGoalPace,
       trainingPhase
     );

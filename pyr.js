@@ -1265,10 +1265,13 @@ function sharedState() {
                     this.raceDate,
                     this.selectedGoal,
                     numberOfWeeksUntilRace,
+                    this.selectedRaceDistance,
                     {
                         selectedWorkoutTypeIds
                     }
                 );
+
+                console.log('***', allRuns.length);
 
                 this.currentWorkouts = [];
                 let totalDistance = 0;
@@ -1377,46 +1380,64 @@ function sharedState() {
         },
 
         getWeeklyMileage(selectedWeeklyMileage, raceDistance, goalPace) {
-            let baseMileageRange = {
+            const baseMileageRange = {
                 "5k": [15, 40],
-                "10k": [25, 50],
-                "half-marathon": [30, 70],
-                "marathon": [40, 100]
+                "10k": [25, 55],
+                "half-marathon": [35, 80],
+                "marathon": [45, 100]
             };
 
-            let baseMin = baseMileageRange[raceDistance][0];
-            let baseMax = baseMileageRange[raceDistance][1];
+            // Normalize race distance to match baseMileageRange keys
+            const normalizedDistance = raceDistance
+                ? String(raceDistance).toLowerCase().replace(/\s+/g, "-")
+                : "";
 
-            // Convert pace to decimal
-            let pace = convertPaceToDecimal(goalPace);
+            const [baseMin, baseMax] =
+                baseMileageRange[normalizedDistance] || [20, 50];
 
-            // Adjust based on pace effort
-            const fastestPace = 4.5; // 4:30 min/mi
-            const slowestPace = 13.0; // 13:00 min/mi
-            let paceEffortScale = 0.7 + ((slowestPace - pace) / (slowestPace - fastestPace)) * (1.3 - 0.7);
+            // Convert pace to decimal (min/mile)
+            const pace = convertPaceToDecimal(goalPace);
 
-            // Adjust based on intensity setting
-            let intensityAdjustment;
-            switch (selectedWeeklyMileage) {
+            // Faster runners trend toward upper end of range
+            const fastestPace = 4.5;  // 4:30
+            const slowestPace = 13.0; // 13:00
+            const effortScale = (slowestPace - pace) / (slowestPace - fastestPace);
+            const normalizedEffort = Math.max(0, Math.min(1, effortScale));
+
+            let mileageTarget;
+            const tier = String(selectedWeeklyMileage || "").toLowerCase().trim();
+
+            switch (tier) {
                 case "low":
-                    intensityAdjustment = 0.8;
+                    // Lower third of range
+                    mileageTarget = baseMin + (baseMax - baseMin) * 0.25;
                     break;
+
                 case "medium":
-                    intensityAdjustment = 1.0;
+                    // Middle of range
+                    mileageTarget = baseMin + (baseMax - baseMin) * 0.5;
                     break;
+
                 case "high":
-                    intensityAdjustment = 1.2;
+                    // Upper third of range, adjusted by pace ability
+                    mileageTarget = baseMin + (baseMax - baseMin) * (0.75 + 0.25 * normalizedEffort);
                     break;
+
                 default:
-                    intensityAdjustment = 1.0;
+                    mileageTarget = baseMin + (baseMax - baseMin) * 0.5;
             }
 
-            // Calculate target mileage
-            let mileageTarget = ((baseMin + baseMax) / 2) * paceEffortScale * intensityAdjustment;
-
-            // Ensure within bounds (10 to 100 miles)
-            mileageTarget = Math.max(10, Math.min(100, Math.round(mileageTarget)));
-
+            // Final clamp safety
+            mileageTarget = Math.round(Math.max(baseMin, Math.min(baseMax, mileageTarget)));
+            console.log("---- getWeeklyMileage ----");
+            console.log("selectedWeeklyMileage:", selectedWeeklyMileage);
+            console.log("tier:", tier);
+            console.log("raceDistance:", raceDistance);
+            console.log("normalizedDistance:", normalizedDistance);
+            console.log("baseMin/baseMax:", baseMin, baseMax);
+            console.log("goalPace:", goalPace);
+            console.log("pace decimal:", pace);
+            console.log("normalizedEffort:", normalizedEffort);
             return mileageTarget;
         },
 
