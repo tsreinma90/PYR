@@ -1248,9 +1248,19 @@ function sharedState() {
 
                 const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
                 const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
+
                 // Apply smart defaults (e.g., include hills for intermediate/advanced) unless the user has customized
                 this.applyDefaultWorkoutSelection();
-                const trainingController = await import("./trainingPlanGenerator.js");
+
+                let trainingController;
+
+                try {
+                    trainingController = await import("./trainingPlanGenerator.js");
+                } catch (err) {
+                    console.error("IMPORT FAILED:", err);
+                    return;
+                }
+
                 // Workout library selection (controlled by Advanced Configuration modal)
                 const fallbackDefaults = (this.defaultWorkoutSelectionByLevel && this.defaultWorkoutSelectionByLevel.beginner)
                     ? this.defaultWorkoutSelectionByLevel.beginner
@@ -1259,6 +1269,7 @@ function sharedState() {
                 const selectedWorkoutTypeIds = Array.isArray(this.selectedWorkoutTypeIds)
                     ? this.selectedWorkoutTypeIds
                     : fallbackDefaults;
+
                 const allRuns = trainingController.createTrainingPlan(
                     startDate,
                     mileageTarget,

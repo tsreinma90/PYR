@@ -1,12 +1,5 @@
-import {
-  WORKOUT_CATALOG,
-  getWorkoutTypeById,
-  getQualityDays,
-  isBackToBackHardDays,
-  createWorkoutInstance
-} from "./workoutsCatalog.js";
 import { WORKOUT_DICTIONARY } from "./workoutDictionary.js";
-import { TEMPLATES } from "./templates/templateRegistry.js";
+import { TEMPLATE_REGISTRY } from "./templates/templateRegistry.js";
 
 const weekdayMap = new Map();
 const themeMap = new Map();
@@ -256,18 +249,30 @@ function createTrainingPlan(
   let normalizedDistance = null;
   if (typeof raceDistance === "string") {
     const lower = raceDistance.toLowerCase();
-    if (lower.includes("half")) normalizedDistance = "half";
-    else if (lower.includes("marathon")) normalizedDistance = "marathon";
-    else if (lower.includes("10")) normalizedDistance = "10k";
-    else if (lower.includes("5")) normalizedDistance = "5k";
+
+    if (lower.includes("half")) {
+      normalizedDistance = "half-marathon";
+    } else if (lower.includes("marathon") && !lower.includes("half")) {
+      normalizedDistance = "marathon";
+    } else if (lower.includes("10")) {
+      normalizedDistance = "10k";
+    } else if (lower.includes("5")) {
+      normalizedDistance = "5k";
+    }
   }
 
   console.log("🔥 ENTERED createTrainingPlan");
 
-  const template =
-    TEMPLATES?.[normalizedDistance]?.[numWeeksUntilRace] || null;
+  // Attempt multiple key fallbacks to avoid silent template misses
+  let template =
+    TEMPLATE_REGISTRY?.[normalizedDistance] ||
+    TEMPLATE_REGISTRY?.[raceDistance] ||
+    TEMPLATE_REGISTRY?.[String(raceDistance).toLowerCase()] ||
+    null;
 
-    console.log("Template found:", !!template);
+  console.log("Normalized distance:", normalizedDistance);
+  console.log("Available template keys:", Object.keys(TEMPLATE_REGISTRY || {}));
+  console.log("Template found:", !!template);
 
   return generateRuns(
     nextRun,
@@ -438,7 +443,14 @@ function generateRuns(
 
   for (let week = 0; week < milesPerWeek.length; week++) {
     const trainingPhase = getTrainingPhase(week, milesPerWeek.length);
-    const weeklyTemplate = template?.weeks?.[week];
+    let weeklyTemplate = null;
+    console.log('*** TEMPLATE:', JSON.stringify(template));
+    if (template?.structure) {
+      const phase = getTrainingPhase(week, milesPerWeek.length);
+      weeklyTemplate = template.structure[phase] || null;
+    } else if (template?.weeks) {
+      weeklyTemplate = template.weeks?.[week] || null;
+    }
     // For legacy fallback, we could use createWeeklyWorkoutMap, but per instructions, remove its usage here.
     const longRunIncluded = false; // No weeklyMap, so we can't check; safe placeholder for now.
 
@@ -458,6 +470,7 @@ function generateRuns(
       }
 
       let dayOfWeek = weekdayMap.get(nextRun.getDay());
+      const dayKey = dayOfWeek;
       const dayIndex = nextRun.getDay();
       const dateKey = formatLocalDateKey(nextRun);
       // In final week, only schedule runs on Tuesday and Thursday.
@@ -469,8 +482,8 @@ function generateRuns(
         }
       }
 
-      if (weeklyTemplate && weeklyTemplate.workouts[dayOfWeek]) {
-        let workoutConfig = weeklyTemplate.workouts[dayOfWeek];
+      if (weeklyTemplate && weeklyTemplate.workouts[dayKey]) {
+        let workoutConfig = weeklyTemplate.workouts[dayKey];
         let workoutType = workoutConfig.type || null;
         let note = workoutConfig.note || "";
 
@@ -715,6 +728,59 @@ function generateRuns(
           date_key: dateKey
         });
         allRuns.push(workout);
+      }
+      else if (weeklyTemplate) {
+        // Default fill logic: inject rest days for beginner/intermediate tiers
+        const weeklyMileage = milesPerWeek[week];
+
+        let tier = "beginner";
+        if (weeklyMileage > 60) tier = "advanced";
+        else if (weeklyMileage > 35) tier = "intermediate";
+
+        const isSunday = dayIndex === 0; // Sunday = 0
+
+        // Beginner & Intermediate get Sunday rest
+        if ((tier === "beginner" || tier === "intermediate") && isSunday) {
+          const workout = createWorkout(
+            nextRun,
+            0,
+            "Rest",
+            null,
+            "Rest day",
+            trainingPhase,
+            {
+              week_index: week,
+              day_index: dayIndex,
+              day_name: dayOfWeek,
+              order_in_day: 1,
+              date_key: dateKey
+            }
+          );
+
+          allRuns.push(workout);
+        } else {
+          // Distribute mileage across 6 days if one rest day exists
+          const divisor = (tier === "advanced") ? 7 : 6;
+          const numMiles = Math.round(weeklyMileage / divisor) || 1;
+
+          const workout = createWorkout(
+            nextRun,
+            numMiles,
+            "Easy",
+            null,
+            "",
+            trainingPhase,
+            {
+              week_index: week,
+              day_index: dayIndex,
+              day_name: dayOfWeek,
+              order_in_day: 1,
+              date_key: dateKey
+            }
+          );
+
+          allRuns.push(workout);
+        }
       }
       nextRun = nextRun.addDays(1);
     }
