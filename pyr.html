@@ -823,6 +823,30 @@
                                             </div>
                                         </div>
                                     </div>
+
+                                    <!-- Section 4: Training Insights (NEW) -->
+                                    <div>
+                                        <h3 class="text-base font-semibold leading-6 text-gray-900 mb-4">Training Insights</h3>
+                                        <div class="space-y-6">
+                                            <!-- Training Phase Breakdown + Easy vs Quality (2-Column Grid) -->
+                                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                                                <div class="rounded-lg bg-gray-800 p-4">
+                                                    <div class="text-sm font-semibold mb-3">Training Phase Breakdown</div>
+                                                    <canvas id="trainingPhaseBreakdown"></canvas>
+                                                </div>
+                                                <div class="rounded-lg bg-gray-800 p-4">
+                                                    <div class="text-sm font-semibold mb-3">Easy vs Quality Ratio</div>
+                                                    <canvas id="easyVsQualityRatio"></canvas>
+                                                </div>
+                                            </div>
+
+                                            <!-- Cumulative Volume - Full Width -->
+                                            <div class="rounded-lg bg-gray-800 p-4">
+                                                <div class="text-sm font-semibold mb-3">Cumulative Volume Progression</div>
+                                                <canvas id="cumulativeVolume"></canvas>
+                                            </div>
+                                        </div>
+                                    </div>
                                 </div>
                             </template>
                             <template x-if="activeTab === 'ai'">
