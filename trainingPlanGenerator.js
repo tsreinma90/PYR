@@ -189,7 +189,6 @@ function createTrainingPlan(
   nextRun = parseLocalDate(startDay);
   raceDate = parseLocalDate(raceDate);
   globalGoalPace = goalPace; // Save the goal pace globally
-
   const milesPerWeek = createWeeklyMileage(numWeeksUntilRace, mileageGoal);
   const experienceLevel = determineExperienceLevel(mileageGoal, goalPace);
   // Use the dynamic workout map to calculate overall percentiles.
@@ -272,12 +271,14 @@ function calculateWorkoutPercentiles(workoutMap) {
 
 function allowedWorkoutFamilies(preferences) {
   const ids = preferences?.selectedWorkoutTypeIds;
-  if (!Array.isArray(ids)) return { tempo: true, speed: true };
+  if (!Array.isArray(ids) || ids.length === 0) return { tempo: true, speed: true, easy: true, long: true };
 
   const joined = ids.map(String).join(" ").toLowerCase();
   return {
     tempo: joined.includes("tempo") || joined.includes("threshold") || joined.includes("progression") || joined.includes("cruise"),
-    speed: joined.includes("speed") || joined.includes("interval") || joined.includes("repeat") || joined.includes("hill") || joined.includes("fartlek")
+    speed: joined.includes("speed") || joined.includes("interval") || joined.includes("repeat") || joined.includes("hill") || joined.includes("fartlek"),
+    easy: joined.includes("easy"),
+    long: joined.includes("long") || joined.includes("long_run")
   };
 }
 
@@ -310,6 +311,8 @@ function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks, prefere
   const speedVariations = ["400m repeats", "800m intervals", "Fartlek", "Hill repeats"];
 
   const allowed = allowedWorkoutFamilies(preferences);
+  // Easy runs are foundational and always included
+  allowed.easy = true;
 
   function chooseQualityWorkout() {
     if (!allowed.tempo && !allowed.speed) return "Easy";
@@ -326,7 +329,12 @@ function createWeeklyWorkoutMap(experienceLevel, weekNumber, totalWeeks, prefere
     }
 
     if (dayName === longRunDay) {
-      map.set(dayName, { type: "Long", note: "" });
+      // Long runs are only scheduled if allowed in preferences
+      if (allowed.long) {
+        map.set(dayName, { type: "Long", note: "" });
+      } else {
+        map.set(dayName, { type: "Easy", note: "" });
+      }
       continue;
     }
 
