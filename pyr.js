@@ -2060,7 +2060,10 @@ function sharedState() {
             if (c.typeBreakdown && typeof c.typeBreakdown.destroy === 'function') c.typeBreakdown.destroy();
             if (c.longRun && typeof c.longRun.destroy === 'function') c.longRun.destroy();
             if (c.paceProgression && typeof c.paceProgression.destroy === 'function') c.paceProgression.destroy();
-            this.analyticsCharts = { weeklyTrend: null, typeBreakdown: null, longRun: null, paceProgression: null };
+            if (c.trainingPhaseBreakdown && typeof c.trainingPhaseBreakdown.destroy === 'function') c.trainingPhaseBreakdown.destroy();
+            if (c.easyVsQualityRatio && typeof c.easyVsQualityRatio.destroy === 'function') c.easyVsQualityRatio.destroy();
+            if (c.cumulativeVolume && typeof c.cumulativeVolume.destroy === 'function') c.cumulativeVolume.destroy();
+            this.analyticsCharts = { weeklyTrend: null, typeBreakdown: null, longRun: null, paceProgression: null, trainingPhaseBreakdown: null, easyVsQualityRatio: null, cumulativeVolume: null };
         },
 
         // Internal: used to retry chart rendering when canvases are not yet in the DOM (mobile modal)
@@ -2098,6 +2101,56 @@ function sharedState() {
             }, 60);
 
             return true;
+        },
+
+        // Aggregate data for Cumulative Volume chart
+        _getCumulativeVolumeData(weekly) {
+            const cumulativeVolume = [];
+            let runningTotal = 0;
+            for (let i = 0; i < weekly.length; i++) {
+                runningTotal += (weekly[i] || 0);
+                cumulativeVolume.push(runningTotal);
+            }
+            return cumulativeVolume;
+        },
+
+        // Aggregate data for Training Phase Breakdown
+        _getTrainingPhaseData(weekly, weekCount) {
+            const phaseData = { base: 0, build: 0, peak: 0, taper: 0 };
+            const phaseWeeks = { base: 0, build: 0, peak: 0, taper: 0 };
+
+            for (let i = 0; i < weekCount; i++) {
+                const phase = getTrainingPhaseForWeek(i, weekCount);
+                phaseData[phase] += (weekly[i] || 0);
+                phaseWeeks[phase] += 1;
+            }
+
+            return {
+                phases: ['Base', 'Build', 'Peak', 'Taper'],
+                phaseMileage: [
+                    Math.round(phaseData.base),
+                    Math.round(phaseData.build),
+                    Math.round(phaseData.peak),
+                    Math.round(phaseData.taper)
+                ],
+                phaseWeeks: [phaseWeeks.base, phaseWeeks.build, phaseWeeks.peak, phaseWeeks.taper]
+            };
+        },
+
+        // Aggregate data for Easy vs Quality Ratio chart
+        _getEasyVsQualityData(workouts) {
+            let easyCount = 0;
+            let qualityCount = 0;
+
+            workouts.forEach(w => {
+                if (w.event_type === 'Easy Run') {
+                    easyCount += 1;
+                } else if (w.event_type === 'Speed Workout' || w.event_type === 'Tempo' || w.event_type === 'Long Run') {
+                    qualityCount += 1;
+                }
+            });
+
+            return { easyCount, qualityCount };
         },
 
         // Build analytics data series from currentWorkouts
@@ -2188,7 +2241,25 @@ function sharedState() {
             };
             this.analyticsSummary.peakWeekMileage = weekly.reduce((m, v) => Math.max(m, v), 0);
 
-            return { labels, weekly, typeCounts, longRun, longRunPct, tempoPace, speedPace, tempoTarget, speedTarget };
+            // Calculate data for new charts
+            const cumulativeVolume = this._getCumulativeVolumeData(weekly);
+            const phaseBreakdown = this._getTrainingPhaseData(weekly, weekCount);
+            const easyQualityRatio = this._getEasyVsQualityData(workouts);
+
+            return {
+                labels,
+                weekly,
+                typeCounts,
+                longRun,
+                longRunPct,
+                tempoPace,
+                speedPace,
+                tempoTarget,
+                speedTarget,
+                cumulativeVolume,
+                phaseBreakdown,
+                easyQualityRatio
+            };
         },
 
         // Render the Analytics tab charts
@@ -2210,7 +2281,10 @@ function sharedState() {
                     tempoPace,
                     speedPace,
                     tempoTarget,
-                    speedTarget
+                    speedTarget,
+                    cumulativeVolume,
+                    phaseBreakdown,
+                    easyQualityRatio
                 } = this._buildAnalyticsData();
 
                 const sizing = this._getChartSizingOptions(opts.forceMobileSizing);
@@ -2343,12 +2417,6 @@ function sharedState() {
                     });
                 }
 
-                // Long Run chart is now combined into the Weekly Mileage chart above
-                const t3 = document.getElementById('longRunProgression');
-                if (t3) {
-                    t3.style.display = 'none';
-                }
-
                 // Pace Progression (Tempo & Speed)
                 const t4 = document.getElementById('paceProgression');
                 if (t4) {
@@ -2439,6 +2507,140 @@ function sharedState() {
                                         }
                                     }
                                 }
+                            }
+                        }
+                    });
+                }
+
+                // Training Phase Breakdown (stacked bar chart)
+                const t6 = document.getElementById('trainingPhaseBreakdown');
+                if (t6) {
+                    this.analyticsCharts.trainingPhaseBreakdown = new Chart(t6, {
+                        type: 'bar',
+                        data: {
+                            labels: ['Training Phases'],
+                            datasets: [
+                                {
+                                    label: 'Base',
+                                    data: [phaseBreakdown.phaseMileage[0]],
+                                    backgroundColor: '#10b981' // green-500
+                                },
+                                {
+                                    label: 'Build',
+                                    data: [phaseBreakdown.phaseMileage[1]],
+                                    backgroundColor: '#3b82f6' // blue-500
+                                },
+                                {
+                                    label: 'Peak',
+                                    data: [phaseBreakdown.phaseMileage[2]],
+                                    backgroundColor: '#ef4444' // red-500
+                                },
+                                {
+                                    label: 'Taper',
+                                    data: [phaseBreakdown.phaseMileage[3]],
+                                    backgroundColor: '#f59e0b' // amber-500
+                                }
+                            ]
+                        },
+                        options: {
+                            indexAxis: 'y',
+                            ...sizing,
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                    ticks: { color: '#cbd5e1' },
+                                    grid: { color: 'rgba(255,255,255,0.06)' }
+                                },
+                                y: {
+                                    stacked: true,
+                                    ticks: { color: '#cbd5e1' }
+                                }
+                            },
+                            plugins: {
+                                ...(sizing.plugins || {}),
+                                tooltip: {
+                                    callbacks: {
+                                        afterLabel: (ctx) => {
+                                            const phaseIndex = ctx.datasetIndex;
+                                            const weeks = phaseBreakdown.phaseWeeks[phaseIndex];
+                                            return `${weeks} week${weeks !== 1 ? 's' : ''}`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Easy vs Quality Ratio (doughnut chart)
+                const t7 = document.getElementById('easyVsQualityRatio');
+                if (t7) {
+                    const total = easyQualityRatio.easyCount + easyQualityRatio.qualityCount;
+                    this.analyticsCharts.easyVsQualityRatio = new Chart(t7, {
+                        type: 'doughnut',
+                        data: {
+                            labels: ['Easy', 'Tempo/Speed/Long'],
+                            datasets: [{
+                                data: [easyQualityRatio.easyCount, easyQualityRatio.qualityCount],
+                                backgroundColor: ['#86efac', '#fb923c'], // light green, orange
+                                borderWidth: 0
+                            }]
+                        },
+                        options: {
+                            ...sizing,
+                            aspectRatio: sizing.maintainAspectRatio ? 1.6 : undefined,
+                            plugins: {
+                                ...(sizing.plugins || {}),
+                                tooltip: {
+                                    callbacks: {
+                                        label: (ctx) => {
+                                            const value = ctx.parsed;
+                                            const percent = Math.round((value / total) * 100);
+                                            return `${ctx.label}: ${value} (${percent}%)`;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    });
+                }
+
+                // Cumulative Volume Progression (full-width line chart)
+                const t8 = document.getElementById('cumulativeVolume');
+                if (t8) {
+                    this.analyticsCharts.cumulativeVolume = new Chart(t8, {
+                        type: 'line',
+                        data: {
+                            labels,
+                            datasets: [{
+                                label: 'Cumulative Mileage',
+                                data: cumulativeVolume,
+                                borderWidth: 3,
+                                tension: 0.25,
+                                fill: true,
+                                borderColor: '#0ea5e9', // cyan-500
+                                backgroundColor: 'rgba(14,165,233,0.15)',
+                                pointBackgroundColor: '#06b6d4',
+                                pointBorderColor: '#06b6d4',
+                                pointRadius: 3,
+                                pointHoverRadius: 4
+                            }]
+                        },
+                        options: {
+                            ...sizing,
+                            scales: {
+                                y: {
+                                    beginAtZero: true,
+                                    ticks: { color: '#cbd5e1' },
+                                    grid: { color: 'rgba(255,255,255,0.06)' }
+                                },
+                                x: {
+                                    ticks: { color: '#cbd5e1' },
+                                    grid: { color: 'rgba(255,255,255,0.06)' }
+                                }
+                            },
+                            plugins: {
+                                ...(sizing.plugins || {})
                             }
                         }
                     });
