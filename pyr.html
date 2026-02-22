@@ -798,134 +798,30 @@
                                     <!-- Section 2: Weekly Overview Bar Chart -->
                                     <div>
                                         <h3 class="text-base font-semibold leading-6 text-gray-900 mb-4">Weekly Overview</h3>
-                                        <!-- Desktop: inline overview chart -->
-                                        <template x-if="!isMobile">
-                                            <div class="rounded-lg bg-gray-800 p-4">
-                                                <canvas id="myChart" width="50%" height="20%"></canvas>
-                                            </div>
-                                        </template>
-
-                                        <!-- Mobile: open overview chart in full-screen modal -->
-                                        <template x-if="isMobile">
-                                            <div>
-                                                <button type="button"
-                                                    class="w-full rounded-md bg-gray-700 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-600"
-                                                    @click="openOverviewChartModal()">
-                                                    View weekly overview chart
-                                                </button>
-                                                <div class="mt-2 text-xs text-gray-400">Tip: Charts are easier to read in full-screen.</div>
-                                            </div>
-                                        </template>
-
-                                        <!-- Mobile Overview Chart Modal -->
-                                        <template x-if="overviewChartModalOpen">
-                                            <div class="fixed inset-0 z-50 flex items-center justify-center"
-                                                @keydown.escape.window="closeOverviewChartModal()">
-                                                <div class="absolute inset-0 bg-black/70"
-                                                    @click="closeOverviewChartModal()"></div>
-                                                <div
-                                                    class="relative w-full h-[92vh] mx-3 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 flex flex-col">
-                                                    <div
-                                                        class="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-                                                        <div>
-                                                            <div class="text-base font-semibold">Weekly Overview</div>
-                                                            <div class="text-xs text-gray-400">Scroll if needed</div>
-                                                        </div>
-                                                        <button
-                                                            class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
-                                                            @click="closeOverviewChartModal()" aria-label="Close">✕</button>
-                                                    </div>
-                                                    <div class="p-4 overflow-y-auto">
-                                                        <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
-                                                            <canvas id="myChart" width="100%" height="60%"></canvas>
-                                                        </div>
-                                                    </div>
-                                                    <div class="px-4 py-3 border-t border-gray-700 flex justify-end">
-                                                        <button type="button"
-                                                            class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
-                                                            @click="closeOverviewChartModal()">Done</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
+                                        <div class="rounded-lg bg-gray-800 p-4">
+                                            <canvas id="myChart" width="50%" height="20%"></canvas>
+                                        </div>
                                     </div>
 
                                     <!-- Section 3: Detailed Analytics Charts -->
                                     <div>
                                         <h3 class="text-base font-semibold leading-6 text-gray-900 mb-4">Detailed Analytics</h3>
-                                        <!-- Desktop: inline charts -->
-                                        <template x-if="!isMobile">
-                                            <div class="space-y-6">
+                                        <div class="space-y-6">
+                                            <div class="rounded-lg bg-gray-800 p-4">
+                                                <div class="text-sm font-semibold mb-3">Weekly Mileage Trend</div>
+                                                <canvas id="weeklyMileageTrend"></canvas>
+                                            </div>
+                                            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                                                 <div class="rounded-lg bg-gray-800 p-4">
-                                                    <div class="text-sm font-semibold mb-3">Weekly Mileage Trend</div>
-                                                    <canvas id="weeklyMileageTrend"></canvas>
+                                                    <div class="text-sm font-semibold mb-3">Workout Type Breakdown</div>
+                                                    <canvas id="workoutTypeBreakdown"></canvas>
                                                 </div>
-                                                <div class="grid grid-cols-2 gap-6">
-                                                    <div class="rounded-lg bg-gray-800 p-4">
-                                                        <div class="text-sm font-semibold mb-3">Workout Type Breakdown</div>
-                                                        <canvas id="workoutTypeBreakdown"></canvas>
-                                                    </div>
-                                                    <div class="rounded-lg bg-gray-800 p-4">
-                                                        <div class="text-sm font-semibold mb-3">Pace Progression</div>
-                                                        <canvas id="paceProgression"></canvas>
-                                                    </div>
+                                                <div class="rounded-lg bg-gray-800 p-4">
+                                                    <div class="text-sm font-semibold mb-3">Pace Progression</div>
+                                                    <canvas id="paceProgression"></canvas>
                                                 </div>
                                             </div>
-                                        </template>
-
-                                        <!-- Mobile: charts in full-screen modal -->
-                                        <template x-if="isMobile">
-                                            <div class="pt-2">
-                                                <button type="button"
-                                                    class="w-full rounded-md bg-gray-700 px-4 py-3 text-sm font-semibold text-white hover:bg-gray-600"
-                                                    @click="openChartsModal()">
-                                                    View detailed charts
-                                                </button>
-                                                <div class="mt-2 text-xs text-gray-400">
-                                                    Tip: Charts are easier to read in full-screen.
-                                                </div>
-                                            </div>
-                                        </template>
-
-                                        <!-- Mobile Charts Modal -->
-                                        <template x-if="chartsModalOpen">
-                                            <div class="fixed inset-0 z-50 flex items-center justify-center"
-                                                @keydown.escape.window="closeChartsModal()">
-                                                <div class="absolute inset-0 bg-black/70" @click="closeChartsModal()"></div>
-                                                <div
-                                                    class="relative w-full h-[92vh] mx-3 bg-gray-900 text-gray-100 rounded-xl shadow-xl border border-gray-700 flex flex-col">
-                                                    <div
-                                                        class="flex items-center justify-between px-4 py-3 border-b border-gray-700">
-                                                        <div>
-                                                            <div class="text-base font-semibold">Detailed Charts</div>
-                                                            <div class="text-xs text-gray-400">Scroll to view charts</div>
-                                                        </div>
-                                                        <button
-                                                            class="-m-2 p-2 rounded-md text-gray-400 hover:text-gray-200 hover:bg-gray-800"
-                                                            @click="closeChartsModal()" aria-label="Close">✕</button>
-                                                    </div>
-                                                    <div class="p-4 space-y-6 overflow-y-auto">
-                                                        <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
-                                                            <div class="text-sm font-semibold mb-2">Weekly mileage</div>
-                                                            <canvas id="weeklyMileageTrend"></canvas>
-                                                        </div>
-                                                        <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
-                                                            <div class="text-sm font-semibold mb-2">Workout type breakdown</div>
-                                                            <canvas id="workoutTypeBreakdown"></canvas>
-                                                        </div>
-                                                        <div class="rounded-lg bg-gray-800 p-3 border border-gray-700">
-                                                            <div class="text-sm font-semibold mb-2">Pace progression</div>
-                                                            <canvas id="paceProgression"></canvas>
-                                                        </div>
-                                                    </div>
-                                                    <div class="px-4 py-3 border-t border-gray-700 flex justify-end">
-                                                        <button type="button"
-                                                            class="px-4 py-2 rounded-md bg-gray-700 hover:bg-gray-600 text-sm"
-                                                            @click="closeChartsModal()">Done</button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </template>
+                                        </div>
                                     </div>
                                 </div>
                             </template>
