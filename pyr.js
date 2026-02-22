@@ -899,7 +899,7 @@ function sharedState() {
                         ? mod.createWorkoutInstanceById
                         : null;
             } catch (e) {
-                console.error("Failed to load workoutsCatalog.js", e);
+                //console.error("Failed to load workoutsCatalog.js", e);
                 this.workoutCatalog = [];
                 this.defaultWorkoutSelectionByLevel = {};
                 this.createWorkoutInstanceByIdFn = null;
@@ -947,6 +947,12 @@ function sharedState() {
             this.advancedConfigOpen = true;
         },
         closeAdvancedConfig() {
+            // Validate that at least one non-easy workout type is selected
+            const nonEasyWorkouts = (this.selectedWorkoutTypeIds || []).filter(id => id !== "easy");
+            if (nonEasyWorkouts.length === 0) {
+                alert("Please select at least one workout type besides Easy runs.");
+                return;
+            }
             this.advancedConfigOpen = false;
         },
 
@@ -1049,6 +1055,7 @@ function sharedState() {
             this.hasCustomizedWorkoutSelection = true;
             const current = Array.isArray(this.selectedWorkoutTypeIds) ? this.selectedWorkoutTypeIds : [];
             const idx = current.indexOf(workoutId);
+
             if (idx >= 0) {
                 current.splice(idx, 1);
             } else {
@@ -1259,6 +1266,7 @@ function sharedState() {
                 const selectedWorkoutTypeIds = Array.isArray(this.selectedWorkoutTypeIds)
                     ? this.selectedWorkoutTypeIds
                     : fallbackDefaults;
+
                 const allRuns = trainingController.createTrainingPlan(
                     startDate,
                     mileageTarget,
@@ -1355,14 +1363,10 @@ function sharedState() {
             } catch (e) {
                 // LWC / Apex-style errors usually have body.message etc.
                 if (e && e.body) {
-                    console.error('*** error.body:', e.body);
-                    console.error('*** error.body.message:', e.body.message);
-                    console.error('*** error.body.exceptionType:', e.body.exceptionType);
-                    console.error('*** error.body.stackTrace:', e.body.stackTrace);
                 }
 
                 // Some Lightning Out errors show up here instead
-                if (e && e.message) {
+                /*if (e && e.message) {
                     console.error('*** error.message:', e.message);
                 }
 
@@ -1370,7 +1374,7 @@ function sharedState() {
                     console.error('*** error as JSON:', JSON.stringify(e));
                 } catch (jsonErr) {
                     console.error('*** error could not be stringified:', jsonErr);
-                }
+                }*/
                 this.loading = false;
                 this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
             }
@@ -1571,7 +1575,7 @@ function sharedState() {
                                 return g;
                             });
                     } catch (err) {
-                        console.warn("[PYR] mobileAgendaGroups failed (non-blocking):", err);
+                        //console.warn("[PYR] mobileAgendaGroups failed (non-blocking):", err);
                         return [];
                     }
                 },
