@@ -342,14 +342,13 @@ global class PYRPlanController {
      */
     private static String validateAuth(RestResponse res) {
         RestRequest req = RestContext.request;
-        String authHeader = req.headers.get('Authorization');
+        String token = req.params.get('pyr_token');
 
-        if (String.isBlank(authHeader) || !authHeader.startsWith('Bearer ')) {
-            sendErrorResponse(res, 'Missing or invalid Authorization header', 401);
+        if (String.isBlank(token)) {
+            sendErrorResponse(res, 'Missing authentication token', 401);
             return null;
         }
 
-        String token = authHeader.substring(7);
         Map<String, Object> validation = JWTTokenManager.validateToken(token);
 
         if (!(Boolean) validation.get('valid')) {

@@ -827,14 +827,16 @@ const authManager = {
         const token = this.getToken();
         console.log('[PYR] apiFetch', options.method || 'GET', path,
             'token:', token ? token.slice(0, 30) + '…' : 'MISSING — not signed in');
-        const headers = {
-            'Content-Type': 'application/json',
-            ...(options.headers || {}),
-            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        };
-        return fetch(`${this.SALESFORCE_BASE_URL}/services/apexrest${path}`, {
+        // Pass JWT as a query param — using the Authorization header conflicts with
+        // Salesforce's platform auth layer (INVALID_SESSION_ID).
+        const sep = path.includes('?') ? '&' : '?';
+        const url = `${this.SALESFORCE_BASE_URL}/services/apexrest${path}${token ? `${sep}pyr_token=${encodeURIComponent(token)}` : ''}`;
+        return fetch(url, {
             ...options,
-            headers
+            headers: {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            }
         });
     }
 };
