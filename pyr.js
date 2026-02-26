@@ -719,6 +719,43 @@ function preventRightClickOnPage() {
     document.addEventListener('contextmenu', event => event.preventDefault());
 }
 
+// --- PLAN MANAGER ---
+// CRUD operations for saved training plans via Salesforce REST API
+const planManager = {
+    async savePlan({ name, currentWorkouts, selectedRaceDistance, raceDate, selectedWeeklyMileage, numOfWeeksInTraining }) {
+        const body = {
+            name,
+            planJson: JSON.stringify(currentWorkouts),
+            raceDistance: selectedRaceDistance || null,
+            raceDate: raceDate || null,
+            mileageLevel: selectedWeeklyMileage || null,
+            durationWeeks: numOfWeeksInTraining || null
+        };
+        const res = await authManager.apiFetch('/pyr/plans', {
+            method: 'POST',
+            body: JSON.stringify(body)
+        });
+        return res.json();
+    },
+
+    async listPlans() {
+        const res = await authManager.apiFetch('/pyr/plans');
+        return res.json();
+    },
+
+    async loadPlan(planId) {
+        const res = await authManager.apiFetch(`/pyr/plans/${planId}`);
+        return res.json();
+    },
+
+    async deletePlan(planId) {
+        const res = await authManager.apiFetch(`/pyr/plans/${planId}`, {
+            method: 'DELETE'
+        });
+        return res.json();
+    }
+};
+
 // --- AUTH MANAGER ---
 // Handles Google OAuth, JWT storage in localStorage, and Salesforce REST API calls
 const authManager = {
@@ -1169,6 +1206,16 @@ function sharedState() {
         authError: '',
         authLoading: false,
 
+        // --- Plan manager state ---
+        showSavePlanModal: false,
+        savePlanName: '',
+        planSaving: false,
+        planSaveError: '',
+        showMyPlansModal: false,
+        savedPlans: [],
+        plansLoading: false,
+        planActionError: '',
+
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
             // Restore auth session and wire up Google Sign-In
@@ -1269,6 +1316,108 @@ function sharedState() {
                 this.$nextTick(render);
             } else {
                 setTimeout(render, 0);
+            }
+        },
+
+        // --- Plan manager methods ---
+
+        openSavePlanModal() {
+            const dist = this.selectedRaceDistance
+                ? this.selectedRaceDistance.charAt(0).toUpperCase() + this.selectedRaceDistance.slice(1).replace(/-/g, ' ')
+                : 'Training';
+            const date = this.raceDate
+                ? new Date(this.raceDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                : '';
+            this.savePlanName = [dist, date].filter(Boolean).join(' – ');
+            this.planSaveError = '';
+            this.showSavePlanModal = true;
+        },
+
+        async confirmSavePlan() {
+            if (!this.savePlanName.trim()) {
+                this.planSaveError = 'Please enter a plan name.';
+                return;
+            }
+            this.planSaving = true;
+            this.planSaveError = '';
+            try {
+                const data = await planManager.savePlan({
+                    name: this.savePlanName.trim(),
+                    currentWorkouts: this.currentWorkouts,
+                    selectedRaceDistance: this.selectedRaceDistance,
+                    raceDate: this.raceDate,
+                    selectedWeeklyMileage: this.selectedWeeklyMileage,
+                    numOfWeeksInTraining: this.numOfWeeksInTraining
+                });
+                if (data.success) {
+                    this.showSavePlanModal = false;
+                    this.savePlanName = '';
+                } else {
+                    this.planSaveError = data.error || 'Failed to save plan.';
+                }
+            } catch(e) {
+                this.planSaveError = 'Failed to save plan. Please try again.';
+            } finally {
+                this.planSaving = false;
+            }
+        },
+
+        async openMyPlans() {
+            this.showMyPlansModal = true;
+            this.plansLoading = true;
+            this.planActionError = '';
+            try {
+                const data = await planManager.listPlans();
+                if (data.success) {
+                    this.savedPlans = data.plans || [];
+                } else {
+                    this.planActionError = data.error || 'Failed to load plans.';
+                }
+            } catch(e) {
+                this.planActionError = 'Failed to load plans.';
+            } finally {
+                this.plansLoading = false;
+            }
+        },
+
+        async loadSavedPlan(planId) {
+            this.plansLoading = true;
+            this.planActionError = '';
+            try {
+                const data = await planManager.loadPlan(planId);
+                if (data.success) {
+                    const plan = data.plan;
+                    this.currentWorkouts = plan.planJson;
+                    window.currentTrainingPlanJson = this.currentWorkouts;
+                    if (plan.raceDistance) this.selectedRaceDistance = plan.raceDistance;
+                    if (plan.raceDate) this.raceDate = String(plan.raceDate).substring(0, 10);
+                    if (plan.mileageLevel) this.selectedWeeklyMileage = plan.mileageLevel;
+                    if (plan.durationWeeks) this.numOfWeeksInTraining = plan.durationWeeks;
+                    this.showMyPlansModal = false;
+                    this.destroyAnalyticsCharts();
+                    this.loadAnalyticsCharts();
+                } else {
+                    this.planActionError = data.error || 'Failed to load plan.';
+                }
+            } catch(e) {
+                this.planActionError = 'Failed to load plan.';
+            } finally {
+                this.plansLoading = false;
+            }
+        },
+
+        async deleteSavedPlan(planId) {
+            if (!confirm('Delete this plan?')) return;
+            this.planActionError = '';
+            try {
+                const data = await planManager.deletePlan(planId);
+                if (data.success) {
+                    this.savedPlans = this.savedPlans.filter(p => p.id !== planId);
+                } else {
+                    this.planActionError = data.error || 'Failed to delete plan.';
+                }
+            } catch(e) {
+                this.planActionError = 'Failed to delete plan.';
             }
         },
 
