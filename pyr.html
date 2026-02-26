@@ -4,6 +4,21 @@
         <div class="h-10 w-10 border-4 border-gray-500 border-t-transparent rounded-full animate-spin"></div>
     </div>
     <div id="sf-ai-review"></div>
+
+    <!-- Auth Header Bar -->
+    <div class="w-full bg-gray-800 border-b border-gray-700 px-6 py-2 flex items-center justify-end gap-3">
+        <span x-show="authError" class="text-xs text-red-400" x-text="authError"></span>
+        <span x-show="authLoading" class="text-xs text-gray-400">Signing in…</span>
+        <div x-show="!isLoggedIn && !authLoading" id="google-signin-btn"></div>
+        <div x-show="isLoggedIn" x-cloak class="flex items-center gap-3">
+            <span class="text-sm text-gray-300" x-text="currentUser && currentUser.email"></span>
+            <button @click="authSignOut()"
+                class="rounded-full bg-gray-700 px-3 py-1 text-xs text-gray-300 hover:bg-gray-600 hover:text-white transition-colors">
+                Sign out
+            </button>
+        </div>
+    </div>
+
     <div class="w-full full bg-gray-900 px-4 sm:px-6 lg:px-8 py-8">
         <div x-data="{ controlsOpen: true }"
              :class="controlsOpen ? 'gap-6' : 'gap-2'"
@@ -1007,6 +1022,8 @@
         };
     </script>
 
+    <script src="https://accounts.google.com/gsi/client" async
+            onload="window.dispatchEvent(new Event('gisloaded'))"></script>
     <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
     <script type="text/javascript" src="./workoutsCatalog.js"></script>
     <script type="text/javascript" src="./pyr.js"></script>

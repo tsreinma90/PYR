@@ -719,6 +719,81 @@ function preventRightClickOnPage() {
     document.addEventListener('contextmenu', event => event.preventDefault());
 }
 
+// --- AUTH MANAGER ---
+// Handles Google OAuth, JWT storage in localStorage, and Salesforce REST API calls
+const authManager = {
+    SALESFORCE_BASE_URL: 'https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com',
+    TOKEN_KEY: 'pyr_jwt_token',
+    USER_KEY: 'pyr_user',
+
+    token: null,
+    user: null,
+
+    init() {
+        this.token = localStorage.getItem(this.TOKEN_KEY);
+        const userStr = localStorage.getItem(this.USER_KEY);
+        if (userStr) {
+            try { this.user = JSON.parse(userStr); } catch(e) { this.user = null; }
+        }
+    },
+
+    isAuthenticated() {
+        return !!this.token;
+    },
+
+    getToken() {
+        return this.token;
+    },
+
+    async signInWithGoogle(idToken) {
+        const res = await fetch(`${this.SALESFORCE_BASE_URL}/services/apexrest/pyr/auth/google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        });
+        const data = await res.json();
+        if (data.success) {
+            this._storeSession(data.token, {
+                userId: data.userId,
+                pyrUserId: data.pyrUserId,
+                email: data.email
+            });
+        }
+        return data;
+    },
+
+    signOut() {
+        this.token = null;
+        this.user = null;
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.USER_KEY);
+        if (window.google && google.accounts && google.accounts.id) {
+            google.accounts.id.disableAutoSelect();
+        }
+    },
+
+    _storeSession(token, user) {
+        this.token = token;
+        this.user = user;
+        localStorage.setItem(this.TOKEN_KEY, token);
+        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    },
+
+    // Authenticated fetch helper — attaches Bearer token for Salesforce REST calls
+    async apiFetch(path, options = {}) {
+        const token = this.getToken();
+        const headers = {
+            'Content-Type': 'application/json',
+            ...(options.headers || {}),
+            ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        };
+        return fetch(`${this.SALESFORCE_BASE_URL}/services/apexrest${path}`, {
+            ...options,
+            headers
+        });
+    }
+};
+
 function sharedState() {
     return {
         goalPacePercent: 50,
@@ -1088,8 +1163,24 @@ function sharedState() {
         enhancedOutput: "",
         loading: false,
 
+        // --- Auth state ---
+        isLoggedIn: false,
+        currentUser: null,
+        authError: '',
+        authLoading: false,
+
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
+            // Restore auth session and wire up Google Sign-In
+            authManager.init();
+            this.isLoggedIn = authManager.isAuthenticated();
+            this.currentUser = authManager.user;
+            if (window.google && window.google.accounts) {
+                this._initGoogleSignIn();
+            } else {
+                window.addEventListener('gisloaded', () => this._initGoogleSignIn(), { once: true });
+            }
+
             this.updateIsMobile();
             window.addEventListener('resize', () => this.updateIsMobile())
 
@@ -1118,6 +1209,67 @@ function sharedState() {
 
                 this.enhancedOutput = `⚠️ ${message}`;
             });
+        },
+
+        async handleGoogleSignIn(idToken) {
+            this.authLoading = true;
+            this.authError = '';
+            try {
+                const data = await authManager.signInWithGoogle(idToken);
+                if (data.success) {
+                    this.isLoggedIn = true;
+                    this.currentUser = authManager.user;
+                } else {
+                    this.authError = data.error || 'Sign in failed. Please try again.';
+                }
+            } catch(e) {
+                this.authError = 'Sign in failed. Please try again.';
+            } finally {
+                this.authLoading = false;
+            }
+        },
+
+        authSignOut() {
+            authManager.signOut();
+            this.isLoggedIn = false;
+            this.currentUser = null;
+            // Re-render the sign-in button after the DOM updates
+            if (typeof this.$nextTick === 'function') {
+                this.$nextTick(() => this._renderGoogleButton());
+            } else {
+                setTimeout(() => this._renderGoogleButton(), 0);
+            }
+        },
+
+        _initGoogleSignIn() {
+            google.accounts.id.initialize({
+                client_id: '581536767999-4jhqjdl51n9tr2ad1f72ejaqh5u9u79c.apps.googleusercontent.com',
+                callback: (response) => this.handleGoogleSignIn(response.credential),
+                auto_select: false,
+                cancel_on_tap_outside: true,
+            });
+            this._renderGoogleButton();
+        },
+
+        _renderGoogleButton() {
+            if (this.isLoggedIn) return;
+            const render = () => {
+                const btnEl = document.getElementById('google-signin-btn');
+                if (btnEl) {
+                    btnEl.innerHTML = '';
+                    google.accounts.id.renderButton(btnEl, {
+                        theme: 'filled_black',
+                        size: 'medium',
+                        shape: 'pill',
+                        text: 'signin_with',
+                    });
+                }
+            };
+            if (typeof this.$nextTick === 'function') {
+                this.$nextTick(render);
+            } else {
+                setTimeout(render, 0);
+            }
         },
 
         validateField(fieldName) {
