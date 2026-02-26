@@ -1353,13 +1353,15 @@ function sharedState() {
                     this.showSavePlanModal = false;
                     this.savePlanName = '';
                 } else {
+                    console.log('***', JSON)
                     this.planSaveError = data.error || 'Failed to save plan.';
                 }
             } catch(e) {
+                                    console.log('***', e)
+
                 this.planSaveError = 'Failed to save plan. Please try again.';
             } finally {
                 this.planSaving = false;
-                console.log('*** JWT after save attempt:', data?.error);
             }
         },
 
