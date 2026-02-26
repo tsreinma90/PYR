@@ -94,6 +94,11 @@ global class PYRPlanController {
                 return;
             }
 
+            if (!planJson.contains('"schemaVersion"')) {
+                sendErrorResponse(res, 'Invalid training plan schema', 400);
+                return;
+            }
+
             // Create Training Plan record
             Training_Plan__c plan = new Training_Plan__c();
             plan.Name = planName;
@@ -170,14 +175,37 @@ global class PYRPlanController {
                 req.requestBody.toString()
             );
 
+            if (!requestBody.containsKey('planJson') || String.isBlank((String) requestBody.get('planJson'))) {
+                sendErrorResponse(res, 'planJson is required for update', 400);
+                return;
+            }
+
+            String planJson = (String) requestBody.get('planJson');
+
+            if (!planJson.contains('"schemaVersion"')) {
+                sendErrorResponse(res, 'Invalid training plan schema', 400);
+                return;
+            }
+
             Training_Plan__c plan = plans[0];
 
+            if (requestBody.containsKey('lastKnownModified')) {
+                DateTime clientTs = DateTime.valueOf((String) requestBody.get('lastKnownModified'));
+                if (plan.Last_Modified__c != null && plan.Last_Modified__c > clientTs) {
+                    sendErrorResponse(res, 'Plan was modified elsewhere', 409);
+                    return;
+                }
+            }
+
             if (requestBody.containsKey('name')) {
-                plan.Name = (String) requestBody.get('name');
+                String newName = (String) requestBody.get('name');
+                if (String.isBlank(newName)) {
+                    sendErrorResponse(res, 'Plan name cannot be blank', 400);
+                    return;
+                }
+                plan.Name = newName;
             }
-            if (requestBody.containsKey('planJson')) {
-                plan.Plan_JSON__c = (String) requestBody.get('planJson');
-            }
+            plan.Plan_JSON__c = (String) requestBody.get('planJson');
             if (requestBody.containsKey('raceDistance')) {
                 plan.Race_Distance__c = (String) requestBody.get('raceDistance');
             }
@@ -324,15 +352,12 @@ global class PYRPlanController {
 
         Training_Plan__c plan = plans[0];
 
-        // Parse the JSON plan data
-        List<Object> planJson = (List<Object>) JSON.deserializeUntyped(plan.Plan_JSON__c);
-
         Map<String, Object> response = new Map<String, Object>();
         response.put('success', true);
         response.put('plan', new Map<String, Object>{
             'id' => plan.Id,
             'name' => plan.Name,
-            'planJson' => planJson,
+            'planJson' => plan.Plan_JSON__c,
             'raceDistance' => plan.Race_Distance__c,
             'raceDate' => plan.Race_Date__c,
             'mileageLevel' => plan.Mileage_Level__c,

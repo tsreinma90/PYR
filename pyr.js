@@ -722,27 +722,41 @@ function preventRightClickOnPage() {
 // --- PLAN MANAGER ---
 // CRUD operations for saved training plans via Salesforce REST API
 const planManager = {
-    async savePlan({ name, currentWorkouts, selectedRaceDistance, raceDate, selectedWeeklyMileage, numOfWeeksInTraining }) {
+    async savePlan({ planId, name, currentWorkouts, selectedRaceDistance, raceDate, selectedWeeklyMileage, numOfWeeksInTraining }) {
         const raceDistanceMap = {
-            '5k': '5K', '10k': '10K', 'half-marathon': 'Half Marathon', 'marathon': 'Marathon'
+            '5k': '5K',
+            '10k': '10K',
+            'half-marathon': 'Half Marathon',
+            'marathon': 'Marathon'
         };
+
         const body = {
             name,
-            planJson: JSON.stringify((currentWorkouts || []).filter(w => w != null)),
+            planJson: JSON.stringify({
+                schemaVersion: 1,
+                lastEditedAt: new Date().toISOString(),
+                events: (currentWorkouts || []).filter(w => w != null)
+            }),
             raceDistance: raceDistanceMap[selectedRaceDistance] || selectedRaceDistance || null,
             raceDate: raceDate || null,
             mileageLevel: selectedWeeklyMileage || null,
             durationWeeks: numOfWeeksInTraining != null ? Number(numOfWeeksInTraining) : null
         };
-        const res = await authManager.apiFetch('/pyr/plans', {
-            method: 'POST',
+
+        const method = planId ? 'PUT' : 'POST';
+        const path = planId ? `/pyr/plans/${planId}` : '/pyr/plans';
+
+        const res = await authManager.apiFetch(path, {
+            method,
             body: JSON.stringify(body)
         });
+
         const text = await res.text();
         console.log('[PYR] savePlan response', res.status, text);
+
         try {
             return JSON.parse(text);
-        } catch(e) {
+        } catch (e) {
             return { success: false, error: `HTTP ${res.status}: ${text.slice(0, 200)}` };
         }
     },
@@ -779,7 +793,7 @@ const authManager = {
         this.token = localStorage.getItem(this.TOKEN_KEY);
         const userStr = localStorage.getItem(this.USER_KEY);
         if (userStr) {
-            try { this.user = JSON.parse(userStr); } catch(e) { this.user = null; }
+            try { this.user = JSON.parse(userStr); } catch (e) { this.user = null; }
         }
     },
 
@@ -846,6 +860,7 @@ const authManager = {
 
 function sharedState() {
     return {
+        activePlanId: null,
         goalPacePercent: 50,
         goalPaceSeconds: null,
         goalPaceLabel: '—',
@@ -1282,7 +1297,7 @@ function sharedState() {
                 } else {
                     this.authError = data.error || 'Sign in failed. Please try again.';
                 }
-            } catch(e) {
+            } catch (e) {
                 this.authError = 'Sign in failed. Please try again.';
             } finally {
                 this.authLoading = false;
@@ -1355,6 +1370,7 @@ function sharedState() {
             this.planSaveError = '';
             try {
                 const data = await planManager.savePlan({
+                    planId: this.activePlanId,
                     name: this.savePlanName.trim(),
                     currentWorkouts: this.currentWorkouts,
                     selectedRaceDistance: this.selectedRaceDistance,
@@ -1363,12 +1379,15 @@ function sharedState() {
                     numOfWeeksInTraining: this.numOfWeeksInTraining
                 });
                 if (data.success) {
+                    if (data.planId) {
+                        this.activePlanId = data.planId;
+                    }
                     this.showSavePlanModal = false;
                     this.savePlanName = '';
                 } else {
                     this.planSaveError = data.error || 'Failed to save plan.';
                 }
-            } catch(e) {
+            } catch (e) {
                 console.error('[PYR] confirmSavePlan error:', e);
                 this.planSaveError = e.message || 'Failed to save plan. Please try again.';
             } finally {
@@ -1387,7 +1406,7 @@ function sharedState() {
                 } else {
                     this.planActionError = data.error || 'Failed to load plans.';
                 }
-            } catch(e) {
+            } catch (e) {
                 this.planActionError = 'Failed to load plans.';
             } finally {
                 this.plansLoading = false;
@@ -1401,6 +1420,7 @@ function sharedState() {
                 const data = await planManager.loadPlan(planId);
                 if (data.success) {
                     const plan = data.plan;
+                    this.activePlanId = plan.id;
                     this.currentWorkouts = plan.planJson;
                     window.currentTrainingPlanJson = this.currentWorkouts;
                     if (plan.raceDistance) this.selectedRaceDistance = plan.raceDistance;
@@ -1413,7 +1433,7 @@ function sharedState() {
                 } else {
                     this.planActionError = data.error || 'Failed to load plan.';
                 }
-            } catch(e) {
+            } catch (e) {
                 this.planActionError = 'Failed to load plan.';
             } finally {
                 this.plansLoading = false;
@@ -1427,10 +1447,13 @@ function sharedState() {
                 const data = await planManager.deletePlan(planId);
                 if (data.success) {
                     this.savedPlans = this.savedPlans.filter(p => p.id !== planId);
+                    if (this.activePlanId === planId) {
+                        this.activePlanId = null;
+                    }
                 } else {
                     this.planActionError = data.error || 'Failed to delete plan.';
                 }
-            } catch(e) {
+            } catch (e) {
                 this.planActionError = 'Failed to delete plan.';
             }
         },
