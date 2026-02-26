@@ -723,10 +723,13 @@ function preventRightClickOnPage() {
 // CRUD operations for saved training plans via Salesforce REST API
 const planManager = {
     async savePlan({ name, currentWorkouts, selectedRaceDistance, raceDate, selectedWeeklyMileage, numOfWeeksInTraining }) {
+        const raceDistanceMap = {
+            '5k': '5K', '10k': '10K', 'half-marathon': 'Half Marathon', 'marathon': 'Marathon'
+        };
         const body = {
             name,
             planJson: JSON.stringify((currentWorkouts || []).filter(w => w != null)),
-            raceDistance: selectedRaceDistance || null,
+            raceDistance: raceDistanceMap[selectedRaceDistance] || selectedRaceDistance || null,
             raceDate: raceDate || null,
             mileageLevel: selectedWeeklyMileage || null,
             durationWeeks: numOfWeeksInTraining != null ? Number(numOfWeeksInTraining) : null

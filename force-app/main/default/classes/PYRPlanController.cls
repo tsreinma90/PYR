@@ -81,7 +81,13 @@ global class PYRPlanController {
             String raceDistance = (String) requestBody.get('raceDistance');
             String raceDate = (String) requestBody.get('raceDate');
             String mileageLevel = (String) requestBody.get('mileageLevel');
-            Decimal durationWeeks = (Decimal) requestBody.get('durationWeeks');
+            Object rawWeeks = requestBody.get('durationWeeks');
+            Decimal durationWeeks = null;
+            if (rawWeeks instanceof Decimal) {
+                durationWeeks = (Decimal) rawWeeks;
+            } else if (rawWeeks instanceof String && String.isNotBlank((String) rawWeeks)) {
+                durationWeeks = Decimal.valueOf((String) rawWeeks);
+            }
 
             if (String.isBlank(planName) || String.isBlank(planJson)) {
                 sendErrorResponse(res, 'Missing required fields: name, planJson', 400);
@@ -183,7 +189,12 @@ global class PYRPlanController {
                 plan.Mileage_Level__c = (String) requestBody.get('mileageLevel');
             }
             if (requestBody.containsKey('durationWeeks')) {
-                plan.Duration_Weeks__c = (Decimal) requestBody.get('durationWeeks');
+                Object rawWeeksPut = requestBody.get('durationWeeks');
+                if (rawWeeksPut instanceof Decimal) {
+                    plan.Duration_Weeks__c = (Decimal) rawWeeksPut;
+                } else if (rawWeeksPut instanceof String && String.isNotBlank((String) rawWeeksPut)) {
+                    plan.Duration_Weeks__c = Decimal.valueOf((String) rawWeeksPut);
+                }
             }
 
             plan.Last_Modified__c = DateTime.now();
