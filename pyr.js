@@ -725,11 +725,11 @@ const planManager = {
     async savePlan({ name, currentWorkouts, selectedRaceDistance, raceDate, selectedWeeklyMileage, numOfWeeksInTraining }) {
         const body = {
             name,
-            planJson: JSON.stringify(currentWorkouts),
+            planJson: JSON.stringify((currentWorkouts || []).filter(w => w != null)),
             raceDistance: selectedRaceDistance || null,
             raceDate: raceDate || null,
             mileageLevel: selectedWeeklyMileage || null,
-            durationWeeks: numOfWeeksInTraining || null
+            durationWeeks: numOfWeeksInTraining != null ? Number(numOfWeeksInTraining) : null
         };
         const res = await authManager.apiFetch('/pyr/plans', {
             method: 'POST',
