@@ -824,7 +824,6 @@ const authManager = {
             ...(options.headers || {}),
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         };
-        console.log('*** JWT being sent:', this.getToken());
         return fetch(`${this.SALESFORCE_BASE_URL}/services/apexrest${path}`, {
             ...options,
             headers
@@ -1360,6 +1359,7 @@ function sharedState() {
                 this.planSaveError = 'Failed to save plan. Please try again.';
             } finally {
                 this.planSaving = false;
+                console.log('*** JWT after save attempt:', data?.error);
             }
         },
 
