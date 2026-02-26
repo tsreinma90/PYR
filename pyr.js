@@ -735,7 +735,13 @@ const planManager = {
             method: 'POST',
             body: JSON.stringify(body)
         });
-        return res.json();
+        const text = await res.text();
+        console.log('[PYR] savePlan response', res.status, text);
+        try {
+            return JSON.parse(text);
+        } catch(e) {
+            return { success: false, error: `HTTP ${res.status}: ${text.slice(0, 200)}` };
+        }
     },
 
     async listPlans() {
@@ -819,6 +825,8 @@ const authManager = {
     // Authenticated fetch helper — attaches Bearer token for Salesforce REST calls
     async apiFetch(path, options = {}) {
         const token = this.getToken();
+        console.log('[PYR] apiFetch', options.method || 'GET', path,
+            'token:', token ? token.slice(0, 30) + '…' : 'MISSING — not signed in');
         const headers = {
             'Content-Type': 'application/json',
             ...(options.headers || {}),
@@ -1353,13 +1361,11 @@ function sharedState() {
                     this.showSavePlanModal = false;
                     this.savePlanName = '';
                 } else {
-                    console.log('***', JSON)
                     this.planSaveError = data.error || 'Failed to save plan.';
                 }
             } catch(e) {
-                                    console.log('***', JSON.stringify(e, undefined, 2));
-
-                this.planSaveError = 'Failed to save plan. Please try again.';
+                console.error('[PYR] confirmSavePlan error:', e);
+                this.planSaveError = e.message || 'Failed to save plan. Please try again.';
             } finally {
                 this.planSaving = false;
             }

@@ -1,99 +1,142 @@
-/**
- * Utility class for JWT token generation and validation
- * Handles creation of stateless JWT tokens for authentication
- */
-public class JWTTokenManager {
+public with sharing class JWTTokenManager {
 
-    // Token expiration: 24 hours (in seconds)
-    private static final Long TOKEN_EXPIRATION = 86400;
-    private static final String ALGORITHM = 'HS256';
+    private static final String ALG = 'HS256';
+    private static final String TYP = 'JWT';
 
-    /**
-     * Generate a JWT token for a Contact
-     * @param contactId The Salesforce Contact ID
-     * @param email The contact email
-     * @return JWT token string
-     */
+    /* =========================
+       PUBLIC API
+       ========================= */
+
     public static String generateToken(String contactId, String email) {
+        PYR_JWT_Auth_Config__mdt cfg = getActiveConfig();
+
         Long now = DateTime.now().getTime() / 1000;
-        Long expiration = now + TOKEN_EXPIRATION;
+        Long exp = now + cfg.Token_Expiration_Seconds__c.longValue();
 
-        // Create JWT payload
-        Map<String, Object> payload = new Map<String, Object>();
-        payload.put('sub', contactId);        // subject (Contact ID)
-        payload.put('email', email);           // email claim
-        payload.put('iat', now);              // issued at
-        payload.put('exp', expiration);       // expiration time
-        payload.put('iss', 'PYR');            // issuer
+        // Header
+        Map<String, Object> header = new Map<String, Object>{
+            'alg' => ALG,
+            'typ' => TYP
+        };
 
-        // For MVP: Create a simple token by encoding the claims
-        // In production, use a proper JWT library or Salesforce named credentials
-        String tokenPayload = JSON.serialize(payload);
-        String encodedPayload = EncodingUtil.base64Encode(Blob.valueOf(tokenPayload));
+        // Payload
+        Map<String, Object> payload = new Map<String, Object>{
+            'sub'   => contactId,
+            'email' => email,
+            'iss'   => cfg.Issuer__c,
+            'iat'   => now,
+            'exp'   => exp
+        };
 
-        // Create simple signature (salt with Contact ID and current timestamp)
-        String signature = EncodingUtil.base64Encode(
-            Blob.valueOf(contactId + ':' + now)
-        );
+        String encodedHeader  = base64UrlEncode(JSON.serialize(header));
+        String encodedPayload = base64UrlEncode(JSON.serialize(payload));
 
-        return 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.' + encodedPayload + '.' + signature;
+        String signingInput = encodedHeader + '.' + encodedPayload;
+        String signature = sign(signingInput, cfg.Signing_Key__c);
+
+        return signingInput + '.' + signature;
     }
 
-    /**
-     * Validate a JWT token
-     * @param token The JWT token string
-     * @return Map with validation result and decoded data
-     */
     public static Map<String, Object> validateToken(String token) {
-        Map<String, Object> result = new Map<String, Object>();
-        result.put('valid', false);
-        result.put('contactId', null);
-        result.put('error', 'Invalid token');
+        Map<String, Object> result = new Map<String, Object>{
+            'valid' => false
+        };
 
         try {
-            // Split token into parts
+            PYR_JWT_Auth_Config__mdt cfg = getActiveConfig();
+
             List<String> parts = token.split('\\.');
             if (parts.size() != 3) {
-                result.put('error', 'Token format invalid');
+                result.put('error', 'Invalid JWT format');
+                return result;
+            }
+
+            // Validate signature
+            String signingInput = parts[0] + '.' + parts[1];
+            String providedSig = parts[2];
+            String expectedSig = sign(signingInput, cfg.Signing_Key__c);
+
+            if (providedSig != expectedSig) {
+                result.put('error', 'Invalid signature');
                 return result;
             }
 
             // Decode payload
-            String decodedPayload = EncodingUtil.urlDecode(
-                EncodingUtil.base64Encode(
-                    EncodingUtil.base64Decode(parts.get(1))
-                ),
-                'UTF-8'
-            );
+            String payloadJson =
+                EncodingUtil.base64Decode(fromBase64Url(parts[1])).toString();
 
-            Map<String, Object> payload = (Map<String, Object>) JSON.deserializeUntyped(decodedPayload);
+            Map<String, Object> payload =
+                (Map<String, Object>) JSON.deserializeUntyped(payloadJson);
 
-            // Check expiration
-            Long exp = (Long) payload.get('exp');
             Long now = DateTime.now().getTime() / 1000;
+            Long tokenExp = ((Decimal) payload.get('exp')).longValue();
 
-            if (exp < now) {
+            if (tokenExp < now) {
                 result.put('error', 'Token expired');
                 return result;
             }
 
-            // Validate issuer
-            if (!payload.containsKey('iss') || payload.get('iss') != 'PYR') {
+            if ((String) payload.get('iss') != cfg.Issuer__c) {
                 result.put('error', 'Invalid issuer');
                 return result;
             }
 
-            // Token is valid
             result.put('valid', true);
-            //result.put('contactId', (String) payload.get('sub'));
-            
+            result.put('contactId', (String) payload.get('sub'));
             result.put('email', (String) payload.get('email'));
-            result.remove('error');
+            return result;
 
         } catch (Exception e) {
-            result.put('error', 'Token validation failed: ' + e.getMessage());
+            result.put('error', 'JWT validation failed: ' + e.getMessage());
+            return result;
         }
+    }
 
-        return result;
+    /* =========================
+       INTERNAL HELPERS
+       ========================= */
+
+    private static PYR_JWT_Auth_Config__mdt getActiveConfig() {
+        PYR_JWT_Auth_Config__mdt cfg = [
+            SELECT Signing_Key__c,
+                   Issuer__c,
+                   Token_Expiration_Seconds__c
+            FROM PYR_JWT_Auth_Config__mdt
+            WHERE Is_Active__c = true
+            LIMIT 1
+        ];
+
+        if (cfg == null) {
+            throw new SecurityException('No active JWT config found');
+        }
+        return cfg;
+    }
+
+    private static String sign(String data, String secret) {
+        Blob mac = Crypto.generateMac(
+            'HmacSHA256',
+            Blob.valueOf(data),
+            Blob.valueOf(secret)
+        );
+        return base64UrlEncode(mac);
+    }
+
+    private static String base64UrlEncode(String input) {
+        return base64UrlEncode(Blob.valueOf(input));
+    }
+
+    private static String base64UrlEncode(Blob input) {
+        return EncodingUtil.base64Encode(input)
+            .replace('+', '-')
+            .replace('/', '_')
+            .replace('=', '');
+    }
+
+    private static String fromBase64Url(String input) {
+        String s = input.replace('-', '+').replace('_', '/');
+        while (Math.mod(s.length(), 4) != 0) {
+            s += '=';
+        }
+        return s;
     }
 }
