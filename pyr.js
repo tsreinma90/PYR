@@ -824,6 +824,7 @@ const authManager = {
             ...(options.headers || {}),
             ...(token ? { 'Authorization': `Bearer ${token}` } : {})
         };
+        console.log('*** JWT being sent:', this.getToken());
         return fetch(`${this.SALESFORCE_BASE_URL}/services/apexrest${path}`, {
             ...options,
             headers
