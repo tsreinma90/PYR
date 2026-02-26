@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>Race_Distance__c</fullName>
+    <description>Target race distance</description>
+    <externalId>false</externalId>
+    <label>Race Distance</label>
+    <required>false</required>
+    <trackHistory>false</trackHistory>
+    <trackTrending>false</trackTrending>
+    <type>Picklist</type>
+    <valueSet>
+        <restricted>true</restricted>
+        <valueSetDefinition>
+            <sorted>false</sorted>
+            <value>
+                <fullName>5K</fullName>
+                <default>false</default>
+                <label>5K</label>
+            </value>
+            <value>
+                <fullName>10K</fullName>
+                <default>false</default>
+                <label>10K</label>
+            </value>
+            <value>
+                <fullName>Half Marathon</fullName>
+                <default>false</default>
+                <label>Half Marathon</label>
+            </value>
+            <value>
+                <fullName>Marathon</fullName>
+                <default>false</default>
+                <label>Marathon</label>
+            </value>
+        </valueSetDefinition>
+    </valueSet>
+</CustomField>
