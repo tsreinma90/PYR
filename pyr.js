@@ -1357,7 +1357,7 @@ function sharedState() {
                     this.planSaveError = data.error || 'Failed to save plan.';
                 }
             } catch(e) {
-                                    console.log('***', e)
+                                    console.log('***', JSON.stringify(e, undefined, 2));
 
                 this.planSaveError = 'Failed to save plan. Please try again.';
             } finally {
