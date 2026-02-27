@@ -1402,7 +1402,11 @@ function sharedState() {
             try {
                 const data = await planManager.listPlans();
                 if (data.success) {
-                    this.savedPlans = data.plans || [];
+                    // Ensure each plan has a normalized id field
+                    this.savedPlans = (data.plans || []).map(p => ({
+                        ...p,
+                        id: p.id || p.Id
+                    }));
                 } else {
                     this.planActionError = data.error || 'Failed to load plans.';
                 }
@@ -1421,8 +1425,15 @@ function sharedState() {
                 if (data.success) {
                     const plan = data.plan;
                     this.activePlanId = plan.id;
-                    this.currentWorkouts = plan.planJson;
-                    window.currentTrainingPlanJson = this.currentWorkouts;
+                    // Unwrap schemaVersion + events envelope
+                    const parsed = JSON.parse(plan.planJson);
+                    if (!parsed.schemaVersion || !Array.isArray(parsed.events)) {
+                        console.error('Invalid training plan schema', parsed);
+                        alert('This training plan could not be loaded.');
+                        return;
+                    }
+                    this.currentWorkouts = parsed.events;
+                    window.currentTrainingPlanJson = parsed.events;
                     if (plan.raceDistance) this.selectedRaceDistance = plan.raceDistance;
                     if (plan.raceDate) this.raceDate = String(plan.raceDate).substring(0, 10);
                     if (plan.mileageLevel) this.selectedWeeklyMileage = plan.mileageLevel;
@@ -1441,6 +1452,11 @@ function sharedState() {
         },
 
         async deleteSavedPlan(planId) {
+            if (!planId) {
+                console.error('deleteSavedPlan called with null planId');
+                alert('Unable to delete this plan. Please reload and try again.');
+                return;
+            }
             if (!confirm('Delete this plan?')) return;
             this.planActionError = '';
             try {
