@@ -1411,7 +1411,6 @@ function sharedState() {
                     this.planSaveError = data.error || 'Failed to save plan.';
                 }
             } catch (e) {
-                console('***[PYR] confirmSavePlan error:', e);
                 this.planSaveError = e.message || 'Failed to save plan. Please try again.';
             } finally {
                 this.planSaving = false;
