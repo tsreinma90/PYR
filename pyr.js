@@ -762,13 +762,37 @@ const planManager = {
     },
 
     async listPlans() {
-        const res = await authManager.apiFetch('/pyr/plans');
-        return res.json();
+        const res = await authManager.apiFetch('/pyr/plans', {
+            method: 'GET'
+        });
+
+        const text = await res.text();
+        console.log('[PYR] listPlans response', res.status, text);
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return { success: false, error: `HTTP ${res.status}: ${text.slice(0, 200)}` };
+        }
     },
 
     async loadPlan(planId) {
-        const res = await authManager.apiFetch(`/pyr/plans/${planId}`);
-        return res.json();
+        if (!planId) {
+            return { success: false, error: 'Missing planId' };
+        }
+
+        const res = await authManager.apiFetch(`/pyr/plans/${planId}`, {
+            method: 'GET'
+        });
+
+        const text = await res.text();
+        console.log('[PYR] loadPlan response', res.status, text);
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return { success: false, error: `HTTP ${res.status}: ${text.slice(0, 200)}` };
+        }
     },
 
     async deletePlan(planId) {
