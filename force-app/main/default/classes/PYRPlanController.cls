@@ -398,14 +398,20 @@ global class PYRPlanController {
     /**
      * Private method: Extract plan ID from request URI
      * URI format: /services/apexrest/pyr/plans/{planId}
+     * Handles cases where a query string is present and is robust to extra path segments.
      */
     private static String extractPlanIdFromURI(String uri) {
-        List<String> parts = uri.split('/');
-        if (parts.size() >= 6) {
-            String lastPart = parts[parts.size() - 1];
-            if (String.isNotBlank(lastPart) && lastPart != 'plans') {
-                return lastPart;
-            }
+        if (String.isBlank(uri)) return null;
+
+        // Remove query string if present
+        String cleanUri = uri.split('\\?')[0];
+
+        List<String> parts = cleanUri.split('/');
+        if (parts.isEmpty()) return null;
+
+        String lastPart = parts[parts.size() - 1];
+        if (String.isNotBlank(lastPart) && lastPart.toLowerCase() != 'plans') {
+            return lastPart;
         }
         return null;
     }

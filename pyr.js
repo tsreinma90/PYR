@@ -1446,39 +1446,38 @@ function sharedState() {
                 const data = await planManager.loadPlan(planId);
                 console.log(('***[PYR] loadSavedPlan response'), JSON.stringify(data, undefined, 2));
                 if (data.success) {
-                    if (!data.plan || typeof data.plan !== 'object') {
-                        throw new Error('Load plan succeeded but no plan payload was returned.');
-                    }
-
                     const plan = data.plan;
 
-                    // Normalize id defensively (backend guarantees `id`, but guard anyway)
-                    const resolvedPlanId = plan.id || plan.Id;
-                    if (!resolvedPlanId) {
-                        throw new Error('Loaded plan is missing an id.');
-                    }
-
-                    this.activePlanId = resolvedPlanId;
-
-                    if (!plan.planJson) {
-                        throw new Error('Loaded plan is missing planJson.');
-                    }
-
-                    // Unwrap schemaVersion + events envelope
-                    const parsed = JSON.parse(plan.planJson);
-                    if (!parsed.schemaVersion || !Array.isArray(parsed.events)) {
-                        alert('This training plan could not be loaded.');
+                    if (!plan || !plan.planJson) {
+                        console.error('Loaded plan is missing planJson.');
                         return;
                     }
-                    this.currentWorkouts = parsed.events;
-                    window.currentTrainingPlanJson = parsed.events;
-                    if (plan.raceDistance) this.selectedRaceDistance = plan.raceDistance;
-                    if (plan.raceDate) this.raceDate = String(plan.raceDate).substring(0, 10);
-                    if (plan.mileageLevel) this.selectedWeeklyMileage = plan.mileageLevel;
-                    if (plan.durationWeeks) this.numOfWeeksInTraining = plan.durationWeeks;
-                    this.showMyPlansModal = false;
+
+                    // Parse the plan JSON and extract events
+                    const parsed = JSON.parse(plan.planJson);
+                    if (!parsed.schemaVersion || !Array.isArray(parsed.events)) {
+                        console.error('Invalid plan schema', parsed);
+                        return;
+                    }
+
+                    const events = parsed.events;
+
+                    // 1️⃣ Update calendar data source
+                    this.currentWorkouts = [...events]; // trigger reactivity
+                    window.currentTrainingPlanJson = events;
+
+                    // 2️⃣ Update form fields
+                    this.selectedRaceDistance = plan.raceDistance || this.selectedRaceDistance;
+                    this.raceDate = plan.raceDate || this.raceDate;
+                    this.selectedWeeklyMileage = plan.mileageLevel || this.selectedWeeklyMileage;
+                    this.numOfWeeksInTraining = plan.durationWeeks || this.numOfWeeksInTraining;
+
+                    // 3️⃣ Refresh charts / calendar
                     this.destroyAnalyticsCharts();
                     this.loadAnalyticsCharts();
+
+                    // Optionally close modal if you have one
+                    this.showMyPlansModal = false;
                 } else {
                     this.planActionError = data.error || 'Failed to load plan.';
                 }
