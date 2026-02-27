@@ -60,8 +60,11 @@ const PLAN_LENGTH_OPTIONS = [
     { label: '8 Week Training Plan', value: 8 },
     { label: '10 Week Training Plan', value: 10 },
     { label: '12 Week Training Plan', value: 12 },
+    { label: '14 Week Training Plan', value: 14 },
     { label: '16 Week Training Plan', value: 16 },
+    { label: '18 Week Training Plan', value: 18 },
     { label: '20 Week Training Plan', value: 20 },
+    { label: '22 Week Training Plan', value: 22 },
     { label: '24 Week Training Plan', value: 24 }
 ];
 
@@ -1440,54 +1443,64 @@ function sharedState() {
         },
 
         async loadSavedPlan(planId) {
-            this.plansLoading = true;
-            this.planActionError = '';
+            if (!planId) {
+                console.error('loadSavedPlan called with null planId');
+                return;
+            }
+
             try {
+                // Fetch single plan from backend
                 const data = await planManager.loadPlan(planId);
-                console.log(('***[PYR] loadSavedPlan response'), JSON.stringify(data, undefined, 2));
-                if (data.success) {
-                    const plan = data.plan;
 
-                    if (!plan || !plan.planJson) {
-                        console.error('Loaded plan is missing planJson.');
-                        return;
-                    }
-
-                    // Parse the plan JSON and extract events
-                    const parsed = JSON.parse(plan.planJson);
-                    if (!parsed.schemaVersion || !Array.isArray(parsed.events)) {
-                        console.error('Invalid plan schema', parsed);
-                        return;
-                    }
-
-                    const events = parsed.events;
-
-                    // 1️⃣ Update calendar data source
-                    this.currentWorkouts = [...events]; // trigger reactivity
-                    window.currentTrainingPlanJson = events;
-
-                    // 2️⃣ Update form fields
-                    this.selectedRaceDistance = plan.raceDistance || this.selectedRaceDistance;
-                    this.raceDate = plan.raceDate || this.raceDate;
-                    this.selectedWeeklyMileage = plan.mileageLevel || this.selectedWeeklyMileage;
-                    this.numOfWeeksInTraining = plan.durationWeeks || this.numOfWeeksInTraining;
-
-                    // 3️⃣ Refresh charts / calendar
-                    this.destroyAnalyticsCharts();
-                    this.loadAnalyticsCharts();
-
-                    // Optionally close modal if you have one
-                    this.showMyPlansModal = false;
-                } else {
+                if (!data.success) {
+                    console.error('Failed to load plan:', data.error);
                     this.planActionError = data.error || 'Failed to load plan.';
+                    return;
                 }
+
+                const plan = data.plan;
+
+                if (!plan || !plan.planJson) {
+                    console.error('Loaded plan is missing planJson.');
+                    this.planActionError = 'Plan data is incomplete.';
+                    return;
+                }
+
+                // Parse plan JSON and extract events
+                const parsed = JSON.parse(plan.planJson);
+                if (!parsed.schemaVersion || !Array.isArray(parsed.events)) {
+                    console.error('Invalid plan schema', parsed);
+                    this.planActionError = 'Plan schema invalid.';
+                    return;
+                }
+
+                const events = parsed.events;
+
+                // 1️⃣ Update calendar events
+                this.currentWorkouts = [...events]; // trigger reactivity
+                window.currentTrainingPlanJson = events;
+
+                // 2️⃣ Update form fields
+                this.selectedRaceDistance = plan.raceDistance || this.selectedRaceDistance;
+                this.raceDate = plan.raceDate || this.raceDate;
+                this.selectedWeeklyMileage = plan.mileageLevel || this.selectedWeeklyMileage;
+                this.numOfWeeksInTraining = plan.durationWeeks || this.numOfWeeksInTraining;
+
+                // 3️⃣ Update new metadata fields
+                this.trainingBlock = plan.trainingBlock || this.trainingBlock;
+                this.peakWeeklyMileage = plan.peakWeeklyMileage || this.peakWeeklyMileage;
+                this.goalRacePace = plan.goalRacePace || this.goalRacePace;
+
+                // 4️⃣ Refresh charts / calendar
+                this.destroyAnalyticsCharts();
+                this.loadAnalyticsCharts();
+
+                // 5️⃣ Close modal if applicable
+                this.showMyPlansModal = false;
+
             } catch (e) {
-                console.error('***[PYR] loadSavedPlan error (raw):', e);
-                console.error('***[PYR] loadSavedPlan error message:', e?.message);
-                console.error('***[PYR] loadSavedPlan error stack:', e?.stack);
+                console.error('***[PYR] loadSavedPlan error:', e, e?.message, e?.stack);
                 this.planActionError = e?.message || 'Failed to load plan.';
-            } finally {
-                this.plansLoading = false;
             }
         },
 

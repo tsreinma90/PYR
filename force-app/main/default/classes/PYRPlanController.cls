@@ -339,7 +339,8 @@ global class PYRPlanController {
         List<Training_Plan__c> plans = [
             SELECT Id, Name, Plan_JSON__c, Race_Distance__c, Race_Date__c,
                    Mileage_Level__c, Duration_Weeks__c, CreatedDate, Last_Modified__c,
-                   Strava_Synced__c, Is_Public__c
+                   Strava_Synced__c, Is_Public__c,
+                   Training_Block__c, Peak_Weekly_Mileage__c, Goal_Race_Pace__c
             FROM Training_Plan__c
             WHERE Id = :planId AND Contact__c = :contactId
             LIMIT 1
@@ -365,7 +366,10 @@ global class PYRPlanController {
             'createdDate' => plan.CreatedDate,
             'lastModified' => plan.Last_Modified__c,
             'stravaSynced' => plan.Strava_Synced__c,
-            'isPublic' => plan.Is_Public__c
+            'isPublic' => plan.Is_Public__c,
+            'trainingBlock' => plan.Training_Block__c,
+            'peakWeeklyMileage' => plan.Peak_Weekly_Mileage__c,
+            'goalRacePace' => plan.Goal_Race_Pace__c
         });
 
         res.statusCode = 200;
