@@ -1446,8 +1446,24 @@ function sharedState() {
                 const data = await planManager.loadPlan(planId);
                 console.log(('***[PYR] loadSavedPlan response'), JSON.stringify(data, undefined, 2));
                 if (data.success) {
+                    if (!data.plan || typeof data.plan !== 'object') {
+                        throw new Error('Load plan succeeded but no plan payload was returned.');
+                    }
+
                     const plan = data.plan;
-                    this.activePlanId = plan.id;
+
+                    // Normalize id defensively (backend guarantees `id`, but guard anyway)
+                    const resolvedPlanId = plan.id || plan.Id;
+                    if (!resolvedPlanId) {
+                        throw new Error('Loaded plan is missing an id.');
+                    }
+
+                    this.activePlanId = resolvedPlanId;
+
+                    if (!plan.planJson) {
+                        throw new Error('Loaded plan is missing planJson.');
+                    }
+
                     // Unwrap schemaVersion + events envelope
                     const parsed = JSON.parse(plan.planJson);
                     if (!parsed.schemaVersion || !Array.isArray(parsed.events)) {
