@@ -1467,8 +1467,10 @@ function sharedState() {
                     this.planActionError = data.error || 'Failed to load plan.';
                 }
             } catch (e) {
-                console.log('***[PYR] loadSavedPlan error:',JSON.stringify(e, undefined, 2));
-                this.planActionError = 'Failed to load plan.';
+                console.error('***[PYR] loadSavedPlan error (raw):', e);
+                console.error('***[PYR] loadSavedPlan error message:', e?.message);
+                console.error('***[PYR] loadSavedPlan error stack:', e?.stack);
+                this.planActionError = e?.message || 'Failed to load plan.';
             } finally {
                 this.plansLoading = false;
             }
