@@ -752,7 +752,7 @@ const planManager = {
         });
 
         const text = await res.text();
-        console.log('[PYR] savePlan response', res.status, text);
+        console.log('***[PYR] savePlan response', res.status, text);
 
         try {
             return JSON.parse(text);
@@ -842,7 +842,7 @@ const authManager = {
     // Authenticated fetch helper — attaches Bearer token for Salesforce REST calls
     async apiFetch(path, options = {}) {
         const token = this.getToken();
-        console.log('[PYR] apiFetch', options.method || 'GET', path,
+        console.log('*** [PYR] apiFetch', options.method || 'GET', path,
             'token:', token ? token.slice(0, 30) + '…' : 'MISSING — not signed in');
         // Pass JWT as a query param — using the Authorization header conflicts with
         // Salesforce's platform auth layer (INVALID_SESSION_ID).
@@ -1039,7 +1039,6 @@ function sharedState() {
                         ? mod.createWorkoutInstanceById
                         : null;
             } catch (e) {
-                //console.error("Failed to load workoutsCatalog.js", e);
                 this.workoutCatalog = [];
                 this.defaultWorkoutSelectionByLevel = {};
                 this.createWorkoutInstanceByIdFn = null;
@@ -1388,7 +1387,7 @@ function sharedState() {
                     this.planSaveError = data.error || 'Failed to save plan.';
                 }
             } catch (e) {
-                console.error('[PYR] confirmSavePlan error:', e);
+                console('***[PYR] confirmSavePlan error:', e);
                 this.planSaveError = e.message || 'Failed to save plan. Please try again.';
             } finally {
                 this.planSaving = false;
@@ -1422,13 +1421,13 @@ function sharedState() {
             this.planActionError = '';
             try {
                 const data = await planManager.loadPlan(planId);
+                console.log(('***[PYR] loadSavedPlan response'), JSON.stringify(data, undefined, 2));
                 if (data.success) {
                     const plan = data.plan;
                     this.activePlanId = plan.id;
                     // Unwrap schemaVersion + events envelope
                     const parsed = JSON.parse(plan.planJson);
                     if (!parsed.schemaVersion || !Array.isArray(parsed.events)) {
-                        console.error('Invalid training plan schema', parsed);
                         alert('This training plan could not be loaded.');
                         return;
                     }
@@ -1445,6 +1444,7 @@ function sharedState() {
                     this.planActionError = data.error || 'Failed to load plan.';
                 }
             } catch (e) {
+                console('***[PYR] loadSavedPlan error:',JSON.stringify(e, undefined, 2));
                 this.planActionError = 'Failed to load plan.';
             } finally {
                 this.plansLoading = false;
@@ -1453,7 +1453,6 @@ function sharedState() {
 
         async deleteSavedPlan(planId) {
             if (!planId) {
-                console.error('deleteSavedPlan called with null planId');
                 alert('Unable to delete this plan. Please reload and try again.');
                 return;
             }
@@ -1719,16 +1718,6 @@ function sharedState() {
                 if (e && e.body) {
                 }
 
-                // Some Lightning Out errors show up here instead
-                /*if (e && e.message) {
-                    console.error('*** error.message:', e.message);
-                }
-
-                try {
-                    console.error('*** error as JSON:', JSON.stringify(e));
-                } catch (jsonErr) {
-                    console.error('*** error could not be stringified:', jsonErr);
-                }*/
                 this.loading = false;
                 this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
             }
@@ -1929,7 +1918,6 @@ function sharedState() {
                                 return g;
                             });
                     } catch (err) {
-                        //console.warn("[PYR] mobileAgendaGroups failed (non-blocking):", err);
                         return [];
                     }
                 },
