@@ -498,9 +498,9 @@
                                                 <span x-text="year" class="ml-1 text-lg font-normal"></span>
                                             </div>
                                             <div class="flex items-center justify-end space-x-3 mt-4">
-                                                <!-- Save / My Plans — only when logged in -->
+                                                <!-- Save / My Plans — only when logged in (desktop) -->
                                                 <template x-if="isLoggedIn">
-                                                    <div class="flex items-center gap-2">
+                                                    <div class="hidden sm:flex items-center gap-2">
                                                         <button
                                                             x-show="currentWorkouts && currentWorkouts.length > 0"
                                                             @click="openSavePlanModal()"
@@ -572,6 +572,25 @@
                                                 </button>
                                             </div>
                                         </div>
+
+                                        <!-- Mobile: Save / My Plans row -->
+                                        <template x-if="isLoggedIn">
+                                            <div class="flex sm:hidden items-center gap-2 mt-3">
+                                                <button
+                                                    x-show="currentWorkouts && currentWorkouts.length > 0"
+                                                    @click="openSavePlanModal()"
+                                                    class="inline-flex items-center gap-1.5 rounded-md bg-emerald-600 px-3 py-2 text-sm font-medium text-white shadow-sm ring-1 ring-emerald-500/40 hover:bg-emerald-500 transition-colors">
+                                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5 shrink-0" viewBox="0 0 20 20" fill="currentColor">
+                                                        <path d="M13.586 2H4a2 2 0 00-2 2v12a2 2 0 002 2h12a2 2 0 002-2V6.414L13.586 2zM13 4l3 3h-2.5A.5.5 0 0113 6.5V4zm-7 9a3 3 0 106 0 3 3 0 00-6 0zm3-1.5a1.5 1.5 0 110 3 1.5 1.5 0 010-3z"/>
+                                                    </svg>
+                                                    <span x-text="activePlanId ? 'Save' : 'Save Plan'"></span>
+                                                </button>
+                                                <button @click="openMyPlans()"
+                                                    class="rounded-md bg-gray-600 px-3 py-2 text-sm text-white hover:bg-gray-500">
+                                                    My Plans
+                                                </button>
+                                            </div>
+                                        </template>
                                     </div>
 
                                     <!-- Mobile: Agenda/List view (calendar grid hidden on small screens) -->
