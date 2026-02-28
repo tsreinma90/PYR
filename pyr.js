@@ -995,6 +995,8 @@ function sharedState() {
         weeklyMileage: '',
         raceTime: '',
         isGenerating: false,
+        showSuccessToast: false,
+        successToastMessage: '',
         currentTab: 'Calendar',
         tabs: [
             //{ name: 'Overview' },
@@ -1011,6 +1013,12 @@ function sharedState() {
 
         updateIsMobile() {
             this.isMobile = window.innerWidth < 768;
+        },
+
+        showToast(message) {
+            this.successToastMessage = message;
+            this.showSuccessToast = true;
+            setTimeout(() => { this.showSuccessToast = false; }, 3000);
         },
 
         average_mileage_weekly: 0,
@@ -1445,6 +1453,7 @@ function sharedState() {
                     }
                     this.showSavePlanModal = false;
                     this.savePlanName = '';
+                    this.showToast(isNewPlan ? 'Plan saved!' : 'Plan updated!');
                 } else {
                     this.planSaveError = data.error || 'Failed to save plan.';
                 }
