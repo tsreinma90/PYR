@@ -859,6 +859,18 @@ const authManager = {
         }
     },
 
+    isTokenExpired() {
+        if (!this.token) return true;
+        try {
+            const parts = this.token.split('.');
+            if (parts.length !== 3) return true;
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            return typeof payload.exp === 'number' && payload.exp < Math.floor(Date.now() / 1000);
+        } catch (e) {
+            return true;
+        }
+    },
+
     _storeSession(token, user) {
         this.token = token;
         this.user = user;
@@ -1274,6 +1286,11 @@ function sharedState() {
         init() {
             // Restore auth session and wire up Google Sign-In
             authManager.init();
+            if (authManager.isAuthenticated() && authManager.isTokenExpired()) {
+                console.log('[PYR] Stored session token is expired — clearing and prompting re-auth');
+                authManager.signOut();
+                this._needsReauth = true;
+            }
             this.isLoggedIn = authManager.isAuthenticated();
             this.currentUser = authManager.user;
             if (window.google && window.google.accounts) {
@@ -1346,9 +1363,13 @@ function sharedState() {
             google.accounts.id.initialize({
                 client_id: '581536767999-4jhqjdl51n9tr2ad1f72ejaqh5u9u79c.apps.googleusercontent.com',
                 callback: (response) => this.handleGoogleSignIn(response.credential),
-                auto_select: false,
+                auto_select: !!this._needsReauth,
                 cancel_on_tap_outside: true,
             });
+            if (this._needsReauth) {
+                this._needsReauth = false;
+                google.accounts.id.prompt(); // attempt silent one-tap re-auth
+            }
             this._renderGoogleButton();
         },
 
