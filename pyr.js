@@ -60,8 +60,11 @@ const PLAN_LENGTH_OPTIONS = [
     { label: '8 Week Training Plan', value: 8 },
     { label: '10 Week Training Plan', value: 10 },
     { label: '12 Week Training Plan', value: 12 },
+    { label: '14 Week Training Plan', value: 14 },
     { label: '16 Week Training Plan', value: 16 },
+    { label: '18 Week Training Plan', value: 18 },
     { label: '20 Week Training Plan', value: 20 },
+    { label: '22 Week Training Plan', value: 22 },
     { label: '24 Week Training Plan', value: 24 }
 ];
 
@@ -719,8 +722,185 @@ function preventRightClickOnPage() {
     document.addEventListener('contextmenu', event => event.preventDefault());
 }
 
+// --- PLAN MANAGER ---
+// CRUD operations for saved training plans via Salesforce REST API
+const planManager = {
+    async savePlan({ planId, name, currentWorkouts, selectedRaceDistance, raceDate, selectedWeeklyMileage, numOfWeeksInTraining }) {
+        const raceDistanceMap = {
+            '5k': '5K',
+            '10k': '10K',
+            'half-marathon': 'Half Marathon',
+            'marathon': 'Marathon'
+        };
+
+        const body = {
+            name,
+            planJson: JSON.stringify({
+                schemaVersion: 1,
+                lastEditedAt: new Date().toISOString(),
+                events: (currentWorkouts || []).filter(w => w != null)
+            }),
+            raceDistance: raceDistanceMap[selectedRaceDistance] || selectedRaceDistance || null,
+            raceDate: raceDate || null,
+            mileageLevel: selectedWeeklyMileage || null,
+            durationWeeks: numOfWeeksInTraining != null ? Number(numOfWeeksInTraining) : null
+        };
+
+        const method = planId ? 'PUT' : 'POST';
+        const path = planId ? `/pyr/plans/${planId}` : '/pyr/plans';
+
+        const res = await authManager.apiFetch(path, {
+            method,
+            body: JSON.stringify(body)
+        });
+
+        const text = await res.text();
+        console.log('***[PYR] savePlan response', res.status, text);
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return { success: false, error: `HTTP ${res.status}: ${text.slice(0, 200)}` };
+        }
+    },
+
+    async listPlans() {
+        const res = await authManager.apiFetch('/pyr/plans', {
+            method: 'GET'
+        });
+
+        const text = await res.text();
+        console.log('[PYR] listPlans response', res.status, text);
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return { success: false, error: `HTTP ${res.status}: ${text.slice(0, 200)}` };
+        }
+    },
+
+    async loadPlan(planId) {
+        if (!planId) {
+            return { success: false, error: 'Missing planId' };
+        }
+
+        const res = await authManager.apiFetch(`/pyr/plans/${planId}`, {
+            method: 'GET'
+        });
+
+        const text = await res.text();
+        console.log('[PYR] loadPlan response', res.status, text);
+
+        try {
+            return JSON.parse(text);
+        } catch (e) {
+            return { success: false, error: `HTTP ${res.status}: ${text.slice(0, 200)}` };
+        }
+    },
+
+    async deletePlan(planId) {
+        const res = await authManager.apiFetch(`/pyr/plans/${planId}`, {
+            method: 'DELETE'
+        });
+        return res.json();
+    }
+};
+
+// --- AUTH MANAGER ---
+// Handles Google OAuth, JWT storage in localStorage, and Salesforce REST API calls
+const authManager = {
+    SALESFORCE_BASE_URL: 'https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com',
+    TOKEN_KEY: 'pyr_jwt_token',
+    USER_KEY: 'pyr_user',
+
+    token: null,
+    user: null,
+
+    init() {
+        this.token = localStorage.getItem(this.TOKEN_KEY);
+        const userStr = localStorage.getItem(this.USER_KEY);
+        if (userStr) {
+            try { this.user = JSON.parse(userStr); } catch (e) { this.user = null; }
+        }
+    },
+
+    isAuthenticated() {
+        return !!this.token;
+    },
+
+    getToken() {
+        return this.token;
+    },
+
+    async signInWithGoogle(idToken) {
+        const res = await fetch(`${this.SALESFORCE_BASE_URL}/services/apexrest/pyr/auth/google`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ idToken })
+        });
+        const data = await res.json();
+        if (data.success) {
+            this._storeSession(data.token, {
+                userId: data.userId,
+                pyrUserId: data.pyrUserId,
+                email: data.email
+            });
+        }
+        return data;
+    },
+
+    signOut() {
+        this.token = null;
+        this.user = null;
+        localStorage.removeItem(this.TOKEN_KEY);
+        localStorage.removeItem(this.USER_KEY);
+        if (window.google && google.accounts && google.accounts.id) {
+            google.accounts.id.disableAutoSelect();
+        }
+    },
+
+    isTokenExpired() {
+        if (!this.token) return true;
+        try {
+            const parts = this.token.split('.');
+            if (parts.length !== 3) return true;
+            const payload = JSON.parse(atob(parts[1].replace(/-/g, '+').replace(/_/g, '/')));
+            return typeof payload.exp === 'number' && payload.exp < Math.floor(Date.now() / 1000);
+        } catch (e) {
+            return true;
+        }
+    },
+
+    _storeSession(token, user) {
+        this.token = token;
+        this.user = user;
+        localStorage.setItem(this.TOKEN_KEY, token);
+        localStorage.setItem(this.USER_KEY, JSON.stringify(user));
+    },
+
+    // Authenticated fetch helper — attaches Bearer token for Salesforce REST calls
+    async apiFetch(path, options = {}) {
+        const token = this.getToken();
+        console.log('*** [PYR] apiFetch', options.method || 'GET', path,
+            'token:', token ? token.slice(0, 30) + '…' : 'MISSING — not signed in');
+        // Pass JWT as a query param — using the Authorization header conflicts with
+        // Salesforce's platform auth layer (INVALID_SESSION_ID).
+        const sep = path.includes('?') ? '&' : '?';
+        const url = `${this.SALESFORCE_BASE_URL}/services/apexrest${path}${token ? `${sep}pyr_token=${encodeURIComponent(token)}` : ''}`;
+        return fetch(url, {
+            ...options,
+            headers: {
+                'Content-Type': 'application/json',
+                ...(options.headers || {})
+            }
+        });
+    }
+};
+
 function sharedState() {
     return {
+        activePlanId: null,
+        activePlanName: '',
         goalPacePercent: 50,
         goalPaceSeconds: null,
         goalPaceLabel: '—',
@@ -815,6 +995,8 @@ function sharedState() {
         weeklyMileage: '',
         raceTime: '',
         isGenerating: false,
+        showSuccessToast: false,
+        successToastMessage: '',
         currentTab: 'Calendar',
         tabs: [
             //{ name: 'Overview' },
@@ -831,6 +1013,12 @@ function sharedState() {
 
         updateIsMobile() {
             this.isMobile = window.innerWidth < 768;
+        },
+
+        showToast(message) {
+            this.successToastMessage = message;
+            this.showSuccessToast = true;
+            setTimeout(() => { this.showSuccessToast = false; }, 3000);
         },
 
         average_mileage_weekly: 0,
@@ -899,7 +1087,6 @@ function sharedState() {
                         ? mod.createWorkoutInstanceById
                         : null;
             } catch (e) {
-                //console.error("Failed to load workoutsCatalog.js", e);
                 this.workoutCatalog = [];
                 this.defaultWorkoutSelectionByLevel = {};
                 this.createWorkoutInstanceByIdFn = null;
@@ -1088,8 +1275,39 @@ function sharedState() {
         enhancedOutput: "",
         loading: false,
 
+        // --- Auth state ---
+        isLoggedIn: false,
+        currentUser: null,
+        authError: '',
+        authLoading: false,
+
+        // --- Plan manager state ---
+        showSavePlanModal: false,
+        savePlanName: '',
+        planSaving: false,
+        planSaveError: '',
+        showMyPlansModal: false,
+        savedPlans: [],
+        plansLoading: false,
+        planActionError: '',
+
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
+            // Restore auth session and wire up Google Sign-In
+            authManager.init();
+            if (authManager.isAuthenticated() && authManager.isTokenExpired()) {
+                console.log('[PYR] Stored session token is expired — clearing and prompting re-auth');
+                authManager.signOut();
+                this._needsReauth = true;
+            }
+            this.isLoggedIn = authManager.isAuthenticated();
+            this.currentUser = authManager.user;
+            if (window.google && window.google.accounts) {
+                this._initGoogleSignIn();
+            } else {
+                window.addEventListener('gisloaded', () => this._initGoogleSignIn(), { once: true });
+            }
+
             this.updateIsMobile();
             window.addEventListener('resize', () => this.updateIsMobile())
 
@@ -1118,6 +1336,247 @@ function sharedState() {
 
                 this.enhancedOutput = `⚠️ ${message}`;
             });
+        },
+
+        async handleGoogleSignIn(idToken) {
+            this.authLoading = true;
+            this.authError = '';
+            try {
+                const data = await authManager.signInWithGoogle(idToken);
+                if (data.success) {
+                    this.isLoggedIn = true;
+                    this.currentUser = authManager.user;
+                } else {
+                    this.authError = data.error || 'Sign in failed. Please try again.';
+                }
+            } catch (e) {
+                this.authError = 'Sign in failed. Please try again.';
+            } finally {
+                this.authLoading = false;
+            }
+        },
+
+        authSignOut() {
+            authManager.signOut();
+            this.isLoggedIn = false;
+            this.currentUser = null;
+            // Re-render the sign-in button after the DOM updates
+            if (typeof this.$nextTick === 'function') {
+                this.$nextTick(() => this._renderGoogleButton());
+            } else {
+                setTimeout(() => this._renderGoogleButton(), 0);
+            }
+        },
+
+        _initGoogleSignIn() {
+            google.accounts.id.initialize({
+                client_id: '581536767999-4jhqjdl51n9tr2ad1f72ejaqh5u9u79c.apps.googleusercontent.com',
+                callback: (response) => this.handleGoogleSignIn(response.credential),
+                auto_select: !!this._needsReauth,
+                cancel_on_tap_outside: true,
+            });
+            if (this._needsReauth) {
+                this._needsReauth = false;
+                google.accounts.id.prompt(); // attempt silent one-tap re-auth
+            }
+            this._renderGoogleButton();
+        },
+
+        _renderGoogleButton() {
+            if (this.isLoggedIn) return;
+            const render = () => {
+                const btnEl = document.getElementById('google-signin-btn');
+                if (btnEl) {
+                    btnEl.innerHTML = '';
+                    google.accounts.id.renderButton(btnEl, {
+                        theme: 'filled_black',
+                        size: 'medium',
+                        shape: 'pill',
+                        text: 'signin_with',
+                    });
+                }
+            };
+            if (typeof this.$nextTick === 'function') {
+                this.$nextTick(render);
+            } else {
+                setTimeout(render, 0);
+            }
+        },
+
+        // --- Plan manager methods ---
+
+        openSavePlanModal() {
+            const dist = this.selectedRaceDistance
+                ? this.selectedRaceDistance.charAt(0).toUpperCase() + this.selectedRaceDistance.slice(1).replace(/-/g, ' ')
+                : 'Training';
+            const date = this.raceDate
+                ? new Date(this.raceDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
+                : '';
+            const generatedName = [dist, date].filter(Boolean).join(' – ');
+            this.savePlanName = this.activePlanName || generatedName;
+            this.planSaveError = '';
+            this.planSaving = false;
+            this.showSavePlanModal = true;
+        },
+
+        // saveAsNew=true forces a POST (new record) even when activePlanId is set
+        async confirmSavePlan(saveAsNew = false) {
+            if (!this.savePlanName.trim()) {
+                this.planSaveError = 'Please enter a plan name.';
+                return;
+            }
+            const isNewPlan = saveAsNew || !this.activePlanId;
+            if (isNewPlan && this.savedPlans.length >= 3) {
+                this.planSaveError = 'Plan limit reached (3 max). Delete a plan in My Plans first.';
+                return;
+            }
+            this.planSaving = true;
+            this.planSaveError = '';
+            try {
+                const data = await planManager.savePlan({
+                    planId: isNewPlan ? null : this.activePlanId,
+                    name: this.savePlanName.trim(),
+                    currentWorkouts: this.currentWorkouts,
+                    selectedRaceDistance: this.selectedRaceDistance,
+                    raceDate: this.raceDate,
+                    selectedWeeklyMileage: this.selectedWeeklyMileage,
+                    numOfWeeksInTraining: this.numOfWeeksInTraining
+                });
+                if (data.success) {
+                    if (data.planId) {
+                        this.activePlanId = data.planId;
+                        this.activePlanName = this.savePlanName.trim();
+                    }
+                    if (isNewPlan) {
+                        // Keep savedPlans count in sync so the limit check stays accurate
+                        this.savedPlans = [...this.savedPlans, { id: data.planId, name: this.savePlanName.trim() }];
+                    }
+                    this.showSavePlanModal = false;
+                    this.savePlanName = '';
+                    this.showToast(isNewPlan ? 'Plan saved!' : 'Plan updated!');
+                } else {
+                    this.planSaveError = data.error || 'Failed to save plan.';
+                }
+            } catch (e) {
+                this.planSaveError = e.message || 'Failed to save plan. Please try again.';
+            } finally {
+                this.planSaving = false;
+            }
+        },
+
+        async openMyPlans() {
+            this.showMyPlansModal = true;
+            this.plansLoading = true;
+            this.planActionError = '';
+            try {
+                const data = await planManager.listPlans();
+                if (data.success) {
+                    // Ensure each plan has a normalized id field
+                    this.savedPlans = (data.plans || []).map(p => ({
+                        ...p,
+                        id: p.id || p.Id
+                    }));
+                } else {
+                    this.planActionError = data.error || 'Failed to load plans.';
+                }
+            } catch (e) {
+                this.planActionError = 'Failed to load plans.';
+            } finally {
+                this.plansLoading = false;
+            }
+        },
+
+        async loadSavedPlan(planId) {
+            if (!planId) {
+                console.error('loadSavedPlan called with null planId');
+                return;
+            }
+
+            try {
+                // Fetch single plan from backend
+                const data = await planManager.loadPlan(planId);
+
+                if (!data.success) {
+                    console.error('Failed to load plan:', data.error);
+                    this.planActionError = data.error || 'Failed to load plan.';
+                    return;
+                }
+
+                const plan = data.plan;
+
+                if (!plan || !plan.planJson) {
+                    console.error('Loaded plan is missing planJson.');
+                    this.planActionError = 'Plan data is incomplete.';
+                    return;
+                }
+
+                // Parse plan JSON and extract events
+                const parsed = JSON.parse(plan.planJson);
+                if (!parsed.schemaVersion || !Array.isArray(parsed.events)) {
+                    console.error('Invalid plan schema', parsed);
+                    this.planActionError = 'Plan schema invalid.';
+                    return;
+                }
+
+                const events = parsed.events;
+
+                // 0️⃣ Track the active plan
+                this.activePlanId = planId;
+                this.activePlanName = plan.name || '';
+
+                // 1️⃣ Update calendar events
+                this.currentWorkouts = [...events]; // trigger reactivity
+                window.currentTrainingPlanJson = events;
+                triggerPlanGeneratedCustomEvent(); // refresh the calendar component
+
+                // 2️⃣ Update form fields
+                const reverseDistanceMap = { '5K': '5k', '10K': '10k', 'Half Marathon': 'half-marathon', 'Marathon': 'marathon' };
+                this.selectedRaceDistance = reverseDistanceMap[plan.raceDistance] || plan.raceDistance || this.selectedRaceDistance;
+                this.raceDate = plan.raceDate || this.raceDate;
+                this.selectedWeeklyMileage = (plan.mileageLevel || '').toLowerCase() || this.selectedWeeklyMileage;
+                this.numOfWeeksInTraining = plan.durationWeeks || this.numOfWeeksInTraining;
+                if (plan.durationWeeks) {
+                    this.selectedTimeframe = String(plan.durationWeeks);
+                }
+
+                // 3️⃣ Update new metadata fields
+                this.trainingBlock = plan.trainingBlock || this.trainingBlock;
+                this.peakWeeklyMileage = plan.peakWeeklyMileage || this.peakWeeklyMileage;
+                this.goalRacePace = plan.goalRacePace || this.goalRacePace;
+
+                // 4️⃣ Refresh charts / calendar
+                this.destroyAnalyticsCharts();
+                this.loadAnalyticsCharts();
+
+                // 5️⃣ Close modal if applicable
+                this.showMyPlansModal = false;
+
+            } catch (e) {
+                console.error('***[PYR] loadSavedPlan error:', e, e?.message, e?.stack);
+                this.planActionError = e?.message || 'Failed to load plan.';
+            }
+        },
+
+        async deleteSavedPlan(planId) {
+            if (!planId) {
+                alert('Unable to delete this plan. Please reload and try again.');
+                return;
+            }
+            if (!confirm('Delete this plan?')) return;
+            this.planActionError = '';
+            try {
+                const data = await planManager.deletePlan(planId);
+                if (data.success) {
+                    this.savedPlans = this.savedPlans.filter(p => p.id !== planId);
+                    if (this.activePlanId === planId) {
+                        this.activePlanId = null;
+                    }
+                } else {
+                    this.planActionError = data.error || 'Failed to delete plan.';
+                }
+            } catch (e) {
+                this.planActionError = 'Failed to delete plan.';
+            }
         },
 
         validateField(fieldName) {
@@ -1293,6 +1752,23 @@ function sharedState() {
                     }
                 }
 
+                // Add the race event on race day
+                const raceDateKey = localDateKey(this.raceDate);
+                const raceDistanceMiles = { '5k': 3.1, '10k': 6.2, 'half-marathon': 13.1, 'marathon': 26.2 }[this.selectedRaceDistance];
+                const raceDistanceLabel = { '5k': '5K', '10k': '10K', 'half-marathon': 'Half Marathon', 'marathon': 'Marathon' }[this.selectedRaceDistance] || this.selectedRaceDistance;
+                this.currentWorkouts.push({
+                    id: `${raceDateKey}-race`,
+                    date: raceDateKey,
+                    title: `${raceDistanceLabel} Race`,
+                    event_distance: raceDistanceMiles || null,
+                    event_workout: 'Race',
+                    event_type: 'Race',
+                    notes: 'Race day!',
+                    theme: '',
+                    event_pace: '',
+                    event_pace_decimal: null
+                });
+
                 // Expose the current training plan globally for the AI Coach LWC
                 window.currentTrainingPlanJson = this.currentWorkouts;
 
@@ -1365,16 +1841,6 @@ function sharedState() {
                 if (e && e.body) {
                 }
 
-                // Some Lightning Out errors show up here instead
-                /*if (e && e.message) {
-                    console.error('*** error.message:', e.message);
-                }
-
-                try {
-                    console.error('*** error as JSON:', JSON.stringify(e));
-                } catch (jsonErr) {
-                    console.error('*** error could not be stringified:', jsonErr);
-                }*/
                 this.loading = false;
                 this.enhancedOutput = "⚠️ There was an unexpected error contacting the AI Coach.";
             }
@@ -1575,7 +2041,6 @@ function sharedState() {
                                 return g;
                             });
                     } catch (err) {
-                        //console.warn("[PYR] mobileAgendaGroups failed (non-blocking):", err);
                         return [];
                     }
                 },
