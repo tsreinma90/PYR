@@ -1725,6 +1725,23 @@ function sharedState() {
                     }
                 }
 
+                // Add the race event on race day
+                const raceDateKey = localDateKey(this.raceDate);
+                const raceDistanceMiles = { '5k': 3.1, '10k': 6.2, 'half-marathon': 13.1, 'marathon': 26.2 }[this.selectedRaceDistance];
+                const raceDistanceLabel = { '5k': '5K', '10k': '10K', 'half-marathon': 'Half Marathon', 'marathon': 'Marathon' }[this.selectedRaceDistance] || this.selectedRaceDistance;
+                this.currentWorkouts.push({
+                    id: `${raceDateKey}-race`,
+                    date: raceDateKey,
+                    title: `${raceDistanceLabel} Race`,
+                    event_distance: raceDistanceMiles || null,
+                    event_workout: 'Race',
+                    event_type: 'Race',
+                    notes: 'Race day!',
+                    theme: '',
+                    event_pace: '',
+                    event_pace_decimal: null
+                });
+
                 // Expose the current training plan globally for the AI Coach LWC
                 window.currentTrainingPlanJson = this.currentWorkouts;
 
