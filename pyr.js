@@ -1485,7 +1485,7 @@ function sharedState() {
                 const reverseDistanceMap = { '5K': '5k', '10K': '10k', 'Half Marathon': 'half-marathon', 'Marathon': 'marathon' };
                 this.selectedRaceDistance = reverseDistanceMap[plan.raceDistance] || plan.raceDistance || this.selectedRaceDistance;
                 this.raceDate = plan.raceDate || this.raceDate;
-                this.selectedWeeklyMileage = plan.mileageLevel || this.selectedWeeklyMileage;
+                this.selectedWeeklyMileage = (plan.mileageLevel || '').toLowerCase() || this.selectedWeeklyMileage;
                 this.numOfWeeksInTraining = plan.durationWeeks || this.numOfWeeksInTraining;
                 if (plan.durationWeeks) {
                     this.selectedTimeframe = String(plan.durationWeeks);
