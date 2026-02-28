@@ -99,6 +99,15 @@ global class PYRPlanController {
                 return;
             }
 
+            // Enforce 3-plan limit per user
+            Integer existingCount = [
+                SELECT COUNT() FROM Training_Plan__c WHERE Contact__c = :contactId
+            ];
+            if (existingCount >= 3) {
+                sendErrorResponse(res, 'Plan limit reached. You can save up to 3 training plans.', 400);
+                return;
+            }
+
             // Create Training Plan record
             Training_Plan__c plan = new Training_Plan__c();
             plan.Name = planName;

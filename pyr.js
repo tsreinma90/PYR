@@ -900,6 +900,7 @@ const authManager = {
 function sharedState() {
     return {
         activePlanId: null,
+        activePlanName: '',
         goalPacePercent: 50,
         goalPaceSeconds: null,
         goalPaceLabel: '—',
@@ -1403,21 +1404,29 @@ function sharedState() {
             const date = this.raceDate
                 ? new Date(this.raceDate + 'T12:00:00').toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
                 : '';
-            this.savePlanName = [dist, date].filter(Boolean).join(' – ');
+            const generatedName = [dist, date].filter(Boolean).join(' – ');
+            this.savePlanName = this.activePlanName || generatedName;
             this.planSaveError = '';
+            this.planSaving = false;
             this.showSavePlanModal = true;
         },
 
-        async confirmSavePlan() {
+        // saveAsNew=true forces a POST (new record) even when activePlanId is set
+        async confirmSavePlan(saveAsNew = false) {
             if (!this.savePlanName.trim()) {
                 this.planSaveError = 'Please enter a plan name.';
+                return;
+            }
+            const isNewPlan = saveAsNew || !this.activePlanId;
+            if (isNewPlan && this.savedPlans.length >= 3) {
+                this.planSaveError = 'Plan limit reached (3 max). Delete a plan in My Plans first.';
                 return;
             }
             this.planSaving = true;
             this.planSaveError = '';
             try {
                 const data = await planManager.savePlan({
-                    planId: this.activePlanId,
+                    planId: isNewPlan ? null : this.activePlanId,
                     name: this.savePlanName.trim(),
                     currentWorkouts: this.currentWorkouts,
                     selectedRaceDistance: this.selectedRaceDistance,
@@ -1428,6 +1437,11 @@ function sharedState() {
                 if (data.success) {
                     if (data.planId) {
                         this.activePlanId = data.planId;
+                        this.activePlanName = this.savePlanName.trim();
+                    }
+                    if (isNewPlan) {
+                        // Keep savedPlans count in sync so the limit check stays accurate
+                        this.savedPlans = [...this.savedPlans, { id: data.planId, name: this.savePlanName.trim() }];
                     }
                     this.showSavePlanModal = false;
                     this.savePlanName = '';
@@ -1496,6 +1510,10 @@ function sharedState() {
                 }
 
                 const events = parsed.events;
+
+                // 0️⃣ Track the active plan
+                this.activePlanId = planId;
+                this.activePlanName = plan.name || '';
 
                 // 1️⃣ Update calendar events
                 this.currentWorkouts = [...events]; // trigger reactivity
