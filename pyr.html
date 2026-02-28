@@ -472,6 +472,21 @@
                                                 <span x-text="year" class="ml-1 text-lg font-normal"></span>
                                             </div>
                                             <div class="flex items-center justify-end space-x-3 mt-4">
+                                                <!-- Save / My Plans — only when logged in -->
+                                                <template x-if="isLoggedIn">
+                                                    <div class="flex items-center gap-2">
+                                                        <button
+                                                            x-show="currentWorkouts && currentWorkouts.length > 0"
+                                                            @click="openSavePlanModal()"
+                                                            class="rounded-md bg-emerald-700 px-3 py-2 text-sm text-white hover:bg-emerald-600">
+                                                            Save Plan
+                                                        </button>
+                                                        <button @click="openMyPlans()"
+                                                            class="rounded-md bg-gray-600 px-3 py-2 text-sm text-white hover:bg-gray-500">
+                                                            My Plans
+                                                        </button>
+                                                    </div>
+                                                </template>
                                                 <div x-data="dropdown()" class="relative inline-block text-left">
                                                     <button x-ref="toggle" @click="toggleDropdown()"
                                                         class="rounded-md px-3 py-2 text-white bg-gray-700 hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -833,20 +848,6 @@
                                                 </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <!-- Plan action buttons -->
-                                    <div x-show="isLoggedIn" x-cloak
-                                        class="flex items-center gap-3 mt-6 pt-4 border-t border-gray-700">
-                                        <button
-                                            x-show="currentWorkouts && currentWorkouts.length > 0"
-                                            @click="openSavePlanModal()"
-                                            class="rounded-md bg-emerald-700 px-4 py-2 text-sm text-white hover:bg-emerald-600">
-                                            Save Plan
-                                        </button>
-                                        <button @click="openMyPlans()"
-                                            class="rounded-md bg-gray-600 px-4 py-2 text-sm text-white hover:bg-gray-500">
-                                            My Plans
-                                        </button>
                                     </div>
                                 </div>
                             </template>
