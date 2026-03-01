@@ -1,3 +1,51 @@
+<!-- Splash screen: visible immediately, fades out once Alpine init() completes -->
+<div id="app-loader" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
+    <div style="text-align:center;">
+        <div style="display:flex;justify-content:center;gap:2px;margin-bottom:18px;">
+            <span class="pyr-letter" style="animation-delay:0s">P</span>
+            <span class="pyr-letter" style="animation-delay:0.12s">Y</span>
+            <span class="pyr-letter" style="animation-delay:0.24s">R</span>
+        </div>
+        <p class="pyr-tagline">Plan Your Run</p>
+    </div>
+</div>
+<style>
+    .pyr-letter {
+        display: inline-block;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 80px;
+        font-weight: 800;
+        color: #2563eb;
+        letter-spacing: -3px;
+        opacity: 0;
+        transform: translateY(28px) scale(0.85);
+        animation: pyr-letter-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    .pyr-tagline {
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: #9ca3af;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin: 0;
+        opacity: 0;
+        animation: pyr-tagline-in 0.45s ease 0.55s forwards;
+    }
+    @keyframes pyr-letter-in {
+        from { opacity: 0; transform: translateY(28px) scale(0.85); }
+        to   { opacity: 1; transform: translateY(0)   scale(1);    }
+    }
+    @keyframes pyr-tagline-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0);   }
+    }
+    @keyframes pyr-fade-out {
+        from { opacity: 1; }
+        to   { opacity: 0; }
+    }
+</style>
+
 <div x-data="sharedState()" x-init="init()">
     <!-- Global loading spinner shown while generating a plan -->
     <div x-show="isGenerating" x-cloak class="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/70">

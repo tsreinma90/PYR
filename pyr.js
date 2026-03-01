@@ -1293,6 +1293,9 @@ function sharedState() {
 
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
+            // Enforce minimum splash display time so the animation always plays fully
+            const _splashMinTime = new Promise(r => setTimeout(r, 1600));
+
             // Restore auth session and wire up Google Sign-In
             authManager.init();
             if (authManager.isAuthenticated() && authManager.isTokenExpired()) {
@@ -1335,6 +1338,14 @@ function sharedState() {
                     "There was a problem reviewing your training plan.";
 
                 this.enhancedOutput = `⚠️ ${message}`;
+            });
+
+            // Fade out the splash screen after the minimum display time
+            _splashMinTime.then(() => {
+                const loader = document.getElementById('app-loader');
+                if (!loader) return;
+                loader.style.animation = 'pyr-fade-out 0.5s ease forwards';
+                setTimeout(() => loader.remove(), 500);
             });
         },
 
