@@ -1282,6 +1282,7 @@ function sharedState() {
         authLoading: false,
 
         // --- Plan manager state ---
+        showWelcomeScreen: false,
         showSavePlanModal: false,
         savePlanName: '',
         planSaving: false,
@@ -1293,6 +1294,9 @@ function sharedState() {
 
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
+            // Enforce minimum splash display time so the animation always plays fully
+            const _splashMinTime = new Promise(r => setTimeout(r, 1600));
+
             // Restore auth session and wire up Google Sign-In
             authManager.init();
             if (authManager.isAuthenticated() && authManager.isTokenExpired()) {
@@ -1336,6 +1340,17 @@ function sharedState() {
 
                 this.enhancedOutput = `⚠️ ${message}`;
             });
+
+            // Fade out the splash, then show welcome screen (guests) or go straight to app (logged in)
+            _splashMinTime.then(() => {
+                const loader = document.getElementById('app-loader');
+                if (!loader) return;
+                loader.style.animation = 'pyr-fade-out 0.5s ease forwards';
+                setTimeout(() => {
+                    loader.remove();
+                    if (!this.isLoggedIn) this.showWelcomeScreen = true;
+                }, 500);
+            });
         },
 
         async handleGoogleSignIn(idToken) {
@@ -1346,6 +1361,7 @@ function sharedState() {
                 if (data.success) {
                     this.isLoggedIn = true;
                     this.currentUser = authManager.user;
+                    this.showWelcomeScreen = false;
                 } else {
                     this.authError = data.error || 'Sign in failed. Please try again.';
                 }
@@ -1385,16 +1401,22 @@ function sharedState() {
         _renderGoogleButton() {
             if (this.isLoggedIn) return;
             const render = () => {
-                const btnEl = document.getElementById('google-signin-btn');
-                if (btnEl) {
-                    btnEl.innerHTML = '';
-                    google.accounts.id.renderButton(btnEl, {
-                        theme: 'filled_black',
-                        size: 'medium',
-                        shape: 'pill',
-                        text: 'signin_with',
-                    });
-                }
+                const targets = [
+                    { id: 'google-signin-btn',         size: 'medium' },
+                    { id: 'welcome-google-signin-btn', size: 'large'  },
+                ];
+                targets.forEach(({ id, size }) => {
+                    const btnEl = document.getElementById(id);
+                    if (btnEl) {
+                        btnEl.innerHTML = '';
+                        google.accounts.id.renderButton(btnEl, {
+                            theme: 'filled_black',
+                            size,
+                            shape: 'pill',
+                            text: 'signin_with',
+                        });
+                    }
+                });
             };
             if (typeof this.$nextTick === 'function') {
                 this.$nextTick(render);
