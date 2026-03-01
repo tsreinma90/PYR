@@ -123,7 +123,7 @@ body {
 
 /* Prevent background bleed/white flash within the left column */
 .left-panel {
-    background: rgba(10, 14, 22, 1);
+    background: #ffffff;
 }
 
 .centered-title {
@@ -207,10 +207,10 @@ body {
         margin-top: 12px;
         padding: 22px 0 16px;
 
-        background: rgba(10, 14, 22, 0.94);
+        background: rgba(255, 255, 255, 0.94);
         backdrop-filter: blur(6px);
         z-index: 30;
-        border-top: 1px solid rgba(255, 255, 255, 0.08);
+        border-top: 1px solid #e5e7eb;
     }
 
     .sticky-hint {
@@ -361,22 +361,24 @@ body {
 .controls-summary {
   cursor: pointer;
   user-select: none;
-  color: #e5e7eb;
+  color: #374151;
   font-weight: 600;
   padding: 10px 14px;
   margin: 0 0 8px 0;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid #e5e7eb;
   border-radius: 12px;
-  background: rgba(17,24,39,0.7);
+  background: #ffffff;
   display: flex;
   align-items: center;
   justify-content: space-between;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.06);
 }
 
 .controls-summary::after {
   content: "▾";
-  opacity: 0.8;
+  opacity: 0.5;
   font-size: 14px;
+  color: #6b7280;
 }
 
 .controls-details[open] .controls-summary::after {
@@ -535,10 +537,10 @@ body {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 700;
-  color: rgba(255,255,255,0.92);
-  border: 1px solid rgba(255,255,255,0.14);
-  background: rgba(17,24,39,0.75);
-  box-shadow: 0 8px 18px rgba(0,0,0,0.25);
+  color: #1d4ed8;
+  border: 1px solid #bfdbfe;
+  background: #eff6ff;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.08);
 }
 
 .premium-slider-scale {
@@ -546,7 +548,7 @@ body {
   justify-content: space-between;
   margin-top: 6px;
   font-size: 11px;
-  color: rgba(229,231,235,0.75);
+  color: #9ca3af;
 }
 
 /* Range styling */
@@ -557,11 +559,11 @@ body {
   height: 10px;
   border-radius: 999px;
   outline: none;
-  border: 1px solid rgba(255,255,255,0.08);
+  border: 1px solid #e5e7eb;
   background: linear-gradient(
     90deg,
     rgba(59,130,246,0.95) var(--p, 50%),
-    rgba(255,255,255,0.10) var(--p, 50%)
+    #f3f4f6 var(--p, 50%)
   );
 }
 

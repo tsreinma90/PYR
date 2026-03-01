@@ -2699,6 +2699,13 @@ function sharedState() {
             const denom = Math.max(total, 1);
 
             this.analyticsSummary.totalMileage = total;
+
+            // Derive weekly/daily averages from the same total used by the analytics summary,
+            // so all six dashboard cards always agree.
+            const planWeeks = Math.max(1, parseInt(this.numOfWeeksInTraining, 10) || weekCount || 1);
+            this.average_mileage_weekly = Math.ceil(total / planWeeks);
+            this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
+
             this.analyticsSummary.typePercents = {
                 easy: Math.round((easy / denom) * 100),
                 speed: Math.round((speed / denom) * 100),
