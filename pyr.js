@@ -1337,6 +1337,9 @@ function sharedState() {
                 this.enhancedOutput = `⚠️ ${message}`;
             });
 
+            // Remove the loading overlay now that the app is ready
+            const loader = document.getElementById('app-loader');
+            if (loader) loader.remove();
         },
 
         async handleGoogleSignIn(idToken) {

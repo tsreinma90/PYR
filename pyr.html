@@ -1,3 +1,8 @@
+<!-- Page loading overlay: shown immediately, removed once Alpine init() completes -->
+<div id="app-loader" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
+    <div style="width:44px;height:44px;border:4px solid #e5e7eb;border-top-color:#2563eb;border-radius:50%;animation:pyr-spin 0.7s linear infinite;"></div>
+</div>
+<style>@keyframes pyr-spin { to { transform: rotate(360deg); } }</style>
 
 <div x-data="sharedState()" x-init="init()">
     <!-- Global loading spinner shown while generating a plan -->
