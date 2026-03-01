@@ -2698,20 +2698,23 @@ function sharedState() {
             const long = typeCounts['Long Run'] || 0;
             const denom = Math.max(total, 1);
 
-            this.analyticsSummary.totalMileage = total;
-
             // Derive weekly/daily averages from the same total used by the analytics summary,
             // so all six dashboard cards always agree.
             const planWeeks = Math.max(1, parseInt(this.numOfWeeksInTraining, 10) || weekCount || 1);
             this.average_mileage_weekly = Math.ceil(total / planWeeks);
             this.average_mileage_daily = Math.ceil(this.average_mileage_weekly / 6);
 
-            this.analyticsSummary.typePercents = {
-                easy: Math.round((easy / denom) * 100),
-                speed: Math.round((speed / denom) * 100),
-                long: Math.round((long / denom) * 100),
+            // Assign a fresh object (not nested mutations) so Alpine's Proxy reliably
+            // detects the change on all browsers, including Safari with x-if tabs.
+            this.analyticsSummary = {
+                totalMileage: total,
+                typePercents: {
+                    easy: Math.round((easy / denom) * 100),
+                    speed: Math.round((speed / denom) * 100),
+                    long: Math.round((long / denom) * 100),
+                },
+                peakWeekMileage: weekly.reduce((m, v) => Math.max(m, v), 0),
             };
-            this.analyticsSummary.peakWeekMileage = weekly.reduce((m, v) => Math.max(m, v), 0);
 
             // Calculate data for new charts
             const cumulativeVolume = this._getCumulativeVolumeData(weekly);
