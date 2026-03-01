@@ -1,0 +1,194 @@
+<template>
+    <section class="pyr-race-finder slds-grid slds-gutters">
+        <!-- Sidebar: Filters / AI tabs -->
+        <aside class="pyr-sidebar slds-col slds-size_1-of-1 slds-medium-size_1-of-3">
+            <lightning-tabset variant="scoped" class="pyr-tabset">
+                <!-- Filters tab -->
+                <lightning-tab label="Filters" value="filters" icon-name="utility:filterList">
+                    <div class="pyr-sidebar-inner" style="zoom:95%;">
+                        <div class="pyr-field-spacing">
+                            <!-- Powered by Agentforce badge -->
+                            <div class="flex items-center gap-2 text-xs font-medium text-sky-200">
+                                <svg viewBox="0 0 32 32" class="h-5 w-5" aria-hidden="true">
+                                    <path
+                                        d="M8.5 22.5c-2.5 0-4.5-2-4.5-4.4 0-2 1.3-3.7 3.2-4.3.4-3 2.9-5.3 6-5.3 2.1 0 4 1.1 5.1 2.8.4-.1.9-.2 1.3-.2 2.6 0 4.8 2.1 4.8 4.7 0 2.6-2.2 4.7-4.8 4.7H8.5z"
+                                        fill="#00A1E0" />
+                                </svg>
+                                <span class="slds-text-color_default">Powered by Agentforce</span>
+
+                            </div>
+                            <lightning-textarea name="aiQuery" label="What kind of race are you looking for?"
+                                placeholder="e.g. Find me 5ks near Chicago next spring..." value={aiQuery}
+                                onchange={handleAiQueryChange}>
+                            </lightning-textarea>
+                        </div>
+
+                        <div class="pyr-field-spacing slds-p-top_small slds-p-bottom_small">
+                            <lightning-button variant="brand-outline" label="Search Using AI"
+                                onclick={handleAskAiRecommendation} disabled={aiIsLoading}>
+                            </lightning-button>
+                        </div>
+
+                        <template if:true={aiIsLoading}>
+                            <div class="pyr-field-spacing">
+                                <lightning-spinner
+                                    alternative-text="Asking AI for filter suggestions"></lightning-spinner>
+                            </div>
+                        </template>
+
+                        <template if:true={aiError}>
+                            <div class="pyr-field-spacing pyr-error">
+                                {aiError}
+                            </div>
+                        </template>
+
+                        <template if:true={aiRecommendation}>
+                            <div class="pyr-field-spacing">
+                                <lightning-card title="AI Suggestions for Your Filters">
+                                    <div class="slds-p-around_small">
+                                        <p>{aiRecommendation}</p>
+                                    </div>
+                                </lightning-card>
+                            </div>
+                        </template>
+
+                        <div class="pyr-field-spacing">
+                            <p class="slds-text-color_default">
+                                Or adjust the filters below manually:
+                            </p>
+                        </div>
+
+                        <lightning-input name="zipcode" type="text" label="Zip Code" value={zipcode}
+                            onchange={handleInputChange}></lightning-input>
+
+                        <!--<div class="slds-m-top_xx-small">
+                            <lightning-button variant="neutral" label="Use my location" onclick={handleUseMyLocation}
+                                icon-name="utility:location" icon-position="left"
+                                class="slds-m-top_x-small"></lightning-button>
+                        </div>-->
+
+                        <lightning-input class="pyr-field-spacing" name="radiusMiles" type="number"
+                            label="Radius (miles)" value={radiusMiles} onchange={handleInputChange}></lightning-input>
+
+                        <div class="slds-grid slds-gutters pyr-field-spacing">
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input name="startDate" type="date" label="Start date" value={startDate}
+                                    onchange={handleInputChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input name="endDate" type="date" label="End date" value={endDate}
+                                    onchange={handleInputChange}></lightning-input>
+                            </div>
+                        </div>
+
+                        <div class="slds-grid slds-gutters pyr-field-spacing">
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input name="minDistance" type="number" label="Min distance"
+                                    value={minDistance} onchange={handleInputChange}></lightning-input>
+                            </div>
+                            <div class="slds-col slds-size_1-of-2">
+                                <lightning-input name="maxDistance" type="number" label="Max distance"
+                                    value={maxDistance} onchange={handleInputChange}></lightning-input>
+                            </div>
+                        </div>
+
+                        <div class="pyr-field-spacing slds-p-bottom_small">
+                            <p class="slds-text-color_default">Quick Select:</p>
+                            <div class="quick-distances">
+                                <button type="button" class="pyr-chip" onclick={set5k}>5K</button>
+                                <button type="button" class="pyr-chip" onclick={set10k}>10K</button>
+                                <button type="button" class="pyr-chip" onclick={setHalf}>Half</button>
+                                <button type="button" class="pyr-chip" onclick={setMarathon}>Marathon</button>
+                            </div>
+                        </div>
+
+                        <lightning-combobox class="pyr-field-spacing" name="distanceUnits" label="Distance units"
+                            value={distanceUnits} options={distanceUnitOptions}
+                            onchange={handleUnitsChange}></lightning-combobox>
+
+                        <lightning-input class="pyr-field-spacing" name="keyword" type="text"
+                            label="Keyword (trail, flat, BQ, etc.)" value={keyword}
+                            onchange={handleInputChange}></lightning-input>
+
+                        <div class="pyr-field-spacing slds-p-top_small">
+                            <lightning-button variant="brand-outline" label="Search Races" onclick={handleSearch}
+                                disabled={isLoading}></lightning-button>
+                        </div>
+
+                        <lightning-combobox class="pyr-field-spacing" name="sortField" label="Order by"
+                            value={sortField} options={sortOptions} onchange={handleInputChange}></lightning-combobox>
+                    </div>
+                </lightning-tab>
+
+            </lightning-tabset>
+        </aside>
+
+        <!-- Main content: results -->
+        <main class="pyr-results slds-col slds-size_1-of-1 slds-medium-size_2-of-3">
+            <template if:true={isLoading}>
+                <div class="pyr-center">
+                    <lightning-spinner alternative-text="Searching races"></lightning-spinner>
+                </div>
+            </template>
+
+            <template if:true={error}>
+                <div class="pyr-error">
+                    {error}
+                </div>
+            </template>
+
+            <template if:true={hasResults}>
+                <div class="pyr-results-header">
+                    <p class="pyr-muted-text">
+                        Showing {races.length} races
+                    </p>
+                </div>
+
+                <div class="slds-grid slds-wrap slds-gutters_small">
+                    <template for:each={races} for:item="race">
+                        <div key={race.raceId} class="slds-col slds-size_1-of-1 slds-large-size_1-of-2">
+                            <article class="pyr-race-card slds-grid slds-gutters_small">
+                                <div class="slds-col slds-size_1-of-4 pyr-logo-col">
+                                    <template if:true={race.logoUrl}>
+                                        <img src={race.logoUrl} alt={race.name} class="pyr-race-logo" />
+                                    </template>
+                                </div>
+                                <div class="slds-col slds-size_3-of-4">
+                                    <h2 class="pyr-race-title slds-truncate">
+                                        {race.name}
+                                    </h2>
+                                    <p class="pyr-race-meta">
+                                        {race.city}, {race.state}
+                                    </p>
+                                    <template if:true={race.nextDate}>
+                                        <p class="pyr-race-meta">
+                                            Next date: {race.nextDate}
+                                        </p>
+                                    </template>
+                                    <div class="pyr-card-footer">
+                                        <lightning-button label="View &amp; Register" variant="neutral"
+                                            onclick={handleOpenRace} data-url={race.url}></lightning-button>
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    </template>
+                    <div class="pyr-runsignup-badge">
+                        <b>Powered by <a href="https://runsignup.com" target="_blank">RunSignup</a> – Proud Sponsor</b>
+                    </div>
+                </div>
+            </template>
+
+            <template if:false={hasResults}>
+                <template if:false={isLoading}>
+                    <div class="pyr-empty-state">
+                        <p class="pyr-muted-text">
+                            No races found yet. Try adjusting your filters and clicking
+                            <strong> Search Races</strong>.
+                        </p>
+                    </div>
+                </template>
+            </template>
+        </main>
+    </section>
+</template>
