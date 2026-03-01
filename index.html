@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Plan Your Run — Free Personalized Running Training Plans</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="./pyr.css">
+    <style>
+        html, body { margin: 0; padding: 0; background: #f8fafc; }
+    </style>
+</head>
+<body>
+
+<!-- Splash screen -->
+<div id="app-loader" style="position:fixed;inset:0;z-index:9999;display:flex;align-items:center;justify-content:center;background:#f8fafc;">
+    <div style="text-align:center;">
+        <div style="display:flex;justify-content:center;gap:2px;margin-bottom:18px;">
+            <span class="pyr-letter" style="animation-delay:0s">P</span>
+            <span class="pyr-letter" style="animation-delay:0.12s">Y</span>
+            <span class="pyr-letter" style="animation-delay:0.24s">R</span>
+        </div>
+        <p class="pyr-tagline">Plan Your Run</p>
+    </div>
+</div>
+<style>
+    .pyr-letter {
+        display: inline-block;
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 80px;
+        font-weight: 800;
+        color: #2563eb;
+        letter-spacing: -3px;
+        opacity: 0;
+        transform: translateY(28px) scale(0.85);
+        animation: pyr-letter-in 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+    .pyr-tagline {
+        font-family: system-ui, -apple-system, sans-serif;
+        font-size: 13px;
+        font-weight: 500;
+        color: #9ca3af;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        margin: 0;
+        opacity: 0;
+        animation: pyr-tagline-in 0.45s ease 0.55s forwards;
+    }
+    @keyframes pyr-letter-in {
+        from { opacity: 0; transform: translateY(28px) scale(0.85); }
+        to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    @keyframes pyr-tagline-in {
+        from { opacity: 0; transform: translateY(8px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pyr-fade-out {
+        from { opacity: 1; }
+        to   { opacity: 0; }
+    }
+</style>
+
+<!-- Main app -->
+<div x-data="homeApp()" x-init="init()" x-cloak>
+
+    <!-- Nav -->
+    <nav class="w-full bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
+        <div class="flex items-center gap-2.5">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white flex-none">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                </svg>
+            </div>
+            <span class="font-bold text-gray-900 text-base tracking-tight">Plan Your Run</span>
+        </div>
+        <div class="flex items-center gap-3">
+            <span x-show="authLoading" class="text-xs text-gray-400">Signing in…</span>
+            <div x-show="!isLoggedIn && !authLoading" id="nav-google-btn"></div>
+            <div x-show="isLoggedIn" class="flex items-center gap-3">
+                <span class="hidden sm:inline text-sm text-gray-600" x-text="userEmail"></span>
+                <button @click="signOut()"
+                    class="rounded-full border border-gray-200 bg-gray-50 px-3 py-1 text-xs text-gray-600 hover:bg-gray-100 transition-colors">
+                    Sign out
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <section class="bg-white border-b border-gray-100">
+        <div class="max-w-3xl mx-auto px-6 py-20 text-center">
+            <span class="inline-block bg-blue-50 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full mb-6 tracking-wide uppercase">Free &amp; No account required</span>
+            <h1 class="text-4xl sm:text-5xl font-extrabold text-gray-900 leading-tight tracking-tight mb-4">
+                Your personalized<br class="hidden sm:block"> running training plan
+            </h1>
+            <p class="text-lg text-gray-500 mb-10 max-w-xl mx-auto">
+                Generate a training plan tailored to your race, fitness level, and schedule — in seconds. From 5K to marathon.
+            </p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+                <a href="./pyr.html"
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-blue-600 px-6 py-3.5 text-base font-semibold text-white shadow-sm hover:bg-blue-700 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                    </svg>
+                    Create My Plan
+                </a>
+                <a href="./raceFinder.html"
+                    class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-6 py-3.5 text-base font-semibold text-gray-700 hover:bg-gray-50 transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+                    </svg>
+                    Find a Race
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Feature cards -->
+    <section class="max-w-5xl mx-auto px-6 py-16">
+        <h2 class="text-center text-sm font-semibold text-gray-400 uppercase tracking-widest mb-10">What would you like to do?</h2>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-6">
+
+            <!-- Training Plan -->
+            <a href="./pyr.html" class="group block bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all p-6">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-gray-900 mb-1">Training Plan</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">Build a personalized plan for your next race. Choose your distance, date, and weekly mileage.</p>
+                <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600">
+                    Get started
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <!-- Race Search -->
+            <a href="./raceFinder.html" class="group block bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all p-6">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 105 11a6 6 0 0012 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-gray-900 mb-1">Race Search</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">Find upcoming races near you filtered by distance, date, and location. Discover your next goal race.</p>
+                <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600">
+                    Find races
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+
+            <!-- About -->
+            <a href="https://www.planyourrun.org/about" class="group block bg-white rounded-2xl border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-200 transition-all p-6">
+                <div class="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-50 text-blue-600 mb-4 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                </div>
+                <h3 class="text-base font-bold text-gray-900 mb-1">About</h3>
+                <p class="text-sm text-gray-500 leading-relaxed">Learn how Plan Your Run works, who it's for, and what makes it different from other training plan tools.</p>
+                <span class="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-blue-600">
+                    Learn more
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></svg>
+                </span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Account benefits (guests only) -->
+    <section x-show="!isLoggedIn" class="bg-white border-t border-b border-gray-100">
+        <div class="max-w-3xl mx-auto px-6 py-14 text-center">
+            <h2 class="text-xl font-bold text-gray-900 mb-2">Free account — save your progress</h2>
+            <p class="text-sm text-gray-500 mb-8">Sign in with Google to unlock these features at no cost.</p>
+            <div class="flex flex-col sm:flex-row items-center justify-center gap-6 mb-10">
+                <div class="flex items-center gap-2.5 text-sm text-gray-700">
+                    <svg class="h-5 w-5 text-blue-500 flex-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Save up to 3 training plans
+                </div>
+                <div class="flex items-center gap-2.5 text-sm text-gray-700">
+                    <svg class="h-5 w-5 text-blue-500 flex-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    Load &amp; edit your saved plans
+                </div>
+                <div class="flex items-center gap-2.5 text-sm text-gray-700">
+                    <svg class="h-5 w-5 text-blue-500 flex-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    AI Coach plan analysis
+                </div>
+            </div>
+            <div id="hero-google-btn" class="flex justify-center"></div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-8 text-center">
+        <p class="text-xs text-gray-400">&copy; 2026 Plan Your Run &mdash; <a href="https://www.planyourrun.org" class="hover:text-gray-600 transition-colors">planyourrun.org</a></p>
+    </footer>
+
+</div>
+
+<script src="https://accounts.google.com/gsi/client" async
+        onload="window.dispatchEvent(new Event('gisloaded'))"></script>
+<script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+<script>
+    function homeApp() {
+        return {
+            isLoggedIn: false,
+            userEmail: '',
+            authLoading: false,
+
+            init() {
+                const _splashMinTime = new Promise(r => setTimeout(r, 1600));
+
+                // Check existing session
+                try {
+                    const token = localStorage.getItem('pyr_jwt_token');
+                    if (token) {
+                        const payload = JSON.parse(atob(token.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+                        if (payload.exp > Math.floor(Date.now() / 1000)) {
+                            this.isLoggedIn = true;
+                            const user = JSON.parse(localStorage.getItem('pyr_user') || '{}');
+                            this.userEmail = user.email || payload.email || '';
+                        } else {
+                            localStorage.removeItem('pyr_jwt_token');
+                            localStorage.removeItem('pyr_user');
+                        }
+                    }
+                } catch (e) {}
+
+                // Wire up Google Sign-In
+                if (window.google && window.google.accounts) {
+                    this._initGoogle();
+                } else {
+                    window.addEventListener('gisloaded', () => this._initGoogle(), { once: true });
+                }
+
+                // Remove splash
+                _splashMinTime.then(() => {
+                    const loader = document.getElementById('app-loader');
+                    if (!loader) return;
+                    loader.style.animation = 'pyr-fade-out 0.5s ease forwards';
+                    setTimeout(() => loader.remove(), 500);
+                });
+            },
+
+            _initGoogle() {
+                google.accounts.id.initialize({
+                    client_id: '581536767999-4jhqjdl51n9tr2ad1f72ejaqh5u9u79c.apps.googleusercontent.com',
+                    callback: (response) => this._handleSignIn(response.credential),
+                    cancel_on_tap_outside: true,
+                });
+                this._renderGoogleBtns();
+            },
+
+            _renderGoogleBtns() {
+                if (this.isLoggedIn) return;
+                setTimeout(() => {
+                    [
+                        { id: 'nav-google-btn',  size: 'medium' },
+                        { id: 'hero-google-btn', size: 'large'  },
+                    ].forEach(({ id, size }) => {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            el.innerHTML = '';
+                            google.accounts.id.renderButton(el, {
+                                theme: 'filled_black',
+                                size,
+                                shape: 'pill',
+                                text: 'signin_with',
+                            });
+                        }
+                    });
+                }, 0);
+            },
+
+            async _handleSignIn(idToken) {
+                this.authLoading = true;
+                try {
+                    const res = await fetch('https://orgfarm-d3a1bb2cb0-dev-ed.develop.my.site.com/services/apexrest/pyr/auth/google', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ idToken })
+                    });
+                    const data = await res.json();
+                    if (data.success) {
+                        localStorage.setItem('pyr_jwt_token', data.token);
+                        localStorage.setItem('pyr_user', JSON.stringify({
+                            userId: data.userId,
+                            pyrUserId: data.pyrUserId,
+                            email: data.email
+                        }));
+                        this.isLoggedIn = true;
+                        this.userEmail = data.email || '';
+                    }
+                } catch (e) {}
+                this.authLoading = false;
+            },
+
+            signOut() {
+                localStorage.removeItem('pyr_jwt_token');
+                localStorage.removeItem('pyr_user');
+                this.isLoggedIn = false;
+                this.userEmail = '';
+                if (window.google && google.accounts && google.accounts.id) {
+                    google.accounts.id.disableAutoSelect();
+                }
+                this.$nextTick(() => this._renderGoogleBtns());
+            }
+        };
+    }
+</script>
+
+</body>
+</html>
