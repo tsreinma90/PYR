@@ -909,7 +909,16 @@
                             </template>
                             <template x-if="activeTab === 'dashboard'">
                                 <div class="p-6 space-y-6">
-                                    <h2 class="font-bold text-2xl mb-6 text-gray-900 border-b border-gray-200 pb-2">Training Plan Dashboard</h2>
+                                    <div class="flex items-center justify-between mb-6 border-b border-gray-200 pb-2">
+                                        <h2 class="font-bold text-2xl text-gray-900">Training Plan Dashboard</h2>
+                                        <button @click="exportDashboard()"
+                                            class="inline-flex items-center gap-1.5 rounded-md bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 transition">
+                                            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3"/>
+                                            </svg>
+                                            Download Dashboard
+                                        </button>
+                                    </div>
 
                                     <!-- Section 1: Summary Metrics (6 Cards) -->
                                     <div>
