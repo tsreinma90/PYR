@@ -478,7 +478,16 @@ function raceFinder() {
         // Pre-fill pyr.html with race date and distance preset (if selected)
         planThisRace(race) {
             const p = new URLSearchParams();
-            if (race.nextDate)       p.set('raceDate',     race.nextDate);
+            if (race.nextDate) {
+                // Normalize to YYYY-MM-DD regardless of what RunSignup returns
+                const d = new Date(race.nextDate + (race.nextDate.includes('T') ? '' : 'T00:00:00'));
+                if (!isNaN(d)) {
+                    const yyyy = d.getFullYear();
+                    const mm   = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd   = String(d.getDate()).padStart(2, '0');
+                    p.set('raceDate', `${yyyy}-${mm}-${dd}`);
+                }
+            }
             if (this.selectedPreset) p.set('raceDistance', this.selectedPreset);
             window.location.href = `./pyr.html?${p}`;
         },

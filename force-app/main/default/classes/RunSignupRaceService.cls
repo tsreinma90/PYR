@@ -1,5 +1,7 @@
 public with sharing class RunSignupRaceService {
 
+    public class RunSignupException extends Exception {}
+
     public class RaceSummary {
         @AuraEnabled public Integer raceId;
         @AuraEnabled public String name;
@@ -23,7 +25,7 @@ public with sharing class RunSignupRaceService {
         String sortField
     ) {
         if (String.isBlank(zipcode)) {
-            throw new AuraHandledException('Zip code is required.');
+            throw new RunSignupException('Zip code is required.');
         }
         if (radiusMiles == null || radiusMiles <= 0) {
             radiusMiles = 50;
@@ -43,7 +45,7 @@ public with sharing class RunSignupRaceService {
         Http http = new Http();
         HttpRequest req = new HttpRequest();
 
-        String baseEndpoint = 'callout:RunSignup_API/rest/races';
+        String baseEndpoint = 'https://api.runsignup.com/rest/races';
 
         // Base params (no sort here)
         Map<String, String> params = new Map<String, String>{
@@ -105,11 +107,11 @@ public with sharing class RunSignupRaceService {
             System.debug('*** RunSignup STATUS: ' + res.getStatus() + ' / ' + res.getStatusCode());
             System.debug('*** RunSignup BODY: ' + res.getBody());
         } catch (Exception e) {
-            throw new AuraHandledException('Error calling RunSignup API: ' + e.getMessage());
+            throw new RunSignupException('Error calling RunSignup API: ' + e.getMessage());
         }
 
         if (res.getStatusCode() != 200) {
-            throw new AuraHandledException(
+            throw new RunSignupException(
                 'RunSignup API returned status ' + res.getStatus() + ': ' + res.getBody()
             );
         }

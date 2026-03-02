@@ -1711,17 +1711,10 @@ function sharedState() {
                     return false;
                 }
 
-                const numberOfWeeksUntilRace = this.selectedTimeframe.substring(0, 2).trim();
-                const weeksInt = parseInt(numberOfWeeksUntilRace, 10);
-                const allowed = (this.raceDateOptions || []).some(o => o.value === weeksInt);
-                if (!allowed) {
-                    this.errors.selectedTimeframe = 'Selected plan length does not fit within the chosen race date.';
-                    this.showErrorToast = true;
-                    setTimeout(() => { this.showErrorToast = false; }, 3000);
-                    return false;
-                } else if (this.errors.selectedTimeframe) {
-                    this.errors.selectedTimeframe = '';
-                }
+                // Auto-pick the maximum available training weeks based on the race date
+                const availableOptions = this.raceDateOptions;
+                const weeksInt = availableOptions[availableOptions.length - 1].value;
+                const numberOfWeeksUntilRace = String(weeksInt);
 
                 const startDate = this.getTrainingStartDate(this.raceDate, numberOfWeeksUntilRace);
                 const mileageTarget = this.getWeeklyMileage(this.selectedWeeklyMileage, this.selectedRaceDistance, this.selectedGoal);
@@ -1910,8 +1903,8 @@ function sharedState() {
                 ));
 
             return this.selectedRaceDistance &&
-                this.selectedTimeframe &&
                 this.raceDate &&
+                this.raceDateOptions.length > 0 &&
                 this.selectedGoal &&
                 this.selectedWeeklyMileage &&
                 !hasErrors;

@@ -1,4 +1,6 @@
 public with sharing class RaceFilterCoachController {
+
+    public class RaceFilterException extends Exception {}
     
     // Reuse the same agent + action as your TrainingPlanReviewController
     private static final String RACE_AGENT_API_NAME    = 'Training_Plan_Coach';
@@ -21,7 +23,7 @@ public with sharing class RaceFilterCoachController {
         System.debug('*** RaceFilterCoach request: ' + JSON.serialize(req));
         
         if (String.isBlank(req.userPrompt)) {
-            throw new AuraHandledException('Please describe what kind of race you are looking for.');
+            throw new RaceFilterException('Please describe what kind of race you are looking for.');
         }
         
         String userMessage =
@@ -38,7 +40,7 @@ public with sharing class RaceFilterCoachController {
         
         List<Invocable.Action.Result> results = action.invoke();
         if (results.isEmpty()) {
-            throw new AuraHandledException('No response returned from Agentforce (Race Filter Coach).');
+            throw new RaceFilterException('No response returned from Agentforce (Race Filter Coach).');
         }
         
         Invocable.Action.Result result = results.get(0);
@@ -48,7 +50,7 @@ public with sharing class RaceFilterCoachController {
             for (Invocable.Action.Error e : result.getErrors()) {
                 msgs.add(e.getMessage());
             }
-            throw new AuraHandledException('Error invoking race filter coach: ' + String.join(msgs, '; '));
+            throw new RaceFilterException('Error invoking race filter coach: ' + String.join(msgs, '; '));
         }
         
         Map<String, Object> outVars = result.getOutputParameters();
