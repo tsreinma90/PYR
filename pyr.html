@@ -502,12 +502,25 @@
                                 <div x-data="calendarComponent()" class="p-6 bg-white text-gray-900">
                                     <!-- Calendar Header -->
                                     <div class="calendar-container flex flex-col bg-white rounded-lg p-4">
-                                        <div class="flex justify-between items-center mb-4">
-                                            <div>
-                                                <span x-text="MONTH_NAMES[month]" class="text-lg font-bold"></span>
-                                                <span x-text="year" class="ml-1 text-lg font-normal"></span>
+                                        <div class="flex items-center justify-between mb-4 gap-2">
+                                            <!-- Prev / Month Year / Next -->
+                                            <div class="flex items-center gap-2">
+                                                <button @click="changeMonth(-1)"
+                                                    class="rounded-md bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 transition">
+                                                    ‹
+                                                </button>
+                                                <div class="text-base font-bold whitespace-nowrap">
+                                                    <span x-text="MONTH_NAMES[month]"></span>
+                                                    <span x-text="year" class="ml-1 font-normal text-gray-500"></span>
+                                                </div>
+                                                <button @click="changeMonth(1)"
+                                                    class="rounded-md bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 transition">
+                                                    ›
+                                                </button>
                                             </div>
-                                            <div class="flex items-center justify-end space-x-3 mt-4">
+
+                                            <!-- Action buttons -->
+                                            <div class="flex items-center gap-2">
                                                 <!-- Save / My Plans — desktop only -->
                                                 <div x-show="isLoggedIn && !isMobile" class="flex items-center gap-2">
                                                     <button
@@ -567,17 +580,6 @@
                                                         </div>
                                                     </template>
                                                 </div>
-
-                                                <!-- Prev/Next buttons -->
-                                                <button @click="changeMonth(-1)"
-                                                    class="rounded-md bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 transition">
-                                                    Prev
-                                                </button>
-
-                                                <button @click="changeMonth(1)"
-                                                    class="rounded-md bg-gray-100 border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-200 transition">
-                                                    Next
-                                                </button>
                                             </div>
                                         </div>
 
