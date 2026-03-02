@@ -78,7 +78,7 @@ const EVENT_COLOR_MAP = new Map([
 function exportToCSV(events) {
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    // Group events by week start (Monday) and store distance + notes per day
+    // Group events by week start (Monday)
     const grouped = {};
 
     events.forEach(event => {
@@ -89,61 +89,45 @@ function exportToCSV(events) {
         const weekKey = localDateKeyFromDate(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate(), 12, 0, 0, 0));
 
         if (!grouped[weekKey]) {
-            grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '' }));
+            grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '', type: '' }));
         }
 
-        // Convert Sun–Sat (0–6) to Mon–Sun (0–6)
         const dayIndex = (dateObj.getDay() + 6) % 7;
-
         grouped[weekKey][dayIndex] = {
             distance: event.event_distance || '',
-            notes: event.event_notes || ''
+            notes: event.event_notes || '',
+            type: event.event_workout || ''
         };
     });
 
-    // Build header: Week, Mon, Mon Notes, Tue, Tue Notes, ... , Sun, Sun Notes, Total
-    const header = ['Week'];
-    daysOfWeek.forEach(d => {
-        header.push(d);
-        header.push(`${d} Notes`);
-    });
-    header.push('Total');
+    // 9 columns: Week | Mon…Sun | Total
+    const header = ['Week', ...daysOfWeek, 'Total'];
 
-    // Build rows
-    const rows = Object.entries(grouped).map(([weekStart, dayData], i) => {
+    const rows = Object.entries(grouped).map(([, dayData], i) => {
         let total = 0;
-        const cells = [];
-
-        dayData.forEach(({ distance, notes }) => {
+        const cells = dayData.map(({ distance, notes, type }) => {
             const num = parseFloat(distance);
-            if (!isNaN(num)) {
-                total += num;
-            }
-            cells.push(distance);
-            cells.push(notes);
+            if (!isNaN(num)) total += num;
+            if (!distance) return '';
+            const parts = [`${distance}mi ${type || ''}`.trim()];
+            if (notes) parts.push(notes);
+            return parts.join(' | ');
         });
-
-        const totalStr = total ? total.toFixed(1) : '';
-        return [i + 1, ...cells, totalStr];
+        return [i + 1, ...cells, total ? total.toFixed(1) : ''];
     });
 
-    // CSV-encode with quotes and escaping for commas/quotes
     const allRows = [header, ...rows];
     const csvContent = allRows
         .map(row =>
-            row
-                .map(value => {
-                    const v = value == null ? '' : String(value);
-                    const escaped = v.replace(/"/g, '""');
-                    return `"${escaped}"`;
-                })
-                .join(',')
+            row.map(value => {
+                const v = value == null ? '' : String(value);
+                return `"${v.replace(/"/g, '""')}"`;
+            }).join(',')
         )
         .join('\n');
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement("a");
     link.setAttribute("href", url);
     link.setAttribute("download", "training_plan.csv");
@@ -161,11 +145,11 @@ function getMonday(date) {
 
 function exportToPDF(events) {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF({ orientation: 'landscape' });
 
     const daysOfWeek = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 
-    // Group events by week start (Monday) and store distance + notes per day
+    // Group events by week start (Monday)
     const grouped = {};
 
     events.forEach(event => {
@@ -176,65 +160,131 @@ function exportToPDF(events) {
         const weekKey = localDateKeyFromDate(new Date(monday.getFullYear(), monday.getMonth(), monday.getDate(), 12, 0, 0, 0));
 
         if (!grouped[weekKey]) {
-            grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '' }));
+            grouped[weekKey] = Array.from({ length: 7 }, () => ({ distance: '', notes: '', type: '' }));
         }
 
-        // Convert Sun–Sat (0–6) to Mon–Sun (0–6)
         const dayIndex = (dateObj.getDay() + 6) % 7;
-
         grouped[weekKey][dayIndex] = {
             distance: event.event_distance || '',
-            notes: event.event_notes || ''
+            notes: event.event_notes || '',
+            type: event.event_workout || ''
         };
     });
 
-    // Build header: Week, Mon, Mon Notes, Tue, Tue Notes, ... , Sun, Sun Notes, Total
-    const header = ['Week'];
-    daysOfWeek.forEach(d => {
-        header.push(d);
-        header.push(`${d} Notes`);
-    });
-    header.push('Total');
+    // 9 columns: Week | Mon…Sun | Total
+    const header = ['Week', ...daysOfWeek, 'Total'];
 
-    // Build rows
-    const rows = Object.entries(grouped).map(([weekStart, dayData], i) => {
+    const rows = Object.entries(grouped).map(([, dayData], i) => {
         let total = 0;
-        const cells = [];
-
-        dayData.forEach(({ distance, notes }) => {
+        const cells = dayData.map(({ distance, type, notes }) => {
             const num = parseFloat(distance);
-            if (!isNaN(num)) {
-                total += num;
-            }
-            cells.push(distance);
-            cells.push(notes);
+            if (!isNaN(num)) total += num;
+            if (!distance) return 'Rest';
+            const parts = [`${distance}mi ${type || ''}`.trim()];
+            if (notes) parts.push(notes.length > 80 ? notes.slice(0, 79) + '…' : notes);
+            return parts.join('\n');
         });
-
-        const totalStr = total ? total.toFixed(1) : '';
-        return [i + 1, ...cells, totalStr];
+        return [i + 1, ...cells, total ? total.toFixed(1) : ''];
     });
 
-    // Use autoTable to render the weekly grid with notes, mirroring the CSV layout
     doc.autoTable({
         head: [header],
         body: rows,
         startY: 10,
         theme: 'grid',
-        headStyles: {
-            fillColor: [41, 128, 185],
-            textColor: 255,
-            halign: 'center'
-        },
+        headStyles: { fillColor: [41, 128, 185], textColor: 255, halign: 'center' },
         styles: {
-            fontSize: 8,
-            cellPadding: 2
+            fontSize: 9,
+            cellPadding: 3,
+            overflow: 'linebreak',
+            halign: 'center',
+            valign: 'middle',
+            minCellHeight: 14
         },
         columnStyles: {
-            0: { halign: 'center' }
+            0: { cellWidth: 14 },
+            8: { cellWidth: 14 }
         }
     });
 
     doc.save("training_plan.pdf");
+}
+
+function exportDashboardToPDF(summary) {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF({ orientation: 'landscape' });
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const margin = 12;
+    let y = margin;
+
+    // Title
+    doc.setFontSize(16);
+    doc.setFont(undefined, 'bold');
+    doc.text('Training Plan Dashboard', margin, y + 8);
+    y += 18;
+
+    // Summary metrics
+    doc.autoTable({
+        body: [
+            ['Weeks in Training', String(summary.weeks)],
+            ['Avg Weekly Mileage', String(summary.avgWeekly)],
+            ['Avg Daily Mileage', String(summary.avgDaily)],
+            ['Total Mileage', String(summary.totalMileage)],
+            ['Easy / Speed / Long', summary.typePercents],
+            ['Peak Week Mileage', String(summary.peakWeek)],
+        ],
+        startY: y,
+        theme: 'plain',
+        styles: { fontSize: 10 },
+        columnStyles: { 0: { fontStyle: 'bold', cellWidth: 55 } },
+        margin: { left: margin, right: margin }
+    });
+    y = doc.lastAutoTable.finalY + 10;
+
+    // Charts
+    const charts = [
+        { id: 'myChart', label: 'Weekly Overview' },
+        { id: 'weeklyMileageTrend', label: 'Weekly Mileage Trend' },
+        { id: 'workoutTypeBreakdown', label: 'Workout Type Breakdown' },
+        { id: 'paceProgression', label: 'Pace Progression' },
+        { id: 'trainingPhaseBreakdown', label: 'Training Phase Breakdown' },
+        { id: 'easyVsQualityRatio', label: 'Easy vs Quality Ratio' },
+        { id: 'cumulativeVolume', label: 'Cumulative Volume Progression' },
+    ];
+
+    const contentW = pageW - 2 * margin;
+
+    for (const { id, label } of charts) {
+        const canvas = document.getElementById(id);
+        if (!canvas || canvas.width === 0) continue;
+
+        const imgData = canvas.toDataURL('image/png');
+        const aspectRatio = canvas.height / canvas.width;
+        // Scale to fit width, but cap height at 75mm and reduce width proportionally
+        let imgW = contentW;
+        let imgH = contentW * aspectRatio;
+        if (imgH > 75) {
+            imgH = 75;
+            imgW = imgH / aspectRatio;
+        }
+        const xOffset = margin + (contentW - imgW) / 2;
+
+        if (y + imgH + 14 > pageH - margin) {
+            doc.addPage();
+            y = margin;
+        }
+
+        doc.setFontSize(10);
+        doc.setFont(undefined, 'bold');
+        doc.text(label, margin, y + 6);
+        y += 10;
+
+        doc.addImage(imgData, 'PNG', xOffset, y, imgW, imgH);
+        y += imgH + 10;
+    }
+
+    doc.save('training_dashboard.pdf');
 }
 
 
@@ -1132,6 +1182,7 @@ function sharedState() {
             // If the user hasn't customized yet, apply defaults before showing the modal
             this.applyDefaultWorkoutSelection();
             this.advancedConfigOpen = true;
+            document.body.style.overflow = 'hidden';
         },
         closeAdvancedConfig() {
             // Validate that at least one non-easy workout type is selected
@@ -1141,6 +1192,7 @@ function sharedState() {
                 return;
             }
             this.advancedConfigOpen = false;
+            document.body.style.overflow = '';
         },
 
         // --- Mobile charts modal ---
@@ -1351,6 +1403,10 @@ function sharedState() {
             }
             if (paramDist) this.selectedRaceDistance = paramDist;
 
+            // Lock body scroll whenever any modal is open
+            this.$watch('showSavePlanModal', v => { document.body.style.overflow = v ? 'hidden' : ''; });
+            this.$watch('showMyPlansModal', v => { document.body.style.overflow = v ? 'hidden' : ''; });
+
             // Remove the loading overlay
             const loader = document.getElementById('app-loader');
             if (loader) loader.remove();
@@ -1419,6 +1475,17 @@ function sharedState() {
             } else {
                 setTimeout(render, 0);
             }
+        },
+
+        exportDashboard() {
+            exportDashboardToPDF({
+                weeks: this.numOfWeeksInTraining,
+                avgWeekly: this.average_mileage_weekly,
+                avgDaily: this.average_mileage_daily,
+                totalMileage: this.analyticsSummary?.totalMileage?.toFixed(0) ?? '—',
+                typePercents: `${this.analyticsSummary?.typePercents?.easy ?? 0}% / ${this.analyticsSummary?.typePercents?.speed ?? 0}% / ${this.analyticsSummary?.typePercents?.long ?? 0}%`,
+                peakWeek: this.analyticsSummary?.peakWeekMileage?.toFixed(0) ?? '—',
+            });
         },
 
         // --- Plan manager methods ---
