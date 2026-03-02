@@ -493,9 +493,9 @@ function raceFinder() {
 
         formatDate(dateStr) {
             if (!dateStr) return '';
-            return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', {
-                month: 'short', day: 'numeric', year: 'numeric'
-            });
+            const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00');
+            if (isNaN(d)) return '';
+            return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         },
     };
 }
