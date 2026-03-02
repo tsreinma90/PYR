@@ -1293,9 +1293,6 @@ function sharedState() {
 
         // Root Alpine init – wires up listeners for the LWC bridge events
         init() {
-            // Enforce minimum splash display time so the animation always plays fully
-            const _splashMinTime = new Promise(r => setTimeout(r, 1600));
-
             // Restore auth session and wire up Google Sign-In
             authManager.init();
             if (authManager.isAuthenticated() && authManager.isTokenExpired()) {
@@ -1340,13 +1337,16 @@ function sharedState() {
                 this.enhancedOutput = `⚠️ ${message}`;
             });
 
-            // Fade out the splash screen after the minimum display time
-            _splashMinTime.then(() => {
-                const loader = document.getElementById('app-loader');
-                if (!loader) return;
-                loader.style.animation = 'pyr-fade-out 0.5s ease forwards';
-                setTimeout(() => loader.remove(), 500);
-            });
+            // Pre-fill form from Race Finder URL params (?raceDate=YYYY-MM-DD&raceDistance=marathon)
+            const urlParams = new URLSearchParams(window.location.search);
+            const paramDate = urlParams.get('raceDate');
+            const paramDist = urlParams.get('raceDistance');
+            if (paramDate) this.raceDate = paramDate;
+            if (paramDist) this.selectedRaceDistance = paramDist;
+
+            // Remove the loading overlay
+            const loader = document.getElementById('app-loader');
+            if (loader) loader.remove();
         },
 
         async handleGoogleSignIn(idToken) {
@@ -2067,7 +2067,7 @@ function sharedState() {
                     this.updateIsMobile();
                     window.addEventListener('resize', () => this.updateIsMobile());
 
-                    document.addEventListener("trainingplangenerated", (event) => {
+                    document.addEventListener("trainingplangenerated", () => {
                         this.loadWorkouts();
                     });
                 },
