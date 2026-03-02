@@ -491,6 +491,12 @@ function raceFinder() {
                 }
             }
             if (this.selectedPreset) p.set('raceDistance', this.selectedPreset);
+            // Store params in sessionStorage so pyr.js can read them even if Squarespace
+            // Ajax loading runs Alpine init() before history.pushState updates the URL.
+            const stored = {};
+            if (p.get('raceDate')) stored.raceDate = p.get('raceDate');
+            if (p.get('raceDistance')) stored.raceDistance = p.get('raceDistance');
+            if (Object.keys(stored).length) sessionStorage.setItem('pyrRaceParams', JSON.stringify(stored));
             window.open(`https://www.planyourrun.org/planner?${p}`, '_top');
         },
 

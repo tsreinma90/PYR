@@ -1390,9 +1390,18 @@ function sharedState() {
             });
 
             // Pre-fill form from Race Finder URL params (?raceDate=YYYY-MM-DD&raceDistance=marathon)
+            // Squarespace Ajax loading can run Alpine init() before history.pushState updates the URL,
+            // so we also check sessionStorage as a fallback set by raceFinder.html before navigating.
             const urlParams = new URLSearchParams(window.location.search);
-            const paramDate = urlParams.get('raceDate');
-            const paramDist = urlParams.get('raceDistance');
+            let paramDate = urlParams.get('raceDate');
+            let paramDist = urlParams.get('raceDistance');
+            if (!paramDate && !paramDist) {
+                try {
+                    const stored = JSON.parse(sessionStorage.getItem('pyrRaceParams') || 'null');
+                    if (stored) { paramDate = stored.raceDate || null; paramDist = stored.raceDistance || null; }
+                } catch(e) {}
+            }
+            sessionStorage.removeItem('pyrRaceParams');
             if (paramDate) {
                 this.raceDate = paramDate;
                 // Date inputs sometimes don't reflect programmatic updates — nudge the DOM directly
