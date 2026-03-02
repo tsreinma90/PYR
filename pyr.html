@@ -108,11 +108,6 @@
     <nav class="w-full bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm">
         <!-- Brand -->
         <div class="flex items-center gap-2.5">
-            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
-                </svg>
-            </div>
             <div>
                 <span class="font-bold text-gray-900 text-base tracking-tight leading-none">Plan Your Run</span>
                 <p class="hidden sm:block text-xs text-gray-400 leading-none mt-0.5">Personalized training plans</p>
@@ -154,7 +149,7 @@
                             <span x-show="selectedRaceDistance">
                                 Configuring your
                                 <span class="font-semibold text-gray-700" x-text="selectedRaceDistance"></span>
-                                training plan
+                                training plan<template x-if="raceDate && raceDateOptions.length > 0"> · <span class="font-semibold text-gray-700" x-text="raceDateOptions[raceDateOptions.length - 1].value + ' weeks'"></span></template>
                             </span>
                         </p>
 
@@ -174,7 +169,7 @@
                         </button>
                     </div>
                     <!-- Controls (use horizontal space) -->
-                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
 
                         <!-- Race Distance -->
                         <div>
@@ -208,35 +203,14 @@
                             <p class="text-red-500 text-sm mt-1" x-show="errors.raceDate" x-text="errors.raceDate"></p>
                         </div>
 
-                        <!-- Training Block -->
-                        <div>
-                            <div class="flex items-center gap-2 mb-1.5">
-                                <label for="timeframe" class="flex items-center gap-2 text-sm font-medium text-gray-700">
-                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold flex-none">3</span>
-                                    Training Block
-                                </label>
-                                <span class="info-tooltip" tabindex="0" role="button" aria-label="Training block info">
-                                    <span class="info-icon">i</span>
-                                    <span class="info-bubble">Longer plans build base fitness before faster workouts
-                                        begin.</span>
-                                </span>
-                            </div>
-                            <select id="timeframe" x-model="selectedTimeframe"
-                                class="w-full text-gray-900 bg-white border border-gray-300 p-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                                <option value="" disabled>Select a time block</option>
-                                <template x-for="option in raceDateOptions" :key="option.value">
-                                    <option :value="option.value" x-text="option.label"></option>
-                                </template>
-                            </select>
-                        </div>
 
                         <!-- Weekly Mileage + Time Goal (side-by-side on desktop) -->
-                        <div class="lg:col-span-3 grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div class="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-4">
 
                             <!-- Left: weekly mileage -->
                             <div class="min-w-0">
                                 <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold flex-none">4</span>
+                                    <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold flex-none">3</span>
                                     Peak Weekly Mileage
                                 </label>
 
@@ -268,7 +242,7 @@
                             <div class="min-w-0">
                                 <div id="input-specific_time_goal" class="conditional-input">
                                     <label class="flex items-center gap-2 text-sm font-medium text-gray-700 mb-2">
-                                        <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold flex-none">5</span>
+                                        <span class="inline-flex h-5 w-5 items-center justify-center rounded-full bg-blue-600 text-white text-xs font-bold flex-none">4</span>
                                         Goal Race Pace
                                         <span class="text-gray-400 text-xs font-normal"
                                             x-text="`(Range: ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.min || 'N/A' : ''} - ${selectedRaceDistance ? timeLimits[selectedRaceDistance]?.max || 'N/A' : ''})`"></span>
