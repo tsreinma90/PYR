@@ -46,7 +46,8 @@
         <aside class="mb-6 lg:mb-0">
             <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
 
-                <!-- AI search -->
+                <!--
+                AI search — commented out, not worth maintaining right now
                 <details class="border-b border-gray-100" open>
                     <summary class="flex items-center justify-between px-4 py-3 cursor-pointer select-none hover:bg-gray-50" style="list-style:none;">
                         <div class="flex items-center gap-2">
@@ -90,6 +91,7 @@
                         </template>
                     </div>
                 </details>
+                -->
 
                 <!-- Manual filters -->
                 <div class="px-4 py-4 space-y-4">
@@ -327,8 +329,8 @@ function raceFinder() {
         // Results
         races: [], isLoading: false, hasSearched: false, error: null,
 
-        // AI
-        aiQuery: '', aiLoading: false, aiError: null, aiSummary: null,
+        // AI (commented out — not active)
+        // aiQuery: '', aiLoading: false, aiError: null, aiSummary: null,
 
         // Auth (read-only from localStorage — no sign-in flow on this page)
         jwtToken: null, currentUser: null,
@@ -427,6 +429,7 @@ function raceFinder() {
             }
         },
 
+        /*
         async askAI() {
             if (!this.aiQuery.trim()) {
                 this.aiError = "Please describe the race you're looking for.";
@@ -469,6 +472,7 @@ function raceFinder() {
                 this.aiLoading = false;
             }
         },
+        */
 
         // Pre-fill pyr.html with race date and distance preset (if selected)
         planThisRace(race) {
