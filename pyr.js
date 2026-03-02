@@ -1341,7 +1341,14 @@ function sharedState() {
             const urlParams = new URLSearchParams(window.location.search);
             const paramDate = urlParams.get('raceDate');
             const paramDist = urlParams.get('raceDistance');
-            if (paramDate) this.raceDate = paramDate;
+            if (paramDate) {
+                this.raceDate = paramDate;
+                // Date inputs sometimes don't reflect programmatic updates — nudge the DOM directly
+                this.$nextTick(() => {
+                    const el = document.getElementById('raceDate');
+                    if (el) el.value = paramDate;
+                });
+            }
             if (paramDist) this.selectedRaceDistance = paramDist;
 
             // Remove the loading overlay
