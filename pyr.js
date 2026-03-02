@@ -1132,6 +1132,7 @@ function sharedState() {
             // If the user hasn't customized yet, apply defaults before showing the modal
             this.applyDefaultWorkoutSelection();
             this.advancedConfigOpen = true;
+            document.body.style.overflow = 'hidden';
         },
         closeAdvancedConfig() {
             // Validate that at least one non-easy workout type is selected
@@ -1141,6 +1142,7 @@ function sharedState() {
                 return;
             }
             this.advancedConfigOpen = false;
+            document.body.style.overflow = '';
         },
 
         // --- Mobile charts modal ---
@@ -1350,6 +1352,10 @@ function sharedState() {
                 });
             }
             if (paramDist) this.selectedRaceDistance = paramDist;
+
+            // Lock body scroll whenever any modal is open
+            this.$watch('showSavePlanModal', v => { document.body.style.overflow = v ? 'hidden' : ''; });
+            this.$watch('showMyPlansModal', v => { document.body.style.overflow = v ? 'hidden' : ''; });
 
             // Remove the loading overlay
             const loader = document.getElementById('app-loader');
