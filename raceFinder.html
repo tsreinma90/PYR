@@ -479,7 +479,8 @@ function raceFinder() {
             const p = new URLSearchParams();
             if (race.nextDate) {
                 // Normalize to YYYY-MM-DD regardless of what RunSignup returns
-                const d = new Date(race.nextDate + (race.nextDate.includes('T') ? '' : 'T00:00:00'));
+                const normalized = race.nextDate.replace(' ', 'T');
+                const d = new Date(normalized.includes('T') ? normalized : normalized + 'T00:00:00');
                 if (!isNaN(d)) {
                     const yyyy = d.getFullYear();
                     const mm   = String(d.getMonth() + 1).padStart(2, '0');
@@ -493,7 +494,9 @@ function raceFinder() {
 
         formatDate(dateStr) {
             if (!dateStr) return '';
-            const d = new Date(dateStr.includes('T') ? dateStr : dateStr + 'T00:00:00');
+            // RunSignup may return "YYYY-MM-DD HH:MM:SS" (space) or "YYYY-MM-DDTHH:MM:SS"
+            const normalized = dateStr.replace(' ', 'T');
+            const d = new Date(normalized.includes('T') ? normalized : normalized + 'T00:00:00');
             if (isNaN(d)) return '';
             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         },
