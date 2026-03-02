@@ -176,11 +176,13 @@ function exportToPDF(events) {
 
     const rows = Object.entries(grouped).map(([, dayData], i) => {
         let total = 0;
-        const cells = dayData.map(({ distance, type }) => {
+        const cells = dayData.map(({ distance, type, notes }) => {
             const num = parseFloat(distance);
             if (!isNaN(num)) total += num;
             if (!distance) return 'Rest';
-            return `${distance}mi\n${type || ''}`.trim();
+            const parts = [`${distance}mi ${type || ''}`.trim()];
+            if (notes) parts.push(notes.length > 80 ? notes.slice(0, 79) + '…' : notes);
+            return parts.join('\n');
         });
         return [i + 1, ...cells, total ? total.toFixed(1) : ''];
     });
@@ -259,7 +261,14 @@ function exportDashboardToPDF(summary) {
 
         const imgData = canvas.toDataURL('image/png');
         const aspectRatio = canvas.height / canvas.width;
-        const imgH = Math.min(contentW * aspectRatio, 75);
+        // Scale to fit width, but cap height at 75mm and reduce width proportionally
+        let imgW = contentW;
+        let imgH = contentW * aspectRatio;
+        if (imgH > 75) {
+            imgH = 75;
+            imgW = imgH / aspectRatio;
+        }
+        const xOffset = margin + (contentW - imgW) / 2;
 
         if (y + imgH + 14 > pageH - margin) {
             doc.addPage();
@@ -271,7 +280,7 @@ function exportDashboardToPDF(summary) {
         doc.text(label, margin, y + 6);
         y += 10;
 
-        doc.addImage(imgData, 'PNG', margin, y, contentW, imgH);
+        doc.addImage(imgData, 'PNG', xOffset, y, imgW, imgH);
         y += imgH + 10;
     }
 
