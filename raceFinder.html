@@ -262,10 +262,15 @@
                                     class="flex-1 text-center rounded-lg border border-gray-200 px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-50 transition-colors">
                                     View &amp; Register
                                 </a>
-                                <button @click="planThisRace(race)"
-                                    class="flex-1 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-blue-700 transition-colors flex items-center justify-center gap-1">
+                                <button @click="!isTooSoon(race.nextDate) && planThisRace(race)"
+                                    :disabled="isTooSoon(race.nextDate)"
+                                    :title="isTooSoon(race.nextDate) ? 'Race is less than 4 weeks away — not enough time to train' : ''"
+                                    :class="isTooSoon(race.nextDate)
+                                        ? 'bg-gray-100 text-gray-400 border border-gray-200 cursor-not-allowed'
+                                        : 'bg-blue-600 text-white hover:bg-blue-700 cursor-pointer'"
+                                    class="flex-1 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors flex items-center justify-center gap-1">
                                     <svg class="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 002 2z" />
                                     </svg>
                                     Plan This Race
                                 </button>
@@ -487,6 +492,18 @@ function raceFinder() {
             }
             if (this.selectedPreset) p.set('raceDistance', this.selectedPreset);
             window.location.href = `./pyr.html?${p}`;
+        },
+
+        isTooSoon(nextDate) {
+            if (!nextDate) return false;
+            const iso = nextDate.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+            const raceDate = iso
+                ? new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]))
+                : new Date(nextDate);
+            if (isNaN(raceDate)) return false;
+            const cutoff = new Date();
+            cutoff.setDate(cutoff.getDate() + 28);
+            return raceDate < cutoff;
         },
 
         formatDate(dateStr) {
