@@ -491,7 +491,7 @@ function raceFinder() {
                 }
             }
             if (this.selectedPreset) p.set('raceDistance', this.selectedPreset);
-            window.location.href = `https://www.planyourrun.org/planner?${p}`;
+            window.open(`https://www.planyourrun.org/planner?${p}`, '_top');
         },
 
         isTooSoon(nextDate) {
