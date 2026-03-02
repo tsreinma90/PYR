@@ -19,12 +19,7 @@
 
 <!-- Nav -->
 <nav class="w-full bg-white border-b border-gray-200 px-6 py-3 flex items-center justify-between shadow-sm sticky top-0 z-40">
-    <a href="./index.html" class="flex items-center gap-2.5 no-underline">
-        <div>
-            <span class="font-bold text-gray-900 text-base tracking-tight leading-none">Plan Your Run</span>
-            <p class="hidden sm:block text-xs text-gray-400 leading-none mt-0.5">Race Finder</p>
-        </div>
-    </a>
+    <a href="./index.html" class="flex items-center gap-2.5 no-underline"></a>
     <div class="flex items-center gap-4">
         <div x-show="isLoggedIn" x-cloak
             class="h-7 w-7 rounded-full bg-blue-600 flex items-center justify-center text-white text-xs font-bold"
@@ -479,8 +474,10 @@ function raceFinder() {
             const p = new URLSearchParams();
             if (race.nextDate) {
                 // Normalize to YYYY-MM-DD regardless of what RunSignup returns
-                const normalized = race.nextDate.replace(' ', 'T');
-                const d = new Date(normalized.includes('T') ? normalized : normalized + 'T00:00:00');
+                const iso = race.nextDate.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+                const d = iso
+                    ? new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]))
+                    : new Date(race.nextDate);
                 if (!isNaN(d)) {
                     const yyyy = d.getFullYear();
                     const mm   = String(d.getMonth() + 1).padStart(2, '0');
@@ -494,9 +491,14 @@ function raceFinder() {
 
         formatDate(dateStr) {
             if (!dateStr) return '';
-            // RunSignup may return "YYYY-MM-DD HH:MM:SS" (space) or "YYYY-MM-DDTHH:MM:SS"
-            const normalized = dateStr.replace(' ', 'T');
-            const d = new Date(normalized.includes('T') ? normalized : normalized + 'T00:00:00');
+            // If YYYY-MM-DD (with or without time), extract date parts to avoid UTC offset shift
+            const iso = dateStr.trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+            if (iso) {
+                const d = new Date(Number(iso[1]), Number(iso[2]) - 1, Number(iso[3]));
+                return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+            }
+            // Fallback: handles MM/DD/YYYY and other browser-parseable formats
+            const d = new Date(dateStr);
             if (isNaN(d)) return '';
             return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
         },
